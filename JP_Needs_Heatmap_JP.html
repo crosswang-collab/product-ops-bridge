@@ -197,17 +197,46 @@ li.climb.on .ct2{text-decoration-color:var(--acc)}
 .rk-detail{list-style:none;padding:0;margin:0}
 .ritem-box{margin:2px 0 6px}
 @media(max-width:820px){.rbars{display:none}.rk-btn{margin-left:0}}
-</style></head><body><div class="wrap">
+.rk-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:#10151f;border:1px solid var(--bd);border-radius:10px;padding:11px 12px;margin:0 0 12px}
+.rk-add .rka-in{flex:1 1 240px;min-width:170px;background:#0b0e14;border:1px solid var(--bd);border-radius:7px;color:var(--tx);padding:8px 10px;font-size:13px}
+.rk-add .rka-sel,.rk-add .rka-num{background:#0b0e14;border:1px solid var(--bd);border-radius:7px;color:var(--tx);padding:7px 8px;font-size:12.5px}
+.rk-add .rka-num{width:66px}
+.rk-add .rka-lb{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mut)}
+.ritem.custom{border-left-color:var(--acc)}
+.rk-badge{display:inline-block;background:var(--acc);color:#04222a;font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:middle}
+.rk-del{background:transparent;border:1px solid var(--bd);color:var(--mut);border-radius:6px;width:26px;flex:0 0 auto;cursor:pointer;font-size:12px}
+.rk-del:hover{color:#e0483f;border-color:#e0483f}
+.rk-sync{font-size:11px;color:var(--dim)}
+.rk-sync.on{color:#3fd08a}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head><body><div class="wrap">
 <header>
 <h1>JP Needs Tank</h1><span class="ver">v1</span>
 <span class="sub">日本のユーザー/配信者ニーズ · ジャーニー × タッチポイント · 291件</span>
 </header>
 <div class="bluf" id="bluf"></div>
 <div class="rankwrap">
- <div class="rk-top"><h3>🎯 25ペイン総合ランキング · ドラッグで並べ替え</h3>
+ <div class="rk-top"><h3>🎯 25ペイン総合ランキング · ドラッグで並べ替え</h3><span class="rk-sync" id="rkSync"></span>
+  <button class="rk-btn" id="rkAddBtn">➕ 項目を追加</button>
   <button class="rk-btn" id="rkExport">⬇ 現在の順序を書き出す</button>
   <button class="rk-btn ghost" id="rkReset">↺ 初期順序に戻す</button></div>
- <p class="rk-hint">「件数×3 + 優先度×4」で初期ソート；左の ⠿ をドラッグで順序変更。カードをクリックで原始リクエストを展開。</p>
+ <p class="rk-hint">「件数×3 + 優先度×4」で初期ソート；左の ⠿ をドラッグで順序変更。カードをクリックで原始リクエストを展開。手動追加した項目は全員にリアルタイム同期されます。</p>
+ <div class="rk-add" id="rkAdd" hidden>
+   <input id="rkaTitle" class="rka-in" type="text" placeholder="ペインのタイトル（必須）" maxlength="120">
+   <select id="rkaCard" class="rka-sel" title="カテゴリ">
+     <option value="NEW">＋ その他／カスタム</option>
+     <option value="U4">U4 ギフト・課金</option>
+     <option value="U2">U2 視聴・回遊</option>
+     <option value="U6">U6 イベント・競争</option>
+     <option value="U5">U5 承認・地位</option>
+     <option value="S2">S2 配信・運営</option>
+   </select>
+   <label class="rka-lb">優先<select id="rkaPri" class="rka-sel"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select></label>
+   <label class="rka-lb">件数<input id="rkaN" class="rka-num" type="number" min="0" max="999" value="1"></label>
+   <button class="rk-btn" id="rkaSave">追加</button>
+   <button class="rk-btn ghost" id="rkaCancel">キャンセル</button>
+ </div>
  <div class="ranklist" id="ranklist"></div>
 </div>
 <div class="kpis" id="kpis"></div>
@@ -548,19 +577,77 @@ const RCC={"U4": "#e0483f", "U2": "#5fd3e6", "U6": "#d99a5b", "S2": "#c9a24a", "
 const RSTR={"sect": "🎯 25ペイン総合ランキング · ドラッグで並べ替え", "hint": "「件数×3 + 優先度×4」で初期ソート；左の ⠿ をドラッグで順序変更。カードをクリックで原始リクエストを展開。", "exp": "現在の順序を書き出す", "copied": "コピーしました！", "n": "件数", "pri": "優先", "rank": "#", "reset": "初期順序に戻す", "card": "所属", "req": "件の原始リクエスト"};
 let RORDER=RANK.map(r=>r.k);
 let _ropen=null;
+/* ── 手動追加項目 + Supabase リアルタイム同期 ── */
+// ▼▼▼ 設定：Supabase 情報を貼り付け（ZH と JP の両ファイルに「同じ」値を入れると順序が共有・同期されます）▼▼▼
+const SUPA_URL   = "";              // 例：https://xxxxxxxxxxxx.supabase.co
+const SUPA_KEY   = "";              // Supabase anon public key
+const SUPA_TABLE = "jp_needs_board";
+const BOARD_ID   = "jp-needs-v1";   // ZH/JP で同一 id → 同じ順序を共有
+// ▲▲▲ 設定ここまで ▲▲▲
+let CUSTOM = [];
+const _sb = (SUPA_URL && SUPA_KEY && window.supabase) ? window.supabase.createClient(SUPA_URL, SUPA_KEY) : null;
+let _lastPush = "";
+function BYK(){ const m={}; RANK.forEach(r=>m[r.k]=r); CUSTOM.forEach(c=>m[c.k]=c); return m; }
+function setSync(t,ok){ const el=document.getElementById('rkSync'); if(el){ el.textContent=t; el.className='rk-sync'+(ok?' on':''); } }
+function normOrder(ord){
+  const valid=new Set(RANK.map(r=>r.k).concat(CUSTOM.map(c=>c.k)));
+  let o=Array.isArray(ord)?ord.filter(k=>valid.has(k)):[];
+  RANK.forEach(r=>{ if(!o.includes(r.k)) o.push(r.k); });
+  CUSTOM.forEach(c=>{ if(!o.includes(c.k)) o.push(c.k); });
+  return o;
+}
+function applyState(s){ s=s||{}; CUSTOM=Array.isArray(s.custom)?s.custom:[]; RORDER=normOrder(s.order); _ropen=null; renderRank(); }
+async function pushState(){
+  if(!_sb) return;
+  const state={order:RORDER, custom:CUSTOM}; _lastPush=JSON.stringify(state);
+  try{ await _sb.from(SUPA_TABLE).upsert({id:BOARD_ID, state, updated_at:new Date().toISOString()}); setSync('☁ 同期済み',true); }
+  catch(e){ setSync('⚠ 同期失敗（ローカル保存）',false); }
+}
+async function initSync(){
+  renderRank(); wireAddForm();
+  if(!_sb){ setSync('● ローカルモード（同期未設定）',false); return; }
+  setSync('… 接続中',false);
+  try{ const {data}=await _sb.from(SUPA_TABLE).select('state').eq('id',BOARD_ID).maybeSingle(); if(data&&data.state) applyState(data.state); setSync('☁ 同期済み',true); }
+  catch(e){ setSync('⚠ 読込失敗（ローカル）',false); }
+  try{ _sb.channel('board-'+BOARD_ID).on('postgres_changes',{event:'*',schema:'public',table:SUPA_TABLE,filter:'id=eq.'+BOARD_ID},p=>{ const st=p.new&&p.new.state; if(!st) return; if(JSON.stringify(st)===_lastPush) return; applyState(st); setSync('☁ 同期済み',true); }).subscribe(); }catch(e){}
+}
+function addItem(){
+  const ti=document.getElementById('rkaTitle'); const t=(ti.value||'').trim();
+  if(!t){ ti.focus(); return; }
+  const card=document.getElementById('rkaCard').value||'NEW';
+  const pri=+document.getElementById('rkaPri').value||1;
+  const n=+document.getElementById('rkaN').value||0;
+  const k='C'+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
+  CUSTOM.push({k,t,card,pri,n,ty:'✚',sc:n*3+pri*4,custom:true});
+  RORDER=normOrder([k].concat(RORDER)); _ropen=null; renderRank(); pushState();
+  ti.value=''; document.getElementById('rkaN').value='1'; document.getElementById('rkAdd').hidden=true;
+}
+function removeItem(k){ CUSTOM=CUSTOM.filter(c=>c.k!==k); RORDER=RORDER.filter(x=>x!==k); _ropen=null; renderRank(); pushState(); }
+function wireAddForm(){
+  const b=document.getElementById('rkAddBtn'), box=document.getElementById('rkAdd');
+  if(b&&!b._w){ b._w=1; b.onclick=()=>{ box.hidden=!box.hidden; if(!box.hidden) document.getElementById('rkaTitle').focus(); }; }
+  const s=document.getElementById('rkaSave'); if(s&&!s._w){ s._w=1; s.onclick=addItem; }
+  const c=document.getElementById('rkaCancel'); if(c&&!c._w){ c._w=1; c.onclick=()=>{ box.hidden=true; }; }
+  const ti=document.getElementById('rkaTitle'); if(ti&&!ti._w){ ti._w=1; ti.addEventListener('keydown',e=>{ if(e.key==='Enter') addItem(); }); }
+}
 function rItem(r,i){
   const hi_n=r.n>=8?'hi':'', hi_p=r.pri>=5?'hi':'';
-  return `<div class="ritem" draggable="true" data-k="${r.k}" style="--rc:${RCC[r.card]||'var(--acc)'}">
+  const badge=r.custom?'<span class="rk-badge">カスタム</span>':'';
+  const meta=r.custom
+    ? '<span class="rcard">カスタム項目</span>'
+    : '<span class="rcard">'+r.card+' '+(TPN[r.card]||'')+'</span><span class="rc-n">'+RSTR.card+': '+(PDISP[cardPersona(r.card)]||'')+'</span>';
+  const del=r.custom?'<button class="rk-del" data-del="'+r.k+'" title="この項目を削除">✕</button>':'';
+  return `<div class="ritem${r.custom?' custom':''}" draggable="true" data-k="${r.k}" style="--rc:${RCC[r.card]||'var(--acc)'}">
     <div class="rgrip" title="drag">⠿</div>
     <div class="rnum">${i+1}</div>
     <div class="rmid">
-      <div class="rtitle"><span class="rty">${r.ty}</span>${esc(r.t)}</div>
-      <div class="rmeta"><span class="rcard">${r.card} ${TPN[r.card]||''}</span><span class="rc-n">${RSTR.card}: ${PDISP[cardPersona(r.card)]||''}</span></div>
+      <div class="rtitle"><span class="rty">${r.ty}</span>${badge}${esc(r.t)}</div>
+      <div class="rmeta">${meta}</div>
     </div>
     <div class="rbars">
       <div class="rbar"><span class="bl">${RSTR.n}</span><span class="bv ${hi_n}">${r.n}</span></div>
       <div class="rbar"><span class="bl">${RSTR.pri}</span><span class="bv ${hi_p}">${'★'.repeat(r.pri)}</span></div>
-    </div>
+    </div>${del}
   </div>`;
 }
 function cardPersona(c){ // infer dominant persona of the card's records
@@ -570,8 +657,8 @@ function cardPersona(c){ // infer dominant persona of the card's records
 }
 function renderRank(){
   const box=document.getElementById('ranklist');
-  const byk={}; RANK.forEach(r=>byk[r.k]=r);
-  box.innerHTML=RORDER.map((k,i)=>rItem(byk[k],i)).join('');
+  const byk=BYK();
+  box.innerHTML=RORDER.map((k,i)=>byk[k]?rItem(byk[k],i):'').join('');
   wireRank();
 }
 function wireRank(){
@@ -579,15 +666,21 @@ function wireRank(){
   // click to expand (ignore clicks starting on grip)
   box.querySelectorAll('.ritem').forEach(it=>{
     it.addEventListener('click',e=>{
+      if(e.target.closest('.rk-del')){ removeItem(it.dataset.k); return; }
       if(e.target.closest('.rgrip')) return;
       const k=it.dataset.k;
-      const ex=box.querySelector('.ritem-box'); if(ex) ex.remove();
+      const ex=box.querySelector('.rk-detail'); if(ex) ex.remove();
       box.querySelectorAll('.ritem.on').forEach(x=>x.classList.remove('on'));
       if(_ropen===k){_ropen=null;return;}
       it.classList.add('on');
-      const [c,li]=k.split('.');
-      const html='<li class="ritem-box">'+buildClimb(c,li).replace(/^<li[^>]*>/,'').replace(/<\/li>$/,'')+'</li>';
-      it.insertAdjacentHTML('afterend','<ul class="rk-detail">'+html+'</ul>');
+      const cur=BYK()[k]; let inner;
+      if(cur&&cur.custom){
+        inner='<li class="ritem-box"><div class="climb-panel" style="--cc:var(--acc)"><p class="cp-h">手動追加項目 · 元リクエストなし</p></div></li>';
+      }else{
+        const [c,li]=k.split('.');
+        inner='<li class="ritem-box">'+buildClimb(c,li).replace(/^<li[^>]*>/,'').replace(/<\/li>$/,'')+'</li>';
+      }
+      it.insertAdjacentHTML('afterend','<ul class="rk-detail">'+inner+'</ul>');
       _ropen=k;
     });
   });
@@ -603,20 +696,20 @@ function wireRank(){
       const tgt=it.dataset.k; if(!dragK||dragK===tgt)return;
       const a=RORDER.indexOf(dragK),b=RORDER.indexOf(tgt);
       RORDER.splice(a,1);RORDER.splice(b,0,dragK);
-      _ropen=null;renderRank();
+      _ropen=null;renderRank();pushState();
     });
   });
 }
-document.getElementById('rkReset').onclick=()=>{RORDER=RANK.map(r=>r.k);_ropen=null;renderRank();};
+document.getElementById('rkReset').onclick=()=>{RORDER=normOrder(RANK.map(r=>r.k));_ropen=null;renderRank();pushState();};
 document.getElementById('rkExport').onclick=()=>{
-  const byk={}; RANK.forEach(r=>byk[r.k]=r);
-  const lines=RORDER.map((k,i)=>{const r=byk[k];return `${i+1}. [${r.card}] ${r.t}  (${RSTR.n} ${r.n} / ${RSTR.pri} ${r.pri})`;});
+  const byk=BYK();
+  const lines=RORDER.map((k,i)=>{const r=byk[k];if(!r)return '';return `${i+1}. [${r.custom?'カスタム':r.card}] ${r.t}  (${RSTR.n} ${r.n} / ${RSTR.pri} ${r.pri})`;}).filter(Boolean);
   const txt=lines.join('\n');
   navigator.clipboard.writeText(txt).then(()=>{
     const b=document.getElementById('rkExport');const o=b.textContent;b.textContent='✓ '+RSTR.copied;setTimeout(()=>b.textContent=o,1600);
   });
 };
-renderRank();
+initSync();
 
 render();
 </script></body></html>
