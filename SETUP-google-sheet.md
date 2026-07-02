@@ -8,11 +8,17 @@
 
 ---
 
-## 1. 建立 Google Sheet（用範本）
-1. 開一個新的 Google Sheet。
-2. **檔案 → 匯入 → 上傳** `roadmap-template.csv`（本 repo 內）→ 匯入位置選「取代目前工作表」。
-3. 把該分頁**改名為 `Roadmap`**（左下角分頁按右鍵 → 重新命名）。
-   - 前 25 筆已預填（含 `jp_original` 原始日文 complaints）；`key` 欄 🔒 用來識別項目，請勿更動。
+## 1. 建立試算表（用 Excel 範本）
+用 `roadmap-workbook.xlsx`（本 repo 內，專業排版）。兩種用法：
+- **Google Sheets**：Google Drive → 新增 → 檔案上傳 `roadmap-workbook.xlsx`，或在試算表裡 **檔案 → 匯入 → 上傳 → 取代試算表**。
+- **Excel**：直接開這個檔（同樣分頁與格式）。要接網頁 dashboard 才需放到 Google Sheets。
+
+匯入後會有：
+- **`Roadmap`**：主追蹤表（Apps Script 讀這個分頁，**名稱勿改**）。
+- **25 個以代號命名的分頁**（U4.0、S2.0…）：各痛點的原始日文 requests。PM／stakeholder 在 `Roadmap` 點「代號」欄即跳到對應分頁。
+- **`說明`**：RACI／狀態／優先 圖例與使用方式。
+
+> `key`／代號 🔒 用來對應分頁與識別項目，請勿更動。
 
 ### 欄位說明
 | 欄 | 說明 |
@@ -29,7 +35,7 @@
 | `blocker_ask` | 卡關／需要的決策 → 會出現在網頁頂部「需要決策」。|
 | `jira` | JIRA 單號或完整連結。|
 | `demand_n` | 用戶需求件數（前 25 已帶）。|
-| `jp_original` | 原始日文 complaints。**前 25 筆已預填**（多則以換行分隔，每則格式「日文 ｜ 分享者 ｜ 日期」）。點擊項目時顯示；可自由增修，新需求也在此填。|
+| `jp_original` | 新需求的原始日文（**前 25 筆的原始日文放在各自的代號分頁**，不放這格）。網頁點擊時：前 25 筆讀代號分頁／內建資料，新需求讀此格。|
 
 **新增一筆需求** = 在最下面加一列，`key` 留空，填 title/area/priority/status/RACI…，`sort` 給個數字或留空（留空排在最後）。
 
