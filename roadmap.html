@@ -264,11 +264,13 @@ function toggle(row,it,pc){
   const nx=row.nextElementSibling;
   if(nx&&nx.classList.contains('detail')){nx.remove();row.classList.remove('open');row.querySelector('.chev').textContent='▸';_open=null;return;}
   if(_open){const d=_open.nextElementSibling;if(d&&d.classList.contains('detail'))d.remove();_open.classList.remove('open');const c=_open.querySelector('.chev');if(c)c.textContent='▸';}
-  const reqs=it.key?DRILL[it.key]:null;
+  // 原始日文 complaints：以 Sheet 的 jp_original 為主(每則一行, 格式可為「ja ｜ by ｜ date」)；未接 Sheet 時用內建 DRILL 後備
+  let reqs=[];
+  if(it.jp){ reqs=it.jp.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(l=>{const p=l.split(' ｜ ');return {ja:p[0]||l, by:p[1]||'', date:p[2]||''};}); }
+  else if(it.key && DRILL[it.key]){ reqs=DRILL[it.key]; }
   let jp;
-  if(reqs&&reqs.length){ jp=`<div class="dh">原始日文 requests · ${reqs.length} 件</div>`+reqs.map(q=>`<div class="req"><div class="rq-ja">${esc(q.ja)}</div><div class="rq-meta">${esc(q.by)}${q.date?' · '+esc(q.date):''}${q.jira?' · JIRA '+esc(q.jira):''}</div></div>`).join(''); }
-  else if(it.jp){ jp=`<div class="dh">原始日文（手動新增）</div><div class="req"><div class="rq-ja">${esc(it.jp)}</div></div>`; }
-  else { jp=`<div class="dh">原始日文 requests</div><div class="note">此項目尚無對應的原始日文（可在 Sheet 的 jp_original 欄補上）。</div>`; }
+  if(reqs.length){ jp=`<div class="dh">原始日文 requests · ${reqs.length} 件</div>`+reqs.map(q=>`<div class="req"><div class="rq-ja">${esc(q.ja)}</div>${(q.by||q.date)?`<div class="rq-meta">${esc(q.by)}${q.date?' · '+esc(q.date):''}</div>`:''}</div>`).join(''); }
+  else { jp=`<div class="dh">原始日文 requests</div><div class="note">此項目尚無原始日文（可在 Sheet 的 jp_original 欄補上，多則用換行分隔）。</div>`; }
   const nextHtml = it.blk
     ? `<div class="nextask blk"><div class="nl">🚩 卡關 / Ask</div><div class="nt">${esc(it.blk)}</div></div>`
     : (it.next?`<div class="nextask"><div class="nl">▸ 下一步</div><div class="nt">${esc(it.next)}</div></div>`:'');
