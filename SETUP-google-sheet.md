@@ -25,7 +25,8 @@
 |---|---|
 | `sort` | 開發順序（數字小→前）。**網頁拖拉會自動改這欄**，你也可手動改。|
 | `key` 🔒 | 前 25 筆已填，勿動；新需求**留空**。|
-| `title` `area` | 標題、領域（如 U4 禮物・課金）。|
+| `title` `area` | 標題、領域（如 U4 禮物・課金；Z 需求填「Z 營運策略」）。|
+| `source` 來源 | `用戶心聲 VoC`（前 25 筆）或 `營運策略 Strategy`（Z 需求）。|
 | `priority` | P0 / P1 / P2 / P3。|
 | `status` | Backlog / Up Next / In Progress / In Review / Shipped / Blocked。|
 | `accountable` | 當責（單一人，A）。|
@@ -37,7 +38,11 @@
 | `demand_n` | 用戶需求件數（前 25 已帶）。|
 | `jp_original` | 新需求的原始日文（**前 25 筆的原始日文放在各自的代號分頁**，不放這格）。網頁點擊時：前 25 筆讀代號分頁／內建資料，新需求讀此格。|
 
-**新增一筆需求** = 在最下面加一列，`key` 留空，填 title/area/priority/status/RACI…，`sort` 給個數字或留空（留空排在最後）。
+**新增一筆用戶需求** = 在最下面加一列，`key` 留空、`source` 填「用戶心聲 VoC」，填 title/area/priority/status/RACI…，`sort` 給數字（拖拉也可）。
+
+**新增一筆 Z 營運策略需求**（你＋Ops 用；非來自用戶）= 加一列：`key` 填 `Z1`/`Z2`…、`area` 填「Z 營運策略」、`source` 填「營運策略 Strategy」、`jp_original` 填**策略背景／目的**（網頁點該列會顯示）。其餘 priority/status/RACI/日期比照。網頁上這類會標「🎯 營運策略」。
+
+> **隱私**：新版 roadmap.html 與 roadmap-workbook.xlsx 已移除原始 request 內含的 Open ID。（兩支需求分析 dashboard `JP_Needs_Heatmap_*` 仍保留原始資料，為你先前「公開＋noindex」的既定決策；要我一併移除其中的 openID 再說。）
 
 ---
 
