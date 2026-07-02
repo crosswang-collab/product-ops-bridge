@@ -1,0 +1,94 @@
+# 開發 Roadmap — Google Sheet 設定指南
+
+架構：**Google Sheet = 唯一真相** · **roadmap.html（GitHub Pages）= 顯示 + 拖拉排序介面** · **Apps Script = 中間橋接（讀 + 把拖拉後的順序寫回）**。
+
+- 新增需求／改 RACI／狀態／日期／JIRA → 都在 **Google Sheet** 編輯。
+- 開發順序 → 在**網頁拖 ⠿** 調整，會自動存回 Sheet。
+- 沒設定時 roadmap.html 會用內建 25 筆預設（僅本機展示、拖拉不存回），不會壞。
+
+---
+
+## 1. 建立試算表（用 Excel 範本）
+用 `roadmap-workbook.xlsx`（本 repo 內，專業排版）。兩種用法：
+- **Google Sheets**：Google Drive → 新增 → 檔案上傳 `roadmap-workbook.xlsx`，或在試算表裡 **檔案 → 匯入 → 上傳 → 取代試算表**。
+- **Excel**：直接開這個檔（同樣分頁與格式）。要接網頁 dashboard 才需放到 Google Sheets。
+
+匯入後會有：
+- **`Roadmap`**：主追蹤表（Apps Script 讀這個分頁，**名稱勿改**）。
+- **25 個以代號命名的分頁**（U4.0、S2.0…）：各痛點的原始日文 requests。PM／stakeholder 在 `Roadmap` 點「代號」欄即跳到對應分頁。
+- **`Z-Strategy`**：Z 營運策略需求的詳細資訊（目的／背景／KR／RACI）。
+- **`Guide`**：圖例（RACI／狀態／優先）與使用方式。
+
+> 此版工作簿的**介面與表頭為英文**（原始 request 內容維持日文）。表頭是英文（Seq/Code/Title…），Apps Script 會自動對應到程式欄位，不用改。
+> `Code`／代號 🔒 用來對應分頁與識別項目，請勿更動。
+
+### 欄位說明
+| 欄 | 說明 |
+|---|---|
+| `Seq`（A 欄）| 自動編號 `=SEQUENCE(...)`。**順序＝列的先後**；在網頁拖拉會「移動列」並存回（A 欄公式自動重編，不要手動填數字進 A 欄）。|
+| `Code` 🔒 | 前 25 筆已填（U4.0…），勿動；VoC 新需求留空、Z 需求填 Z1/Z2…。|
+| `title` `area` | 標題、領域（如 U4 禮物・課金；Z 需求填「Z 營運策略」）。|
+| `source` 來源 | `用戶心聲 VoC`（前 25 筆）或 `營運策略 Strategy`（Z 需求）。|
+| `priority` | P0 / P1 / P2 / P3。|
+| `status` | Backlog / Up Next / In Progress / In Review / Shipped / Blocked。|
+| `accountable` | 當責（單一人，A）。|
+| `responsible` `consulted` `informed` | R／C／I，多人用逗號分隔。|
+| `target_ship` `shipped_on` | 目標上線日／實際上線日 YYYY/MM/DD。|
+| `next_step` | 下一步（office-hours：具體可執行）。|
+| `blocker_ask` | 卡關／需要的決策 → 會出現在網頁頂部「需要決策」。|
+| `jira` | JIRA 單號或完整連結。|
+| `demand_n` | 用戶需求件數（前 25 已帶）。|
+| `jp_original` | 新需求的原始日文（**前 25 筆的原始日文放在各自的代號分頁**，不放這格）。網頁點擊時：前 25 筆讀代號分頁／內建資料，新需求讀此格。|
+
+**新增一筆用戶需求** = 在最下面加一列，`key` 留空、`source` 填「用戶心聲 VoC」，填 title/area/priority/status/RACI…，`sort` 給數字（拖拉也可）。
+
+**新增一筆 Z 營運策略需求**（你＋Ops 用；非來自用戶）= 加一列：`key` 填 `Z1`/`Z2`…、`area` 填「Z 營運策略」、`source` 填「營運策略 Strategy」、`jp_original` 填**策略背景／目的**（網頁點該列會顯示）。其餘 priority/status/RACI/日期比照。網頁上這類會標「🎯 營運策略」。
+
+> **隱私**：新版 roadmap.html 與 roadmap-workbook.xlsx 已移除原始 request 內含的 Open ID。（兩支需求分析 dashboard `JP_Needs_Heatmap_*` 仍保留原始資料，為你先前「公開＋noindex」的既定決策；要我一併移除其中的 openID 再說。）
+
+---
+
+## 2. 部署 Apps Script（讀 + 寫回的橋接）
+1. 在這張 Sheet：**擴充功能 → Apps Script**。
+2. 把本 repo 的 `apps-script/Code.gs` 內容整段貼進去（覆蓋預設的 `Code.gs`）→ 儲存 💾。
+3. 右上 **部署 → 新增部署作業** → 齒輪選「**網頁應用程式**」。
+4. 設定：
+   - **執行身分：我（你自己）**
+   - **具有存取權：任何人**
+5. **部署** → 依指示**授權**（會問你允許存取這張 Sheet，按同意）。
+6. 複製最後給的 **網頁應用程式網址**（形如 `https://script.google.com/macros/s/XXXX/exec`）。
+
+---
+
+## 3. 貼進 roadmap.html
+打開 `roadmap.html`，最上面設定區：
+```js
+const SHEET_API = "";   // ← 貼上剛剛的 /exec 網址
+```
+填好後 `git push`（GitHub Pages 會自動更新）。
+
+---
+
+## 4. 開啟 GitHub Pages
+repo **Settings → Pages → Build and deployment → Source: `Deploy from a branch` → Branch: `main` `/ (root)` → Save**。
+約 1 分鐘後得到網址：`https://crosswang-collab.github.io/product-ops-bridge/`
+- 入口 `index.html`（語言／視圖選單）→ 開發 Roadmap。
+- 或直接開 `.../roadmap.html`。
+
+---
+
+## 5. 驗收
+1. 開 roadmap 網址，右上角顯示 **「☁ 已連結 Sheet」**。
+2. **拖 ⠿ 調整順序** → 右上顯示「順序已存回 Sheet」→ 重整仍是新順序 → 打開 Sheet 看 `sort` 欄有更新。
+3. 在 **Sheet** 改某列的 status/owner/日期 → 重整網頁即反映。
+4. 在 **Sheet** 最下面加一列（key 留空）→ 重整網頁看到新項目。
+5. 點任一列 → 展開 RACI 分工 + 下一步/Ask + 原始日文 requests。
+
+---
+
+## 重要提醒
+- **公開、無密碼**（既定決策）：拿到網址的人都能看，且能拖拉改順序（透過 Apps Script「任何人」存取）。其他欄位的編輯需有這張 Sheet 的 Google 權限。
+- GitHub Pages 免費版無法設密碼；已在頁面加 `noindex,nofollow` 擋搜尋引擎。要更嚴格可改用私有部署或加登入。
+- 原始 291 筆需求資料與 openID **不在這張 Sheet**；roadmap.html 只內嵌 25 個痛點的日文 request 文字（不含 openID）。
+- 改用 GitHub Pages 後，記得到 **Vercel 刪除舊的 product-ops-bridge project**，收回舊的公開網址。
+- 併發：多人同時拖拉採「最後寫入為準」；小團隊策展沒問題，重整即見最新。

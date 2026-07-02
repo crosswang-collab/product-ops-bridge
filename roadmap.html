@@ -1,0 +1,318 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>JP Needs · Product Roadmap</title>
+<style>
+:root{
+  --bg:#0a0d13; --panel:#131a24; --raise:#182130; --line:#222c3b;
+  --tx:#e7ecf5; --mut:#8a95a8; --faint:#59647a; --acc:#5fd3e6;
+  --p0:#f0616d; --p1:#e5a13a; --p2:#5b9bd5; --p3:#6b7688;
+  --st-back:#6b7688; --st-next:#5b9bd5; --st-prog:#e5a13a; --st-rev:#a98bd6; --st-ship:#3fd08a; --st-block:#f0616d;
+  --r:#5fd3e6; --a:#f0a24a; --c:#8b9be0; --i:#79879b;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Hiragino Kaku Gothic ProN",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1300px 760px at 50% -18%,#12192a,#0a0d13);color:var(--tx);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;padding:24px 20px 64px}
+.wrap{max-width:1180px;margin:0 auto}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.eyebrow .rib{background:rgba(95,211,230,.1);border:1px solid #2f6470;color:var(--acc);padding:4px 10px;border-radius:999px;letter-spacing:.05em}
+.eyebrow .sync{margin-left:auto;letter-spacing:.02em;text-transform:none;font-weight:600}
+.eyebrow .sync.on{color:#3fd08a} .eyebrow .sync.warn{color:var(--p1)}
+h1{margin:0 0 5px;font-size:26px;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+.lede{color:var(--mut);font-size:13.5px;margin:0 0 20px;max-width:74ch}
+.lede b{color:var(--tx)}
+.band{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:840px){.band{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--raise),var(--panel));border:1px solid var(--line);border-radius:16px;padding:18px}
+.card .ct{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:12px 13px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,var(--faint))}
+.kpi .v{font:800 24px var(--mono);font-variant-numeric:tabular-nums;line-height:1}
+.kpi .l{font-size:11px;color:var(--mut);margin-top:5px;display:flex;align-items:center;gap:6px}
+.kpi .l .dot{width:8px;height:8px;border-radius:50%;background:var(--kc)}
+.decide{border-color:rgba(240,97,109,.4)}
+.decide .ct{color:var(--p0)}
+.ask{display:flex;gap:11px;padding:11px 0;border-top:1px solid var(--line)}
+.ask:first-of-type{border-top:none}
+.ask .amark{flex:0 0 auto;width:22px;height:22px;border-radius:6px;background:rgba(240,97,109,.15);color:var(--p0);font:800 11px var(--mono);display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ask .aq{font-size:13px;color:var(--tx);font-weight:600;line-height:1.4}
+.ask .am{font-size:11.5px;color:var(--mut);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ok{font-size:13px;color:var(--st-ship);display:flex;align-items:center;gap:8px}
+.focus{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(240,97,109,.09),transparent);border:1px solid var(--line);border-left:3px solid var(--p0);border-radius:12px;padding:13px 16px;margin-bottom:18px}
+.focus .fl{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--p0);white-space:nowrap}
+.focus .ft{font-size:14px;font-weight:700;flex:1;min-width:180px}
+.focus .fm{font-size:11.5px;color:var(--mut)}
+.raci-lg{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:11.5px;color:var(--mut);margin:0 0 12px;padding:11px 14px;background:var(--panel);border:1px solid var(--line);border-radius:11px}
+.raci-lg .rq{display:flex;align-items:center;gap:7px}
+.rl{width:19px;height:19px;border-radius:5px;font:800 10px var(--mono);display:flex;align-items:center;justify-content:center;color:#0a0d13}
+.rl.R{background:var(--r)} .rl.A{background:var(--a)} .rl.C{background:var(--c)} .rl.I{background:var(--i)}
+.hint{font-size:11.5px;color:var(--faint);margin:0 0 10px}
+.list{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--pc,var(--faint));border-radius:11px;padding:10px 13px 10px 9px;cursor:pointer;transition:background .1s,box-shadow .1s}
+.row:hover{background:rgba(95,211,230,.045)}
+.row.drag{opacity:.4} .row.over{box-shadow:0 0 0 2px var(--acc) inset} .row.open{background:rgba(95,211,230,.07)}
+.grip{flex:0 0 auto;color:var(--faint);font-size:16px;cursor:grab;padding:0 2px;user-select:none;line-height:1}
+.grip:active{cursor:grabbing}
+.pchip{flex:0 0 auto;font:800 11px var(--mono);padding:3px 7px;border-radius:6px;color:var(--pc);background:color-mix(in srgb,var(--pc) 16%,transparent);border:1px solid color-mix(in srgb,var(--pc) 40%,transparent)}
+.main{flex:1;min-width:0}
+.title{font-size:13px;font-weight:600;color:#eef2f9;line-height:1.34}
+.title .ty{margin-right:5px}
+.sub{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:5px}
+.tag{font-size:10px;color:var(--mut);background:rgba(255,255,255,.05);border-radius:4px;padding:1px 6px}
+.tag.new{background:var(--acc);color:#04222a;font-weight:800}
+.tag.dem{color:var(--faint);font-family:var(--mono)}
+.tag.strat{background:rgba(169,139,214,.18);color:#c3a6ea;font-weight:700}
+.row.strat{border-left-style:dashed}
+.pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;color:var(--sc);background:color-mix(in srgb,var(--sc) 15%,transparent);border:1px solid color-mix(in srgb,var(--sc) 35%,transparent)}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--sc)}
+.avatar{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;width:130px}
+.av{width:24px;height:24px;border-radius:50%;font:800 10px var(--sans);display:flex;align-items:center;justify-content:center;color:#0a0d13;flex:0 0 auto}
+.avatar .nm{font-size:12px}
+.unassigned{font-size:12px;color:var(--faint);flex:0 0 auto;width:130px}
+.date{flex:0 0 auto;width:96px;font:500 11.5px var(--mono);color:#c4ccdb;font-variant-numeric:tabular-nums;text-align:right}
+.date.none{color:var(--faint)}
+.jira{flex:0 0 auto;width:92px;text-align:right;font:600 11.5px var(--mono);color:var(--acc);text-decoration:none}
+.jira:hover{text-decoration:underline}
+.jira.none{color:var(--faint);font-weight:400}
+.chev{flex:0 0 auto;color:var(--faint);font-size:11px;width:14px;text-align:center}
+@media(max-width:820px){.avatar,.unassigned{width:auto}.date,.jira{display:none}}
+.detail{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--pc,var(--acc));border-radius:11px;margin:-2px 0 4px;padding:15px 16px}
+.dgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+@media(max-width:760px){.dgrid{grid-template-columns:1fr}}
+.dh{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0 0 10px}
+.nextask{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 13px;margin-bottom:10px}
+.nextask .nl{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin-bottom:5px}
+.nextask.blk .nl{color:var(--p0)}
+.nextask .nt{font-size:12.5px;line-height:1.45}
+.raci-grid{display:flex;flex-direction:column;gap:9px}
+.raci-row{display:flex;gap:10px;align-items:flex-start}
+.raci-row .who2{display:flex;flex-wrap:wrap;gap:6px}
+.person{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;font-size:11.5px}
+.person .av{width:19px;height:19px;font-size:9px}
+.req{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:6px}
+.req .rq-ja{font-size:12.5px;color:#eef2f9;line-height:1.5}
+.req .rq-meta{font-size:10.5px;color:var(--mut);margin-top:4px;font-family:var(--mono)}
+.note{font-size:12px;color:var(--mut);background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:11px 13px}
+.foot{font-size:11.5px;color:var(--faint);margin-top:28px;border-top:1px solid var(--line);padding-top:16px;line-height:1.7}
+.foot a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><span class="rib">🗾 JP NEEDS</span><span>Product Roadmap</span><span class="sync" id="sync"></span></div>
+  <h1>Product Roadmap</h1>
+  <p class="lede">Dev tracking for JP user & streamer needs. Source of truth = <b>Google Sheet</b>. Shown live here; <b>drag ⠿ to reorder the dev sequence</b> (auto-saved back to the Sheet). Add items / edit RACI / status / dates in the Sheet. Click any row for <b>RACI</b> and the <b>original Japanese requests</b>.</p>
+
+  <div class="band">
+    <div class="card"><p class="ct">📊 Progress overview</p><div class="kpis" id="kpis"></div></div>
+    <div class="card decide"><p class="ct">🚩 Needs decision / blockers</p><div id="asks"></div></div>
+  </div>
+  <div class="focus" id="focus" hidden></div>
+
+  <div class="raci-lg">
+    <span style="font-weight:700;color:var(--tx)">RACI:</span>
+    <span class="rq"><span class="rl R">R</span> Responsible</span>
+    <span class="rq"><span class="rl A">A</span> Accountable</span>
+    <span class="rq"><span class="rl C">C</span> Consulted</span>
+    <span class="rq"><span class="rl I">I</span> Informed</span>
+  </div>
+
+  <p class="hint">↓ In dev-sequence order · drag ⠿ to reorder (saves to Sheet) · click a row for RACI / next step / original JP</p>
+  <div class="list" id="list"></div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+/* ===== 設定 ===== */
+// 貼上你的 Apps Script Web App /exec 網址（讀+寫 Google Sheet）。留空＝用內建預設(僅本機展示，拖拉不存回)。
+const SHEET_API = "";
+/* ================= */
+
+const DRILL = {"U4.0":[{"ja":"ラッキー (red envelope) のリージョン制限","zh":"希望限制其他地區用戶來搶紅包","by":"けい77💜Ruu🍩🏹͙","date":"2025/09/14","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"イベントギフトに赤帯を復活","zh":"希望活動禮物加上紅色標示 (紅帶 I don't know how we call it in 中文)\n\n紅帶是指隨機抽中4,999 coin以上的禮物時，會以紅色Ticker形式顯示的特效演出","by":"🌼nico✨💖✨nico🌼","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"マイラッキーを戻してほしい","zh":"希望恢復「My Lucky」","by":"みのり🌷🫧Minori","date":"2025/12/11","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"枠外ラッキーのタイムラグ・大中小表示","zh":"延遲嚴重，看不出紅包大小","by":"🎤🌺かず💛🧸Dr🌼🤙🏼","date":"2025/12/11","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"ラッキー袋を海外BOTが獲得することを防ぐ","zh":"希望防止海外 BOT 搶奪幸運袋","by":"マリレオ0522🎮⚾️","date":"2025/12/09","persona":"兩者","status":"Duplicated","jira":""},{"ja":"無料ギフト1つでラッキー袋獲得可能に","zh":"許多觀眾未對直播間貢獻就離開","by":"こっこ🐼🇰🇷🐥","date":"2025/12/09","persona":"兩者","status":"","jira":""},{"ja":"マイラッキーの廃止（8888のハードルが高い）","zh":"建議廢除 My Lucky（8888 門檻過高）","by":"TARꔹ⃝🐨PINK❤️","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"ラッキー袋の機能Check","zh":"⑦ 福袋：有些主播會在福袋出現時結束直播，拿走所有獎品。\n\n➡︎ [建議] 福袋出現時，如果主播結束直播，則無法獲得任何積分。","by":"匿名","date":"","persona":"兩者","status":"","jira":""},{"ja":"⑦ラッキー袋：ラッキー袋が飛んだら、配信切って総取りを考えるライバーもいる。\n　➡︎【案】ラッキーが飛んでいる間は、配信を切ったらポイントが入らなくするなど","zh":"⑦ 福袋：有些主播會在福袋出現時結束直播，拿走所有獎品。\n\n➡︎ [建議] 福袋出現時，如果主播結束直播，則無法獲得任何積分。","by":"","date":"","persona":"兩者","status":"Sunny to check","jira":""},{"ja":"①マイラッキー機能の復活","zh":"① 如果你有“我的幸運”，投擲就更容易了。","by":"","date":"","persona":"兩者","status":"For Investigation","jira":""},{"ja":"2. ギフト・エフェクト関連\n【VIPギフト・コンボの効率化】\n・VIPギフトのコンボ時、エフェクトの「渋滞」を避けるため、個数を入力して一括送信、または同じ演出の省略機能がほしい。（重要重複）\n・赤帯以上のギフトエフェクトをまとめないでほしい。\n→例：壁のイベントギフト大×2がきてエフェクト1回しか無かった。","zh":"2. 禮包特效相關\n\n【優化VIP禮包組合】\n\n- 為避免VIP禮包組合時出現特效“擁塞”，我們希望增加一個功能，允許用戶輸入禮包數量並一次性全部發送，或者增加一個功能來跳過重複的動畫。 （重複動畫效果至關重要）\n\n- 請勿將紅色橫幅以上等級的禮包特效組合在一起。\n\n→範例：牆上出現了兩個大型活動禮包，但只顯示了其中一個特效。","by":"ちぇっくす⚡CHEX","date":"","persona":"兩者","status":"","jira":""},{"ja":"【過去ギフト・新機能の要望】\n・「マイラッキー」の常設\n・過去の人気ギフト（ボイス録音ギフト等）の復刻。","zh":"【對以往禮物和新功能的請求】\n\n- 永久保留「我的幸運」功能\n\n- 重新推出以往受歡迎的禮物（例如，語音錄製禮物）。","by":"ちぇっくす⚡CHEX","date":"","persona":"兩者","status":"","jira":""},{"ja":"他リージョンからの流入によりJPユーザーがラッキー獲得機会を失うため、Sunny提案の2案をロジックに組み込めるか確認したい。","zh":"紅包被其他地區的人搶\n我認為可以將 Sunny 的兩項提案都納入邏輯中，大家覺得如何？\"","by":"匿名","date":"","persona":"兩者","status":"Sunny to check","jira":""}],"S2.0":[{"ja":"ティッカー渋滞解消、エフェクトスキップ機能","zh":"Ticker 順序問題、特效塞車導致直播延長 30 分鐘","by":"🌈🦄fuu_chanஐ🧸🌻","date":"2025/10/09","persona":"實況主","status":"Wishlisted","jira":""},{"ja":"無料ギフト大当たりのティッカー不要","zh":"為了緩解 Ticker 擁擠，不需要免費禮物3_中獎的 Ticker","by":"cha-ko09\nしゃもち🐻‍❄️🍼🍯","date":"2025/12/09","persona":"實況主","status":"To Submit Wishlist","jira":""},{"ja":"高額ティッカーを優先的に表示","zh":"Ticker 擁擠，希望高金額能優先顯示\n\nTicker壅塞，希望高金額能優先顯示\nTicker禮物（金色轟炸） https://jp.17.live/faq/30076/\n覺得很有吸引力，但因為太常見而開始被輕視了，有種「反正常常在飛嘛～」的感覺。\n在直播主的My Event活動中也被廣泛使用的印象\n感覺變得太容易入手了\n\nTicker壅塞：\n活動最後時段壅塞是沒辦法的\n最近會飛兩次？（Bug？）▶需PM確認\n希望高金額的Ticker能優先顯示（不是按順序出現）\n希望送出禮物的瞬間就能顯示出來","by":"星野ぽちゃ👑💕","date":"2025/09/24","persona":"實況主","status":"To Submit Wishlist","jira":""},{"ja":"BC達成ティッカー1000万単位","zh":"1000萬→5000萬→1億門檻太高，希望以 1000 萬為單位","by":"けい77💜Ruu🍩🏹͙","date":"2025/09/14","persona":"實況主","status":"","jira":""},{"ja":"全てのティッカーを動かせるように","zh":"希望不只金色 Ticker，其他也能自由移動","by":"一✂️ぴょん🐰ྀί✂️一","date":"2025/12/09","persona":"實況主","status":"","jira":""},{"ja":"ミリオンティッカー・金テロを消せる機能","zh":"有時想匿名送禮，希望能隱藏","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/11","persona":"實況主","status":"","jira":""},{"ja":"無料ギフトのティッカーは不要で、体験の妨げになる","zh":"需求／建議＞\n免費禮物的跑馬燈無法關閉，感覺多餘且干擾體驗\n希望提高Red Envelope的上限（曾向 Sunny 了解過相關邏輯），以提升回饋率\n希望支援個人資料徽章的自訂風格與放大顯示\n希望廢除 My Lucky 機制（8888 門檻過高，導致使用者難以投送）\n背景色／文字顏色等樣式雖然豐富，但也感覺有過度氾濫的情況\n＜回饋／感想＞\n隨機禮物改為活動積分禮物是一項正向的改善\n是否存在「禁止遊戲」的時段或相關機制？（疑問）","by":"TARꔹ⃝🐨PINK❤️","date":"","persona":"實況主","status":"In Progress","jira":""},{"ja":"リーグティッカーのロジックを確認したい","zh":"","by":"TARꔹ⃝🐨PINK❤️","date":"","persona":"實況主","status":"In Progress","jira":""},{"ja":"④ティッカーを動かせる、もしくは削除機能","zh":"④ 股票行情顯示屏\n\n如果能移動或刪除就好了，因為它很煩人。","by":"🏰Choboyan🌷0725🩲🌏","date":"","persona":"實況主","status":"To Submit Wishlist","jira":""},{"ja":"【ご意見】\n・「8888」ティッカー\n▶︎「8888」は日本でティッカーが流れるが、「888」は台湾でだけティッカーが流れるらしい？？","zh":"【評論】\n\n• “8888”行情播報\n\n▶︎ 「8888」行情播報在日本播出，但「888」行情播報似乎只在台灣播出？","by":"しゅーちゃん\n06a0f05b-10de-4f49-92dd-02f8b98f0d7c","date":"","persona":"實況主","status":"For Internal Discussion","jira":""},{"ja":"1. 配信機能・画面表示の改善\n【ティッカー】\n・ブラックティッカー・白ティッカーの表示位置を、赤帯などと重ならないよう移動可能にしてほしい。\n・黒ティッカー170万ベイビーコインと500万ベイビーコインの間が大きく空いているため、300万ベイビーコインがあると良い。","zh":"1. 串流功能及螢幕顯示改進\n\n[滾動字幕]\n\n- 請允許調整黑白滾動字幕的顯示位置，使其不與紅色條帶等重疊。\n\n- 170萬Baby Coin和500萬Baby Coin的黑色滾動字幕之間間隔較大，建議增加300萬Baby Coin的滾動字幕。","by":"ちぇっくす⚡CHEX","date":"","persona":"實況主","status":"","jira":""}],"U2.0":[{"ja":"レベル表示を消せるように","zh":"TikTok 可隱藏等級，高等級太顯眼，希望能關閉","by":"くあとろ🐶","date":"2025/12/09","persona":"用戶","status":"To Submit Wishlist","jira":""},{"ja":"17システムラッキーはライバー側表示不要","zh":"主播無法取得，主播端顯示沒有必要","by":"みのり🌷🫧Minori","date":"2025/12/11","persona":"用戶","status":"In Progress","jira":""},{"ja":"17BOXも邪魔でいらない","zh":"17BOX 很礙眼且不需要","by":"みのり🌷🫧Minori","date":"2025/12/11","persona":"用戶","status":"In Progress","jira":""},{"ja":"レベルのON/OFF機能","zh":"高等級用戶一進房就被期待送禮","by":"うずまき🌀🥁","date":"2025/12/11","persona":"用戶","status":"Duplicated","jira":""},{"ja":"配信画面メニューのクリップが邪魔","zh":"直播畫面選單3_中，剪輯功能很干擾","by":"一✂️ぴょん🐰ྀི✂️一","date":"2025/12/09","persona":"用戶","status":"","jira":""},{"ja":"17BOXの廃止","zh":"17BOX 會阻礙留言和遊戲進行，沒有任何優點，希望能廢除。","by":"KatsuKatsu\n🐬𝐘𝟏𝟔𝟎𝐌🐬🥂","date":"2025-12-17 00:00:00","persona":"用戶","status":"Duplicated","jira":""},{"ja":"BOX・運営ラッキー表示のON/OFF機能","zh":"遊戲中 BOX 或紅包顯示很礙眼，希望能有取消或非顯示（ON/OFF）的功能。","by":"💿🎧バッヂGroove🎧💿","date":"2025-12-22 00:00:00","persona":"用戶","status":"To Submit Wishlist","jira":""},{"ja":"ランダムBOX（金額ボタン）のUI改善","zh":"為防止在高額活動中誤觸，希望介面能修改得更像隨機禮物盒（明確按鈕）。","by":"💿🎧バッヂGroove🎧💿","date":"2025-12-22 00:00:00","persona":"用戶","status":"Duplicated","jira":""},{"ja":"レベルのON／OFF機能","zh":"希望增加等級顯示的 ON/OFF 功能。","by":"なかじ_17","date":"2025-12-23 00:00:00","persona":"用戶","status":"Duplicated","jira":""},{"ja":"字幕機能（ボタン）が表示されず使用できない／廃止有無の確認","zh":"字幕功能已無法使用，或者更確切地說，按鈕消失了。這項功能是否已取消？","by":"","date":"","persona":"用戶","status":"Sunny to check","jira":""}],"U4.4":[{"ja":"ギフトエフェクトが長い、渋滞になる","zh":"約 250BC 的禮物特效可以更短","by":"星野ぽちゃ👑💕","date":"2025/09/24","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"ギフト誤爆防止の確認ポップアップ","zh":"高額禮物需跳出提示並進行最終確認","by":"🎩紳士の神様🎩","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"VIPギフト連打速度が遅い理由確認","zh":"VIP 禮物連打比一般禮物慢，不知原因","by":"BALENCIAGAさん他","date":"2025/12/11","persona":"兩者","status":"","jira":""},{"ja":"入室アニメーションのエフェクトが正常に表示されない。正常にエフェクトが表示されるようにしてほしい。","zh":"入室動畫效果無法正常顯示。\n【可能原因】\n據悉先前曾告知PM方需修正因入室動畫設定方式變更（新增vffURL與vffMD5）所導致的舊版設定內容，但似乎未能完成修正。\n當我們嘗試輸出vffURL與vffMD5時發生錯誤，請立即進行調整。","by":"白衣のかずDr🌺🩺💫","date":"","persona":"兩者","status":"Completed, Sunny to check","jira":""},{"ja":"②２度押しでのギフト","zh":"【回饋環節】\n\n② 誤發禮物：雖然最近沒有出現誤發的情況，但生日隨機禮物按鈕的位置容易被誤觸，增加了誤發的可能性。\n\n➡︎ TikTok 需要雙擊（選擇 → 傳送），因此不太容易發生誤發。","by":"匿名","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"②例：長押しすると一気に連打できる機能追加","zh":"② VIP禮品需要時間寄送。","by":"","date":"","persona":"兩者","status":"","jira":""},{"ja":"・音付きギフトの音量を現在の半分以下に下げる\n・配信者側でギフト音量を個別に調整できる機能の追加","zh":"黃金恐怖VIP禮物和世界守護者禮物中的音效音量過大，令人難以忍受。\n\n（與日服回饋同步）\n\n【背景】\n\n來自主播Kutsuko🌻Marimba🍭和Marinosuke-san的強烈請求：\n\n- 這關係到他們的音樂事業，如果問題得不到改善，他們將不得不退出17LIVE以保護他們的耳朵。\n\n- 目前帶音效的禮物中的音效音量已經達到了對現場表演者來說危險的程度。\n\n- 對於戴著耳機進行表演的主播來說，突然的巨響會對耳膜造成強烈衝擊，甚至可能導致聽力損傷。這會讓他們因為身體問題而難以繼續直播，他們可能別無選擇，只能徹底放棄使用17LIVE。\n\n- 雖然這對於只用智慧型手機進行日常直播且不使用耳機的用戶來說可能不是問題，但對於現場表演者來說，這是一個會直接影響他們健康的音量。\n\n【建議】\n\n- 請將帶有聲音的禮物音量降低至目前音量的一半以下。\n\n- 請新增允許主播單獨調整禮物音量的功能。\n\n- 為音樂人創造一個可以安心表演的環境，最終將有助於提升直播品質和聽眾滿意度。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"3.ギフト送付仕様の改善\n【ギフト個数指定機能（特に無料ギフト）】\n・100個などのまとまった数を、1回の操作で指定して贈れるようにする。\n\n【ギフト誤爆回避】\n・誤爆防止の確認ボタンの追加。\n\n【ランダムギフト】\n・排出率（ランダム要素）の再考。\"","zh":"3. 禮品贈送功能改進\n\n【禮品數量指定功能（尤其針對免費禮品）】\n\n- 允許用戶一次指定並贈送大量禮品，例如 100 件。\n\n【防止誤送禮品】\n\n- 新增確認按鈕，防止誤送。\n\n【隨機禮品】\n\n- 重新評估隨機元素的掉落率。","by":"","date":"","persona":"兩者","status":"","jira":""},{"ja":"2. ギフト・エフェクト関連\n【VIPギフト・コンボの効率化】\n・VIPギフトのコンボ時、エフェクトの「渋滞」を避けるため、個数を入力して一括送信、または同じ演出の省略機能がほしい。（重要重複）\n・赤帯以上のギフトエフェクトをまとめないでほしい。\n→例：壁のイベントギフト大×2がきてエフェクト1回しか無かった。","zh":"2. 禮包特效相關\n\n【優化VIP禮包組合】\n\n- 為避免VIP禮包組合時出現特效“擁塞”，我們希望增加一個功能，允許用戶輸入禮包數量並一次性全部發送，或者增加一個功能來跳過重複的動畫。 （重複動畫效果至關重要）\n\n- 請勿將紅色橫幅以上等級的禮包特效組合在一起。\n\n→範例：牆上出現了兩個大型活動禮包，但只顯示了其中一個特效。","by":"ちぇっくす⚡CHEX","date":"","persona":"兩者","status":"","jira":""}],"U5.0":[{"ja":"プロフィールバッジ順番替え・大きく表示","zh":"個人徽章可調整順序並顯示得更大","by":"aki🦭亜妃🐥💖","date":"2025/12/11","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"プロフィールバッジ拡大・順番変更可能に","zh":"個人檔案徽章太小、順序無法調整、希望能納入 My Style","by":"japanism_tkm","date":"2025/12/09","persona":"兩者","status":"For Internal Discussion, To Submit Wishlist","jira":""},{"ja":"バッジつけられる量を増やす","zh":"沒有稱號時，希望增加更多徽章數量","by":"マリレオ0522🎮⚾️","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"オリジナルコメントバッジを手頃な価格に、永久プライズ","zh":"希望重新檢討里程兌換品價格並縮短製作時間","by":"星野ぽちゃ👑💕, BALENCIAGAさん, SRPるみ","date":"2025/09/24","persona":"兩者","status":"","jira":""},{"ja":"認証バッジの色を数種類用意","zh":"能區分回流用戶與首次使用 17 的用戶","by":"謙虚なTAISHO🌏✨🧎","date":"2025/12/11","persona":"兩者","status":"","jira":""},{"ja":"プロフィールバッジのマイスタイル化・大型化","zh":"希望支援個人資料徽章的自訂化與放大顯示","by":"TARꔹ⃝🐨PINK❤️","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"③　コメントバッジの数\n・コメントバッジに関して並べられる数に制限があるので、期間限定のバッジをたくさんつけるモチベーションがない。","zh":"③ 評論徽章數量\n\n- 評論徽章的顯示數量有限，因此沒有動力去展示太多限時徽章。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"・プロフィールバッジ機能改善(並び替えなど)","zh":"・改善個人檔案徽章功能（例如排序等）","by":"","date":"","persona":"兩者","status":"For Investigation","jira":""},{"ja":"バッジ拡大・専用エリア化(1.5倍/ID直下/6個表示)","zh":"徽章放大與專屬區域(1.5倍/ID下方/顯示6個)","by":"Ryo (JP)","date":"","persona":"兩者","status":"Decided","jira":""},{"ja":"バッジのカスタム並び替え/レベル表示ON-OFFトグル(ロードマップ未確定)","zh":"徽章自訂排序/等級顯示開關(路線圖未定)","by":"Katsu (JP)","date":"","persona":"兩者","status":"Future Phase","jira":""}],"U6.1":[{"ja":"PK連勝記録・挑戦待ち・殿堂など称号","zh":"為強化遊戲性導入稱號系統","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"VS勝利貢献リスナーランキング創設","zh":"建立 VS 勝利貢獻聽眾排行榜","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/09","persona":"兩者","status":"In Progress, Wishlisted","jira":""},{"ja":"複数PK（ギフト縛り、グランプリアワード追加）","zh":"禮物限制模式，並在 Grand Prix Award 中加入 PK","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/09","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"PK専用ギフトを作る","zh":"製作 PK 專用禮物","by":"くあとろ🐶","date":"2025/12/10","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"HENAより、VSに関するマイナススコア、参加インセンティブ、低BCギフト、ランキング算出方法、拒否・不参加時ルールの見直し要望が挙がっている。","zh":"來自 HENA 的以下需求\n\n① 放寬並重新檢討負分（負分數）機制的設計\n② 依據 VS 參與次數給予獎勵加成\n③ 新增低 BC 禮物（如 10BC／50BC 等）\n④ 僅將 VS 進行中所獲得的點數納入排行榜計算\n⑤ 重新檢討 VS 拒絕或未參加時的規則與懲罰機制","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"1. PK機能の体験（VS更新版）\n• メリット：\n  * 新設の待機室（Waiting Room）のバッファ設計が非常に効果的。PK切り替え時のプロトコル変換で速度が若干低下するものの、待機室の導入によりユーザーの待ち時間に対する不安感が緩和された（待ち時間を有効活用）。\n\n• 欠点 / バグ：\n接続安定性： 相手配信者のアイコンが表示されない問題が散見され、退出後再入場で回復する。\n反応遅延： 待機室でのリンク表示反応速度に遅延が残るため、読み込み効率の最適化を推奨。","zh":"【VOC 反饋】PK 功能及 UI 體驗優化建議\n針對最近 HENA 及多位主播使用 PK（VS）功能的反饋，整理如下：\n\n1. PK 功能體驗（VS Updated）\n• 優點： * 新增的 Waiting Room（待機室） 緩衝設計非常有效。雖然切換 PK 時因 Protocol轉換導致速度稍慢，但待機室的出現成功緩解了用戶等待的焦慮感（敷衍了等待時間）。\n\n• 缺點 / Bug：\n連線穩定性： 偶爾會出現無法顯示對方主播頭像的問題，需退出重新進入後才恢復正常。\n反應遲緩： Waiting Room 顯示連結的反應速度仍有些延遲，建議優化加載效率。","by":"","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"・2vs2だけでなく1vs3ができたほうがいい","zh":"如果我們既能進行 2v2 的比賽，也能進行 1v3 的比賽，那就更好了。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"・VSは毎月ランキング化したトップに何かしらかインセンティブをつけるとモチベが上がる。","zh":"如果虛擬明星（VS）玩家每月排名靠前能獲得某種獎勵，他們的積極性會更高。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""}],"U4.2":[{"ja":"ギフト獲得一覧の検索機能","zh":"支援主播搜尋、coin 條件、期間篩選","by":"🎤🌺かず💛🧸Dr🌼🤙🏼","date":"2025/12/11","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"ギフトアーミーの拒否・削除オプション","zh":"無法拒絕非預期的禮物 Army，造成關係壓力","by":"きゅうり++","date":"2025/10/21","persona":"兩者","status":"","jira":""},{"ja":"ギフトの検索機能","zh":"新增禮物搜尋功能","by":"マリレオ0522🎮⚾️","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"ギフトお気に入り登録・ピン止め","zh":"希望能固定常用禮物，讓付費流程更順暢","by":"一✂️ぴょん🐰ྀི✂️一","date":"2025/12/09","persona":"兩者","status":"","jira":""},{"ja":"ギフトのピン留め機能　➡︎ 「自分用のピン留め」と「特定のライバーを視聴した時のライバー専用のピン留め」など","zh":"禮物釘選功能　➡︎ 包含「個人釘選」與「觀看特定直播主時專屬該直播主的釘選」等功能","by":"","date":"","persona":"兩者","status":"","jira":""},{"ja":"ギフトアーミー的な強制表示・他者支払い誘導機能も参考にできる。","zh":"▶還有一些平台，例如 GiftArmy，它們提供向他人發送商品的功能，或者反過來，提供讓其他用戶付費的功能，因此這些平台值得考慮。","by":"","date":"","persona":"用戶","status":"","jira":""},{"ja":"1. ギフト・実績確認機能の強化\n【ギフトボードの遡及表示】\n・過去1〜3ヶ月分のギフトボードを確認可能にする。\n\n【獲得ギフト一覧の改善】\n・ギフト検索機能の追加、及びギフティング時間の詳細表示。\n\n【VIPギフトカウンター】\n・マイイベント用などに、誰がどれだけVIPギフトを送ったかを表示する専用カウンターの設置。","zh":"1. 增強的禮物和成就確認功能\n\n【禮物板回顧顯示】\n\n- 允許查看過去 1-3 個月的禮物板。\n\n【已獲得禮物清單優化】\n\n- 新增禮物搜尋功能，並詳細顯示贈送時間。\n\n【VIP 禮物計數器】\n\n- 新增專用計數器，顯示每位 VIP 贈送了多少禮物，可用於「我的活動」等功能。","by":"","date":"","persona":"兩者","status":"","jira":""},{"ja":"4. 履歴・アナリティクスの詳細化\n【履歴の検索・ソート機能】\n・ギフト獲得履歴、送付履歴をライバー別・期間別に検索・表示したい。\n・ギフトボードを過去3ヶ月分程度まで、かつ100位まで遡って見たい。","zh":"4. 詳細歷史記錄與分析\n\n[歷史記錄搜尋與排序功能]\n\n- 我想按主播和時段搜尋並顯示其收禮和送禮歷史記錄。\n\n- 我想看過去三個月左右的送禮排行榜，並顯示前 100 名。","by":"ちぇっくす⚡CHEX","date":"","persona":"兩者","status":"","jira":""}],"U5.1":[{"ja":"アーミーの効果強化","zh":"活動禮物效果與一般不同，如點數 1.2～1.5 倍","by":"くあとろ🐶","date":"2025/12/10","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"アーミー階級ごとの特典追加","zh":"希望高階 Army 有「隨機3_中獎率提升」等特典","by":"くあとろ🐶","date":"2025/12/09","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"アーミー高額から表示してほしい","zh":"高階 Army 不顯眼，也沒有明顯優勢","by":"星野ぽちゃ👑💕","date":"2025/09/24","persona":"兩者","status":"","jira":""},{"ja":"アーミーキャンペーンは好評だった。","zh":"Army Campaign 獲得好評。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"同一ユーザーがWebとアプリで入室すると、アーミーティッカーが重複表示され配信のコミュニケーションに混乱が生じる。","zh":"【戰隊成員同時透過網頁端與應用程式觀看直播時的行為模式】\n當使用者正透過瀏覽器觀看直播時，若從應用程式進入同一直播房間（或反之），每次進入直播間時戰隊成員的動態標記（包含分數提升內容）都會顯示，導致系統誤判為其他用戶（軍團成員）加入。\n每次進入時皆會引發誤判，若需反覆澄清將導致直播互動效率降低（影響直播節奏），故懇請調整為避免此類狀況的系統設計。」","by":"おく_____ぷ_______.iiii","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"大佐の復活","zh":"【意見徵詢】\n\n① 陸軍：應該讓上校復職（有些人需要他）。","by":"匿名","date":"","persona":"兩者","status":"For Internal Discussion","jira":""}],"U2.1":[{"ja":"プロフィール画像下の一言が見れない","zh":"部分手機顯示異常","by":"🎤🌺かず💛🧸Dr🌼🤙🏼","date":"2025/12/11","persona":"用戶","status":"For Investigation","jira":""},{"ja":"バレンタインのプロフィール背景","zh":"【情況】開啟時靜止不動，向下拉動更新後才會開始運作","by":"まりのすけ🌻🍭","date":"","persona":"用戶","status":"For Investigation","jira":""},{"ja":"自己紹介文の配置を左/中/右で選択可能に","zh":"自介可選左/中/右對齊","by":"Mayu/Katsu (JP)","date":"","persona":"兩者","status":"Decided","jira":""},{"ja":"bio欄・URL欄データのリリース後移行(上書きか保持か)※最新・未回答","zh":"bio/URL欄位上線後資料遷移(覆蓋或保留)—最新且未回覆","by":"Ryo (JP)","date":"","persona":"兩者","status":"PM Pending","jira":""},{"ja":"bio文字数上限の最終値(現200→ライバー要望4000-5000/PM案500-1000)","zh":"自介字數上限(現200→主播要4000-5000/PM傾向500-1000)","by":"Mayu (JP)","date":"","persona":"兩者","status":"PM Pending","jira":""},{"ja":"URL欄本文を説明欄へ結合移行するロジック確約","zh":"URL欄本文合併至說明欄的遷移邏輯","by":"Ryo (JP)","date":"","persona":"兩者","status":"PM Pending","jira":""}],"U5.2":[{"ja":"0時締め後の前月ギフティング人数・コイン数結果","zh":"0 點結算後無法查看上月結果","by":"🎤🌺かず💛🧸Dr🌼🤙🏼","date":"2025/12/11","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"現在のランキングはもやっとしてわかりにくい","zh":"貢獻度等項目變得不容易理解","by":"たんぼ4234🐷🌈⛳, 🌈ふじぃ🐷","date":"2025/09/22","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"ギフティングユニーク人数ランキング","zh":"對新人來說是必備功能","by":"トラ⭐️カモ","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"枠への貢献度表示","zh":"沒有粉絲等級與會員等級，貢獻度不清楚","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/11","persona":"兩者","status":"","jira":""},{"ja":"スペシャルタブで「いいね」やランキングを導入し、ライバーへの応援を可視化したい。","zh":"【Special Tab】\n若能為刊登的直播主建立「讚」欄位及該標籤的排行榜等機制，使支持行為得以視覺化呈現，將更為理想。","by":"いちくま🧸🥃","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"⑤　ゲーム\n・ゲームで負けたポイントのランキングを作り、それで負けた数を打ち出す面白さがあっていい","zh":"⑤ 遊戲\n\n- 如果能創建一個排行榜，統計輸掉的比賽中獲得的積分，並顯示輸掉的比賽次數，那就太好了。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""}],"U6.0":[{"ja":"VSモード切替バグ","zh":"VS 開始與結束時，聽眾端約 30 秒內模式切換異常","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/10/20","persona":"兩者","status":"For Investigation","jira":""},{"ja":"1. PK機能の体験（VS更新版）\n• メリット：\n  * 新設の待機室（Waiting Room）のバッファ設計が非常に効果的。PK切り替え時のプロトコル変換で速度が若干低下するものの、待機室の導入によりユーザーの待ち時間に対する不安感が緩和された（待ち時間を有効活用）。\n\n• 欠点 / バグ：\n接続安定性： 相手配信者のアイコンが表示されない問題が散見され、退出後再入場で回復する。\n反応遅延： 待機室でのリンク表示反応速度に遅延が残るため、読み込み効率の最適化を推奨。","zh":"【VOC 反饋】PK 功能及 UI 體驗優化建議\n針對最近 HENA 及多位主播使用 PK（VS）功能的反饋，整理如下：\n\n1. PK 功能體驗（VS Updated）\n• 優點： * 新增的 Waiting Room（待機室） 緩衝設計非常有效。雖然切換 PK 時因 Protocol轉換導致速度稍慢，但待機室的出現成功緩解了用戶等待的焦慮感（敷衍了等待時間）。\n\n• 缺點 / Bug：\n連線穩定性： 偶爾會出現無法顯示對方主播頭像的問題，需退出重新進入後才恢復正常。\n反應遲緩： Waiting Room 顯示連結的反應速度仍有些延遲，建議優化加載效率。","by":"","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"VS不具合\n①4人連線で追加した配信者の画像が表示されない（再入室で表示される場合あり）\n②配信者スコアが確認できない\n③iPadで画面ずれの報告\nVS更新（iPad）\n①ホストが操作不可（招待／ランダム押せない）\n②追加配信者の画像・IDが表示されない（音声は正常）\n③視聴者は再入室で表示される場合あり","zh":"【VS錯誤】\n・使用4人連線模式新增參與者時，新增直播主圖片無法顯示\n➡︎重新進入直播後圖片會顯示，但直播主端仍無法看見\n・無法查看各直播主的得分\n・據回報iPad端畫面顯示會偏移\n\n【VS更新】\n・iPad端主持人無法操作\n➡︎無法點擊邀請、隨機按鈕\n主持人新增參與者時，新增直播主圖片無法顯示\n※聲音仍可聽見\n※ID亦無法顯示\n※觀眾重新進入直播即可顯示\"","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"","persona":"兩者","status":"","jira":""},{"ja":"VS配信で表示が入れ替わり、対戦相手の名前と画面位置が不一致になる不具合。","zh":"VS中顯示內容會交替顯示，導致對手名稱與畫面位置不符的異常狀況。","by":"","date":"","persona":"兩者","status":"In Progress","jira":""}],"U4.1":[{"ja":"100コイン以下ギフトを増やす","zh":"「好可愛(100)」「看到了!(100)」等快捷禮物","by":"🎤🌺かず💛🧸Dr🌼🤙🏼","date":"2025/12/11","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"888と8888の間に選択肢がほしい","zh":"希望在禮物挑戰3_中提供約一半 BC 數的選項","by":"けい77💜Ruu🍩🏹͙","date":"2025/09/14","persona":"兩者","status":"","jira":""},{"ja":"VIPギフト大量時の交換機能","zh":"大量累積（如 1000 個）很困擾，應可換 VIP 大禮","by":"BALENCIAGAさん他","date":"2025/12/11","persona":"兩者","status":"","jira":""},{"ja":"マイル→コインへの変更","zh":"希望能將里程轉換為 coin","by":"BALENCIAGAさん他","date":"2025/12/11","persona":"兩者","status":"Deadend","jira":""},{"ja":"マイラッキーの廃止（8888のハードルが高い）","zh":"建議廢除 My Lucky（8888 門檻過高）","by":"TARꔹ⃝🐨PINK❤️","date":"","persona":"兩者","status":"In Progress","jira":""}],"U4.3":[{"ja":"VIPギフト届け先の自動表示","zh":"自動顯示與自己關係最密切的收件對象","by":"うずまき🌀🥁","date":"2025/12/11","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"VIPギフトに用途説明を追加","zh":"沒有說明進擊禮物等 VIP 禮物的使用方式","by":"AKKUN.🍫🎨🏅🍒","date":"2025/12/09","persona":"兩者","status":"","jira":""},{"ja":"VIP無料ギフト廃止","zh":"VIP 免費禮物會造成跑活動的壓力，希望能廢除。","by":"なかじ_17","date":"2025-12-23 00:00:00","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"VIPのギフトについて、\nギフト個数設定の機能追加","zh":"【回饋】關於VIP贈送禮物\n\n設定贈送禮物的數量或單獨發送每份禮物都很困難，請盡快改進。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"⑥　VIP無料ギフト\n・誰に何のために投げてどういう遊び方があるか分かったほうがいい。","zh":"⑥ VIP 免費禮品\n\n- 最好知道你要把禮物送給誰，為什麼要送，以及打算如何使用。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"コミュニティ行の並び順/VIP位置(VIP1列目化済・行溢れ改善要)","zh":"社群列排序/VIP位置(VIP已置首列;溢出需優化)","by":"Gary (JP)","date":"","persona":"兩者","status":"Partially Resolved","jira":""}],"U2.2":[{"ja":"視聴数の少ないタブはなくして","zh":"希望能掌握各分頁的觀看數，並刪除觀看數較少的分頁","by":"たんぼ4234🐷🌈⛳, 🌈ふじぃ🐷","date":"2025/09/22","persona":"用戶","status":"To Submit Wishlist","jira":""},{"ja":"注目欄を目立たせる改善","zh":"注目欄位不容易理解","by":"❤︎🦉kenchan🦉❤︎","date":"2025/12/09","persona":"用戶","status":"To Submit Wishlist","jira":""},{"ja":"本日のライバーの場所を変えられるように","zh":"右下角容易誤觸","by":"くあとろ🐶","date":"2025/12/09","persona":"用戶","status":"To Submit Wishlist","jira":""},{"ja":"ミッションバーの位置を動かせるように","zh":"某些機型會遮擋畫面，應可自由移動","by":"マリレオ0522🎮⚾️","date":"2025/12/09","persona":"用戶","status":"","jira":""},{"ja":"スペシャルタブを目立たせる","zh":"目前 UI 幾乎讓人不想再去看直播","by":"AKKUN.🍫🎨🏅🍒","date":"2025/12/09","persona":"用戶","status":"","jira":""},{"ja":"視聴中の枠画面から「本日のライバー」へ飛べるような機能があると良い","zh":"希望能在觀看中的直播畫面，直接跳轉至「今日的主播」頁面。","by":"","date":"","persona":"用戶","status":"For Internal Discussion","jira":""}],"S2.1":[{"ja":"アプリの動作安定化","zh":"相比其他 App，效能較慢且 Bug 過多","by":"くあとろ🐶","date":"2025/12/10","persona":"實況主","status":"For Investigation","jira":""},{"ja":"背景で落ちる件（北斗など）","zh":"禮物特效對 App 負擔過重導致閃退","by":"🌈🦄fuu_chanஐ🧸🌻","date":"2025/10/09","persona":"實況主","status":"Completed","jira":""},{"ja":"キーボード不具合（3.319.0／iPhone 17）\nコメント途中を削除するとカーソルがずれ、意図した箇所を削除できません。","zh":"從幾天前開始出現鍵盤的 Bug。\n版本： 3.319.0\n裝置： iPhone 17\n\n在留言欄中刪除中間的文字時，文字雖然會被刪除，但游標位置會跑掉，導致無法刪除想要刪除的部分。","by":"🎤🌺かず💛🧸Dr🌼🤙🏼","date":"","persona":"實況主","status":"In Progress","jira":""}],"U5.3":[{"ja":"ユーザーレベルを非表示にできる機能が欲しい。","zh":"我想要一個隱藏關卡的功能。","by":"","date":"","persona":"兩者","status":"Duplicated","jira":""},{"ja":"②レベルの非表示","zh":"② 等級顯示\n\n請移除此功能。當您達到170級等高等級時，人們會期望您贈送禮物。","by":"🏰Choboyan🌷0725🩲🌏","date":"","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"バッジのカスタム並び替え/レベル表示ON-OFFトグル(ロードマップ未確定)","zh":"徽章自訂排序/等級顯示開關(路線圖未定)","by":"Katsu (JP)","date":"","persona":"兩者","status":"Future Phase","jira":""}],"U2.3":[{"ja":"アーカイブ早送り機能（10秒程度）","zh":"希望在回放3_中加入約 10 秒的快轉功能","by":"たんぼ4234🐷🌈⛳, 🌈ふじぃ🐷","date":"2025/09/22","persona":"用戶","status":"To Submit Wishlist","jira":""},{"ja":"アーカイブ10秒スキップ機能","zh":"幾小時的回放稍微拖動就跳太多，不方便","by":"一✂️ぴょん🐰ྀི✂️一","date":"2025/12/09","persona":"用戶","status":"","jira":""},{"ja":"⑤「5秒進める」など機能追加","zh":"⑤ 存檔播放的播放條操作起來很困難（例如，當你只想倒退一點時，它卻倒退了很多）。","by":"","date":"","persona":"用戶","status":"","jira":""},{"ja":"2. アーカイブ・録画機能の利便性向上\n【スキップ機能】\n・10秒・30秒単位でのシーク機能を追加。\n\n【自動録画機能（赤・黒帯前後）】\n・盛り上がり(ギフト時)の前後を自動でクリップ・録画する機能","zh":"2. 提升存檔與錄影功能的便利性\n\n【跳過功能】\n\n- 新增以 10 秒和 30 秒為增量的快轉/快退功能。\n\n【自動錄製功能（前後紅/黑條）】\n\n- 自動剪輯並錄製精彩瞬間（例如送禮）前後的片段。","by":"","date":"","persona":"用戶","status":"","jira":""}],"U6.2":[{"ja":"VSフレンドマッチを連続して使用することによる不正を防止したい","zh":"目前可透過連續進行 VS 好友對戰來刻意累積勝場，敬請透過設置等待時間等方式改善此系統。\n若未加以改善，不僅會降低 VS 的價值，亦可能加速 VS 主播數量的減少。","by":"🌈🦄fuu_chanஐ🧸🌻","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"イベントモードのVSで、ブロック済みライバーがマッチング対象になるか、また回避手段があるかの仕様確認","zh":"VS功能的設計理念是不會與被封鎖的對象進行配對，\n但若使用活動模式時，配對過程會產生何種變化？（是否仍維持不與被封鎖直播主配對的機制？）\n若確實發生配對，是否有方法避免與該直播主進行對戰？","by":"🌈🦄fuu_chanஐ🧸🌻","date":"","persona":"兩者","status":"Completed","jira":""},{"ja":"ポイント争奪の発想は良かったが、防衛的行動や連戦によるポイント蓄積を防ぐ設計調整が必要。","zh":"爭奪點數的設計概念雖具趣味性，但因部分直播主對被奪取點數產生抗拒而轉為防守姿態，建議可調整獲勝時依排名給予不同點數等機制\n・其他如透過封鎖全體對手延長連戰等策略，本身屬應用程式功能範疇並無問題。但作為VS功能需限制連戰次數，或建立防止連戰累積點數的機制。","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"","persona":"兩者","status":"In Progress","jira":""},{"ja":"・4人VSだとブロックされている相手とも当たるので、気まずさを感じる。","zh":"・在 4vs 比賽中，你會遇到阻擋你的對手，這可能會很尷尬。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""}],"U5.4":[{"ja":"称号自体に装飾機能","zh":"希望能加上閃亮等裝飾效果","by":"マリレオ0522🎮⚾️","date":"2025/12/09","persona":"兩者","status":"To Submit Wishlist","jira":""},{"ja":"オリジナルコメントバッジを手頃な価格に、永久プライズ","zh":"希望重新檢討里程兌換品價格並縮短製作時間","by":"星野ぽちゃ👑💕, BALENCIAGAさん, SRPるみ","date":"2025/09/24","persona":"兩者","status":"","jira":""},{"ja":"認証バッジの色を数種類用意","zh":"能區分回流用戶與首次使用 17 的用戶","by":"謙虚なTAISHO🌏✨🧎","date":"2025/12/11","persona":"兩者","status":"","jira":""},{"ja":"③　コメントバッジの数\n・コメントバッジに関して並べられる数に制限があるので、期間限定のバッジをたくさんつけるモチベーションがない。","zh":"③ 評論徽章數量\n\n- 評論徽章的顯示數量有限，因此沒有動力去展示太多限時徽章。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""}],"U6.4":[{"ja":"イベントモードのVSで、ブロック済みライバーがマッチング対象になるか、また回避手段があるかの仕様確認","zh":"VS功能的設計理念是不會與被封鎖的對象進行配對，\n但若使用活動模式時，配對過程會產生何種變化？（是否仍維持不與被封鎖直播主配對的機制？）\n若確實發生配對，是否有方法避免與該直播主進行對戰？","by":"🌈🦄fuu_chanஐ🧸🌻","date":"","persona":"兩者","status":"Completed","jira":""},{"ja":"オンライン敗退したライバーにも、リアルイベント参加の機会がある仕組みがほしい。","zh":"即使在線上階段落敗，也希望能提供部分主播參加線下實體活動的機會。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"【ご意見会】\n④VS：「1時間に1本」「VSだけの枠」など条件を設けた配信設定項目","zh":"【回饋環節】④ VS：直播設置，例如「每小時一次直播」或「僅限VS時段」等限制條件","by":"","date":"","persona":"兩者","status":"","jira":""},{"ja":"ここのフィードバックに関しては▶JP User Feedbackへも載せています\n\n【VSについての意見とバグ】\n・声が二重に聞こえる。\n・エールを貯めている最中に落ちる","zh":"關於此處的回饋，也請發佈到 ▶JP 用戶回饋\n\n【關於 VS 的意見和錯誤】\n\n・聲音聽起來像是重複的。\n\n・","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"・ミュート機能があった方が良い。（4人同時に話すこともあり、うるさい）▶ライバー側が他ライバーをミュートに出来るorリスナー側が選んだライバーをミュート。","zh":"- 如果能有個靜音功能就太好了。 （有時候四個人同時說話，很吵。）▶ 主播可以把其他主播靜音，聽眾也可以把他們選擇的主播靜音。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""}],"S2.4":[{"ja":"BC達成ティッカー1000万単位","zh":"1000萬→5000萬→1億門檻太高，希望以 1000 萬為單位","by":"けい77💜Ruu🍩🏹͙","date":"2025/09/14","persona":"實況主","status":"","jira":""},{"ja":"ミリオンティッカー・金テロを消せる機能","zh":"有時想匿名送禮，希望能隱藏","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/11","persona":"實況主","status":"","jira":""}],"U6.3":[{"ja":"ゲーム3_中コメントが見えない問題","zh":"橫向分割畫面（半遊戲半留言）","by":"BALENCIAGAさん他","date":"2025/12/11","persona":"兩者","status":"","jira":""},{"ja":"・待機時間の長さとホスト以外がVSを始められない問題\n【ライバー視点】待機時間が長くリスナーが痺れを切らして枠を出てしまう・集まりが悪くなる\n（元々VSライバーだったが、この問題であまりVSをやらなくなってしまっている）\n【リスナー視点】戦いが始まらないと待機中はギフトも出来ないので、面白くなく、退屈。\n（誘ったライバーからでしかスタートボタンを押すことができないため、ライバー同士がずっと会話をしてVSが開始されない状況があった）","zh":"- 長時間的等待以及只有主播才能發起對戰（VS）的問題\n\n【從主播的角度來看】長時間的等待會導致觀眾失去耐心並離開直播間，從而造成觀看人數下降。\n\n（原本是對戰主播，但由於這個問題，現在已經很少做對戰了。）\n\n【從觀眾的角度來看】由於在等待對戰開始期間無法贈送禮物，所以既無聊又沒意思。\n\n（因為只有邀請主播才能按下開始按鈕，所以常常會出現主播一直在聊天而對戰始終無法開始的情況。）","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"秒数にティッカーが被り見えない（ギフトティッカーが消えた瞬間に秒数をチェックし、あとは自分で数えていた）","zh":"秒針擋住了秒數，我看不見（我在禮物秒針消失的那一刻查看了秒數，然後自己數完了剩下的秒數）。","by":"","date":"","persona":"兩者","status":"For Internal Discussion","jira":""},{"ja":"・ipad配信時UIにおける、コメント欄拡大時の縮小のボタンもしくは配信画面右上イベントアイコンの配置の調整","zh":"「在 iPad 上進行直播時，展開『留言』分頁後，【返回箭頭按鈕】會與活動圖示重疊，導致無法返回直播結束頁面。\n\n裝置資訊\niPad Air（第 4 代）\niOS 26.5」","by":"匿名","date":"","persona":"兩者","status":"Sunny to check","jira":""}],"S2.2":[{"ja":"AIアシスタントを発展させる","zh":"成長邏輯說明、改名、換裝、語音指令、外國用戶支援、數據建議","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025/12/11","persona":"實況主","status":"","jira":""},{"ja":"AI アシスタントの表示不具合修正","zh":"在 Army 限定直播中，無法進入的聽眾名稱被 AI assistant 抓取並顯示在留言中。","by":"🐬𝐘𝟏𝟔𝟎𝐌🐬🥂","date":"2025-12-22 00:00:00","persona":"實況主","status":"Sunny to check","jira":""},{"ja":"AIによるイベント戦略アドバイス","zh":"希望 AI 助理能提供活動排名或戰略等建議。","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025-12-23 00:00:00","persona":"實況主","status":"For Internal Discussion","jira":""},{"ja":"AI応答の修正依頼","zh":"AI 的回答有誤。\n\n在 AI 助手中，將 2023 年上映的吉卜力電影《君たちは》判定為正確答案，但實際上的正確片名應為《君たちはどう生きるか》。","by":"","date":"","persona":"實況主","status":"For Internal Discussion","jira":""}],"U2.4":[{"ja":"画面連打ハート機能復活","zh":"希望恢復以前連續點擊畫面出現愛心的功能","by":"たんぼ4234🐷🌈⛳","date":"2025/12/09","persona":"用戶","status":"Deadend","jira":""},{"ja":"昔は画面連打するとハート（いいね）が出ていたのがよかった","zh":"希望恢復以前連續點擊畫面會出現愛心的功能","by":"たんぼ4234🐷🌈⛳, 🌈ふじぃ🐷","date":"2025/09/22","persona":"用戶","status":"Deadend","jira":""}],"S2.3":[{"ja":"コメント要約機能","zh":"如果有留言摘要功能會很有趣。","by":"🔐ᕼᕮƝᗩ🔐໒꒱","date":"2025-12-23 00:00:00","persona":"實況主","status":"To Submit Wishlist","jira":""}]};      // 25 個原始痛點 -> 日文 requests
+const DEFAULT = [{"sort":1,"key":"U4.0","title":"Lucky draw gamed by overseas bots — unfair","area":"U4 Gifting / Spend","ty":"🛡️🧩","priority":"P1","n":13,"source":"VoC","strategy":false,"jp":""},{"sort":2,"key":"S2.0","title":"Free ticker covers the live screen — blocks work","area":"S2 Broadcast / Ops","ty":"⚡🧩","priority":"P0","n":11,"source":"VoC","strategy":false,"jp":""},{"sort":3,"key":"U2.0","title":"Screen cluttered with system elements, cannot hide","area":"U2 Watch / Return","ty":"⚡","priority":"P0","n":10,"source":"VoC","strategy":false,"jp":""},{"sort":4,"key":"U4.4","title":"High-value gift mis-send cannot be undone; crashes on send","area":"U4 Gifting / Spend","ty":"🐞⚡","priority":"P0","n":9,"source":"VoC","strategy":false,"jp":""},{"sort":5,"key":"U5.0","title":"Badges too small & cramped — achievement invisible","area":"U5 Recognition / Status","ty":"⚡","priority":"P1","n":10,"source":"VoC","strategy":false,"jp":""},{"sort":6,"key":"U6.1","title":"PK mode too shallow — winning feels unrewarding","area":"U6 Event / Compete","ty":"🧩","priority":"P0","n":8,"source":"VoC","strategy":false,"jp":""},{"sort":7,"key":"U4.2","title":"Too many gifts to find; cannot block unwanted Army","area":"U4 Gifting / Spend","ty":"⚡🧩","priority":"P1","n":8,"source":"VoC","strategy":false,"jp":""},{"sort":8,"key":"U5.1","title":"Army wants ranks & a stronger sense of belonging","area":"U5 Recognition / Status","ty":"🧩","priority":"P0","n":6,"source":"VoC","strategy":false,"jp":""},{"sort":9,"key":"U2.1","title":"Profile revamp may wipe streamers’ bio overnight","area":"U2 Watch / Return","ty":"🧩","priority":"P1","n":6,"source":"VoC","strategy":false,"jp":""},{"sort":10,"key":"U5.2","title":"Ranking logic unclear; want more dimensions","area":"U5 Recognition / Status","ty":"🧩","priority":"P1","n":6,"source":"VoC","strategy":false,"jp":""},{"sort":11,"key":"U6.0","title":"VS-mode switching glitches; match info breaks","area":"U6 Event / Compete","ty":"🐞","priority":"P0","n":4,"source":"VoC","strategy":false,"jp":""},{"sort":12,"key":"U4.1","title":"Pricing gap — no mid-tier option to spend","area":"U4 Gifting / Spend","ty":"🧩","priority":"P1","n":5,"source":"VoC","strategy":false,"jp":""},{"sort":13,"key":"U4.3","title":"VIP gift flow convoluted & confusing","area":"U4 Gifting / Spend","ty":"⚡","priority":"P2","n":6,"source":"VoC","strategy":false,"jp":""},{"sort":14,"key":"U2.2","title":"Key tabs hidden — cannot find the entry","area":"U2 Watch / Return","ty":"⚡","priority":"P2","n":6,"source":"VoC","strategy":false,"jp":""},{"sort":15,"key":"S2.1","title":"Frequent crashes while live; keyboard laggy","area":"S2 Broadcast / Ops","ty":"🐞","priority":"P0","n":3,"source":"VoC","strategy":false,"jp":""},{"sort":16,"key":"U5.3","title":"Level forced-visible; users want to control it","area":"U5 Recognition / Status","ty":"⚡","priority":"P0","n":3,"source":"VoC","strategy":false,"jp":""},{"sort":17,"key":"U2.3","title":"No fast-forward in live/replay — like no remote","area":"U2 Watch / Return","ty":"🧩","priority":"P1","n":4,"source":"VoC","strategy":false,"jp":""},{"sort":18,"key":"U6.2","title":"Friend battles farmable; still matched after block","area":"U6 Event / Compete","ty":"🛡️","priority":"P1","n":4,"source":"VoC","strategy":false,"jp":""},{"sort":19,"key":"U5.4","title":"Want customizable titles & verified badges","area":"U5 Recognition / Status","ty":"⚡","priority":"P2","n":4,"source":"VoC","strategy":false,"jp":""},{"sort":20,"key":"U6.4","title":"On/offline contest formats disjointed; rules unclear","area":"U6 Event / Compete","ty":"🧩","priority":"P3","n":5,"source":"VoC","strategy":false,"jp":""},{"sort":21,"key":"S2.4","title":"Want a milestone ticker when BC targets are hit","area":"S2 Broadcast / Ops","ty":"⚡","priority":"P2","n":2,"source":"VoC","strategy":false,"jp":""},{"sort":22,"key":"U6.3","title":"Cannot see chat during matches; idle waiting","area":"U6 Event / Compete","ty":"⚡🧩","priority":"P3","n":4,"source":"VoC","strategy":false,"jp":""},{"sort":23,"key":"S2.2","title":"AI assistant buggy; inaccurate responses","area":"S2 Broadcast / Ops","ty":"🐞🧩","priority":"P3","n":4,"source":"VoC","strategy":false,"jp":""},{"sort":24,"key":"U2.4","title":"Lost the thrill of tapping the screen for hearts","area":"U2 Watch / Return","ty":"⚡","priority":"P3","n":2,"source":"VoC","strategy":false,"jp":""},{"sort":25,"key":"S2.3","title":"Too many comments to read; want auto-summary","area":"S2 Broadcast / Ops","ty":"🧩","priority":"P3","n":1,"source":"VoC","strategy":false,"jp":""},{"sort":26,"key":"Z1","title":"SVIP dedicated support & concierge (JP)","area":"Z Strategy","ty":"🎯","priority":"P1","n":"","source":"Strategy","strategy":true,"jp":"Lift SVIP retention & ARPPU (Ops-initiated, not a user request)."},{"sort":27,"key":"Z2","title":"Marketing calendar × launch cadence alignment","area":"Z Strategy","ty":"🎯","priority":"P2","n":"","source":"Strategy","strategy":true,"jp":"Align campaigns with feature launches to maximize buzz & revenue."}];  // 內建預設(Sheet 未接時的後備)
+const DEF_TY = {}; DEFAULT.forEach(d=>DEF_TY[d.key]=d.ty);
+const DEF_BY_KEY = {}; DEFAULT.forEach(d=>DEF_BY_KEY[d.key]=d);
+
+const ST={
+  back:{l:"Backlog",c:"var(--st-back)"}, next:{l:"Up Next",c:"var(--st-next)"},
+  prog:{l:"In Progress",c:"var(--st-prog)"}, rev:{l:"In Review",c:"var(--st-rev)"},
+  ship:{l:"Shipped",c:"var(--st-ship)"}, block:{l:"Blocked",c:"var(--st-block)"}
+};
+const PRI={P0:"var(--p0)",P1:"var(--p1)",P2:"var(--p2)",P3:"var(--p3)"};
+const AVC=["#5fd3e6","#f0a24a","#8b9be0","#3fd08a","#d98bb8","#a98bd6","#e5a13a","#5b9bd5"];
+let ITEMS=[];
+
+function esc(s){return(s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function num(v,d){const n=parseFloat(v);return isNaN(n)?d:n;}
+function splitP(s){return (s||'').split(/[,、，;；]/).map(x=>x.trim()).filter(Boolean);}
+function normStatus(s){
+  const k=(s||'').toLowerCase().replace(/[\s_-]/g,'');
+  if(k.includes('block')||k.includes('卡關')) return 'block';
+  if(k.includes('review')||k.includes('審查')) return 'rev';
+  if(k.includes('progress')||k.includes('開發中')||k.includes('進行')) return 'prog';
+  if(k.includes('ship')||k.includes('done')||k.includes('上線')||k.includes('完成')) return 'ship';
+  if(k.includes('next')||k.includes('即將')||k.includes('規劃')) return 'next';
+  return 'back';
+}
+function avColor(name){let h=0;for(const ch of name)h=(h*31+ch.charCodeAt(0))>>>0;return AVC[h%AVC.length];}
+function initials(name){const s=name.replace(/[^A-Za-z一-鿿]/g,'');return (s.slice(0,2)||name.slice(0,2)).toUpperCase();}
+function avatar(name,role){
+  if(!name) return '<span class="unassigned">— Unassigned</span>';
+  return `<span class="avatar"><span class="av" style="background:${avColor(name)}">${esc(initials(name))}</span><span class="nm">${esc(name)}</span></span>`;
+}
+function person(name){return `<span class="person"><span class="av" style="background:${avColor(name)}">${esc(initials(name))}</span>${esc(name)}</span>`;}
+function setSync(t,cls){const el=document.getElementById('sync');el.textContent=t;el.className='sync'+(cls?' '+cls:'');}
+
+function toItem(x,idx){
+  const key=(x.key||'').trim();
+  const base=DEF_BY_KEY[key]||{};
+  const source=(x.source||'').trim();
+  const strategy = /strategy|策略/i.test(source) || /^z/i.test(key) || /^z\b|營運策略/i.test(String(x.area||''));
+  return {
+    row: x._row||null,
+    sort: num(x.sort, idx+1),
+    key,
+    title: (x.title||base.title||'(未命名)'),
+    area: (x.area||base.area||''),
+    ty: (strategy?'🎯':(key?(DEF_TY[key]||'•'):'✚')),
+    priority: (x.priority||base.priority||'P3').toString().toUpperCase().trim(),
+    st: normStatus(x.status),
+    a: (x.accountable||'').trim()||null,
+    r: splitP(x.responsible), c: splitP(x.consulted), i: splitP(x.informed),
+    target: (x.target_ship||'').trim(), shipped:(x.shipped_on||'').trim(),
+    next:(x.next_step||'').trim(), blk:(x.blocker_ask||'').trim(),
+    jira:(x.jira||'').trim(), n: num(x.demand_n, base.n||0),
+    jp:(x.jp_original||'').trim(), source, strategy
+  };
+}
+function normalize(rows){
+  return rows.map((x,i)=>toItem(x,i)).sort((a,b)=>a.sort-b.sort);
+}
+
+/* ===== load (JSONP) ===== */
+function useDefault(msg,cls){
+  ITEMS = DEFAULT.map((d,i)=>({row:null,sort:d.sort||i+1,key:d.key||'',title:d.title,area:d.area,ty:d.ty,priority:d.priority,st:'back',a:null,r:[],c:[],i:[],target:'',shipped:'',next:'',blk:'',jira:'',n:(d.n===''?0:d.n),jp:d.jp||'',source:d.source||'',strategy:!!d.strategy}));
+  setSync(msg,cls); render();
+}
+function loadData(){
+  if(!SHEET_API){ useDefault('● Local mode (not connected · drag won’t save)',''); return; }
+  setSync('… Loading','');
+  const cb='__rmcb'+Date.now();
+  const s=document.createElement('script');
+  const done=ok=>{ if(window[cb])delete window[cb]; if(s.parentNode)s.remove(); };
+  window[cb]=function(data){
+    try{ const rows=(data&&data.rows)?data.rows:(Array.isArray(data)?data:[]); if(!rows.length){useDefault('⚠ Sheet empty (using built-in)','warn');} else {ITEMS=normalize(rows); setSync('☁ Connected','on'); render();} }
+    catch(e){ useDefault('⚠ Parse failed (using built-in)','warn'); }
+    done(true);
+  };
+  s.onerror=()=>{ useDefault('⚠ Load failed (using built-in)','warn'); done(false); };
+  s.src=SHEET_API+(SHEET_API.includes('?')?'&':'?')+'callback='+cb+'&t='+Date.now();
+  document.body.appendChild(s);
+}
+
+/* ===== save order (POST, fire-and-forget) ===== */
+function saveOrder(){
+  ITEMS.forEach((it,i)=>it.sort=i+1);
+  if(!SHEET_API){ setSync('● Local mode: order not saved',''); return; }
+  const payload={action:'reorder', order: ITEMS.map(it=>({row:it.row, key:it.key, sort:it.sort}))};
+  setSync('… Saving order','');
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    .then(()=>{ setSync('☁ Order saved','on'); setTimeout(loadData, 1200); })
+    .catch(()=>setSync('⚠ Save failed (updated locally, will retry)','warn'));
+}
+
+/* ===== render ===== */
+function render(){
+  // KPIs
+  const cnt={}; ITEMS.forEach(it=>cnt[it.st]=(cnt[it.st]||0)+1);
+  const kd=[["prog","In Progress"],["rev","In Review"],["block","Blocked"],["next","Up Next"],["ship","Shipped"],["back","Backlog"]];
+  document.getElementById('kpis').innerHTML=kd.map(([k,l])=>`<div class="kpi" style="--kc:${ST[k].c}"><div class="v">${cnt[k]||0}</div><div class="l"><span class="dot"></span>${l}</div></div>`).join('');
+  // asks
+  const asks=ITEMS.filter(it=>it.st==='block'||it.blk);
+  document.getElementById('asks').innerHTML = asks.length
+    ? asks.map(it=>`<div class="ask"><span class="amark">${esc(it.priority)}</span><div><div class="aq">${esc(it.blk||it.title)}</div><div class="am"><span>${esc(it.title)}</span>${it.a?'<span>·</span>'+avatar(it.a):''}</div></div></div>`).join('')
+    : '<div class="ok">✓ No open decisions / blockers</div>';
+  // focus (first P0 in order)
+  const foc=ITEMS.find(it=>it.priority==='P0');
+  const fe=document.getElementById('focus');
+  if(foc){ fe.hidden=false; fe.innerHTML=`<span class="fl">🎯 Focus</span><span class="ft">${esc(foc.title)}</span><span class="fm">${ST[foc.st].l}${foc.a?' · A: '+esc(foc.a):''}${foc.target?' · Target '+esc(foc.target):''}</span>`; }
+  else fe.hidden=true;
+  // list
+  const list=document.getElementById('list');
+  list.innerHTML='';
+  ITEMS.forEach((it,idx)=>{
+    const pc=PRI[it.priority]||'var(--p3)'; const st=ST[it.st];
+    const newtag=it.key?'':'<span class="tag new">NEW</span>';
+    const jira=it.jira?`<a class="jira" href="${/^https?:/.test(it.jira)?esc(it.jira):'#'}" ${/^https?:/.test(it.jira)?'target=_blank rel=noopener':'onclick="return false"'}>${esc(it.jira.replace(/^https?:\/\/\S+\//,''))} ↗</a>`:'<span class="jira none">—</span>';
+    const dateCell = it.shipped?`<span class="date">✓ ${esc(it.shipped)}</span>`:(it.target?`<span class="date">${esc(it.target)}</span>`:'<span class="date none">—</span>');
+    const row=document.createElement('div');
+    row.className='row'+(it.strategy?' strat':''); row.style.setProperty('--pc',pc); row.draggable=true; row.dataset.idx=idx;
+    row.innerHTML=`<span class="grip" title="拖拉排序">⠿</span>
+      <span class="pchip" style="--pc:${pc}">${esc(it.priority)}</span>
+      <span class="main"><div class="title"><span class="ty">${esc(it.ty)}</span>${esc(it.title)}</div><div class="sub">${newtag}${it.area?`<span class="tag">${esc(it.area)}</span>`:''}${it.strategy?'<span class="tag strat">🎯 Strategy</span>':`<span class="tag dem">Demand ×${it.n}</span>`}</div></span>
+      <span class="pill" style="--sc:${st.c}"><span class="dot"></span>${st.l}</span>
+      ${it.a?avatar(it.a):'<span class="unassigned">— Unassigned</span>'}
+      ${dateCell}${jira}<span class="chev">▸</span>`;
+    row.addEventListener('click',e=>{ if(e.target.closest('.grip')||e.target.closest('.jira'))return; toggle(row,it,pc); });
+    wireDrag(row);
+    list.appendChild(row);
+  });
+}
+
+let _open=null;
+function toggle(row,it,pc){
+  const nx=row.nextElementSibling;
+  if(nx&&nx.classList.contains('detail')){nx.remove();row.classList.remove('open');row.querySelector('.chev').textContent='▸';_open=null;return;}
+  if(_open){const d=_open.nextElementSibling;if(d&&d.classList.contains('detail'))d.remove();_open.classList.remove('open');const c=_open.querySelector('.chev');if(c)c.textContent='▸';}
+  let jp;
+  if(it.strategy){
+    // Z 營運策略：非來自用戶心聲，顯示策略背景／目的
+    jp=`<div class="dh">Strategy · background / objective</div>`+(it.jp?`<div class="req"><div class="rq-ja">${esc(it.jp)}</div></div>`:`<div class="note">Strategic (Ops-driven) item, not from Voice of Customer. Add background / objective in the Sheet jp_original column.</div>`);
+  } else {
+    // 原始日文：以 Sheet 的 jp_original 為主(每則一行「ja ｜ by ｜ date」)；未接 Sheet 時用內建 DRILL 後備
+    let reqs=[];
+    if(it.jp){ reqs=it.jp.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(l=>{const p=l.split(' ｜ ');return {ja:p[0]||l, by:p[1]||'', date:p[2]||''};}); }
+    else if(it.key && DRILL[it.key]){ reqs=DRILL[it.key]; }
+    if(reqs.length){ jp=`<div class="dh">Original requests (JP) · ${reqs.length}</div>`+reqs.map(q=>`<div class="req"><div class="rq-ja">${esc(q.ja)}</div>${(q.by||q.date)?`<div class="rq-meta">${esc(q.by)}${q.date?' · '+esc(q.date):''}</div>`:''}</div>`).join(''); }
+    else { jp=`<div class="dh">原始日文 requests</div><div class="note">No original JP yet (add it in the Sheet jp_original column; one per line).</div>`; }
+  }
+  const nextHtml = it.blk
+    ? `<div class="nextask blk"><div class="nl">🚩 Blocker / Ask</div><div class="nt">${esc(it.blk)}</div></div>`
+    : (it.next?`<div class="nextask"><div class="nl">▸ Next step</div><div class="nt">${esc(it.next)}</div></div>`:'');
+  const raci=`<div class="dh">RACI</div><div class="raci-grid">
+    ${raciRow('A','A',it.a?[it.a]:[])}${raciRow('R','R',it.r)}${raciRow('C','C',it.c)}${raciRow('I','I',it.i)}
+  </div>`;
+  const d=document.createElement('div'); d.className='detail'; d.style.setProperty('--pc',pc);
+  d.innerHTML=`<div class="dgrid"><div>${nextHtml}${raci}</div><div>${jp}</div></div>`;
+  row.after(d); row.classList.add('open'); row.querySelector('.chev').textContent='▾'; _open=row;
+}
+function raciRow(letter,cls,names){
+  const list=names&&names.length?names.map(person).join(''):'<span class="unassigned" style="width:auto">—</span>';
+  return `<div class="raci-row"><span class="rl ${cls}">${letter}</span><div class="who2">${list}</div></div>`;
+}
+
+/* ===== drag ===== */
+let dragIdx=null;
+function wireDrag(row){
+  row.addEventListener('dragstart',e=>{dragIdx=+row.dataset.idx;row.classList.add('drag');e.dataTransfer.effectAllowed='move';
+    const d=row.nextElementSibling;if(d&&d.classList.contains('detail'))d.remove(); if(_open===row)_open=null;});
+  row.addEventListener('dragend',()=>{row.classList.remove('drag');document.querySelectorAll('.row.over').forEach(x=>x.classList.remove('over'));});
+  row.addEventListener('dragover',e=>{e.preventDefault();row.classList.add('over');});
+  row.addEventListener('dragleave',()=>row.classList.remove('over'));
+  row.addEventListener('drop',e=>{
+    e.preventDefault();row.classList.remove('over');
+    const to=+row.dataset.idx;
+    if(dragIdx===null||dragIdx===to)return;
+    const [moved]=ITEMS.splice(dragIdx,1); ITEMS.splice(to,0,moved);
+    _open=null; render(); saveOrder(); dragIdx=null;
+  });
+}
+
+document.getElementById('foot').innerHTML='Source of truth: Google Sheet. This page is a read + drag-to-reorder view; add items / edit RACI / status / dates in the Sheet. Setup: <b>SETUP-google-sheet.md</b>.';
+loadData();
+</script>
+</body></html>
