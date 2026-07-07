@@ -37,6 +37,24 @@ header{position:sticky;top:0;z-index:50;background:rgba(246,247,249,.92);backdro
 .searchbar input:focus{border-color:var(--ink2)}
 .searchbar .clr{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink2);display:none}
 .s-count{font-size:12.5px;color:var(--ink2);margin:10px 2px 0}
+/* ---------- filter bar ---------- */
+.filterbar{margin:14px 0 0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.f-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.f-lb{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);width:56px;flex-shrink:0}
+.f-chip{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink2);cursor:pointer;white-space:nowrap}
+.f-chip:hover{border-color:var(--ink3)}
+.f-chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.f-chip.on.h-red{background:var(--red);border-color:var(--red)}
+.f-chip.on.h-amber{background:var(--amber);border-color:var(--amber)}
+.f-chip.on.h-green{background:var(--green);border-color:var(--green)}
+.f-urgent{font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:999px;border:1px solid var(--red);background:var(--red-bg);color:var(--red);cursor:pointer;white-space:nowrap}
+.f-urgent.on{background:var(--red);color:#fff}
+.f-spacer{flex:1}
+.f-sort{font-size:12.5px;font-weight:600;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.f-clear{font-size:12px;font-weight:700;color:var(--ink3);background:none;border:0;cursor:pointer;text-decoration:underline;white-space:nowrap}
+.f-count{font-size:12.5px;color:var(--ink2);padding-top:2px}
+.f-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:10px}
+@media(max-width:640px){.f-lb{width:100%}}
 /* ---------- sections ---------- */
 section{margin-top:28px}
 .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
@@ -112,6 +130,7 @@ details.parked summary .cnt{font-family:var(--mono);font-weight:400;color:var(--
 .prow .t{font-weight:600}
 .prow .i{color:var(--ink2);font-size:12.5px;flex-basis:100%;padding-left:130px}
 @media(max-width:640px){.prow .i{padding-left:0}}
+.prow .d{font-family:var(--mono);font-size:11px;color:var(--ink3);white-space:nowrap}
 .prow a.go{font-size:12px;font-weight:700;color:var(--ink3);text-decoration:none;margin-left:auto;white-space:nowrap}
 .prow a.go:hover{color:var(--ink)}
 /* ---------- footer ---------- */
@@ -159,9 +178,34 @@ footer{margin-top:36px;font-size:11.5px;color:var(--ink3);line-height:1.7}
     <div class="ov"><p id="ovP"></p><div class="chips" id="ovChips"></div></div>
   </section>
 
+  <section id="s-filter">
+    <div class="filterbar">
+      <div class="f-row">
+        <span class="f-lb" id="fHealthLb"></span>
+        <button class="f-urgent" id="fUrgent" onclick="toggleUrgent()"></button>
+        <div id="fHealthChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div class="f-row">
+        <span class="f-lb" id="fStageLb"></span>
+        <div id="fStageChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div class="f-row">
+        <span class="f-count" id="fCount"></span>
+        <button class="f-clear" id="fClear" onclick="clearFilters()" style="display:none"></button>
+        <div class="f-spacer"></div>
+        <select class="f-sort" id="fSort" onchange="setSort(this.value)">
+          <option id="soHealth" value="health">·</option>
+          <option id="soUpdated" value="updated">·</option>
+          <option id="soKey" value="key">·</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
   <section id="s-hm">
     <div class="sec-h"><h2 id="hmT"></h2><span class="cnt" id="hmC"></span></div>
     <div class="hm-scroll"><table class="hm"><thead><tr id="hmHead"></tr></thead><tbody id="hmBody"></tbody></table></div>
+    <div class="f-empty" id="hmEmpty" style="display:none"></div>
   </section>
 
   <section id="s-tl">
@@ -172,6 +216,7 @@ footer{margin-top:36px;font-size:11.5px;color:var(--ink3);line-height:1.7}
   <section id="s-cards">
     <div class="sec-h"><h2 id="cdT"></h2><span class="cnt" id="cdC"></span></div>
     <div class="cards" id="cards"></div>
+    <div class="f-empty" id="cdEmpty" style="display:none"></div>
   </section>
 
   <details class="parked" id="s-parked">
@@ -208,12 +253,17 @@ var I18N = {
       green:'正常',amber:'吃緊',red:'落後',gray:'沒有時程資訊',
       what:'這是什麼',now:'現在到哪',when:'什麼時候',healthWhy:'健康度說明',jira:'在 JIRA 打開 →',
       parked:'停車場(還沒排上的點子)',
-      parkedNote:'這些點子目前沒有人在做,多數只有一個標題。這裡只翻譯標題與大致目的;沒寫的就是票裡沒有內容,不是我們漏掉。',
+      parkedNote:'這些點子目前沒有人在做,多數只有一個標題。這裡只翻譯標題與大致目的;沒寫的就是票裡沒有內容,不是我們漏掉。依「最後更新」時間排序,最近有人碰過的排最上面。想找特定點子可以用最上面的搜尋框。',
       today:'今天',legend:'直紅線=今天。灰=還沒到的階段。只列出票上有填日期的功能。',
       statBuild:'開發中',statDesign:'設計中',statPlan:'規劃中',
       foot1:'資料範圍:APPIDEAS 專案全部未結案的票 — 進行中 {a} 個 + 停車場 {p} 個(已剔除 {j} 張測試/範本票)。如還有不想看的票,把票號告訴 Claude 剔除。',
       foot2:'更新方式:在 Claude Code 開啟 product-ops-bridge 這個 repo,說「更新 JP dashboard」即可;它會重抓 JIRA、重寫摘要、重建這一頁。',
-      cnt:'{a} 進行中 · {p} 停車場'},
+      cnt:'{a} 進行中 · {p} 停車場',
+      fHealth:'健康度',fStage:'階段',fAll:'全部',fUrgent:'⚠️ 只看需要注意的',fClear:'清除篩選',
+      fCount:'顯示 {n} / {t} 個功能',
+      fEmptyMsg:'篩選後沒有符合的功能。換個條件試試,或按「清除篩選」看全部。',
+      sortHealth:'健康度優先(預設)',sortUpdated:'最近更新優先',sortKey:'依票號排序',
+      pUpd:'最後更新'},
   en:{sub:'Plain-language progress board for non-engineers — data from JIRA',updated:'Snapshot',
       search:'Search: ticket number (e.g. 1927) or keyword (zh/en/ja all work)',clear:'Clear',
       sFound:'Found {a} active features and {p} parked ideas',sNone:'No match. Try another keyword — Chinese, English, Japanese or a ticket number.',
@@ -224,12 +274,17 @@ var I18N = {
       green:'On track',amber:'Tight',red:'Behind',gray:'No dates on ticket',
       what:'What it is',now:'Where it stands',when:'When',healthWhy:'Why this status',jira:'Open in JIRA →',
       parked:'Parking lot (ideas not scheduled)',
-      parkedNote:'Nobody is working on these right now; most have only a title. We translated the title and rough intent — blanks mean the ticket itself has nothing written, not that we skipped it.',
+      parkedNote:'Nobody is working on these right now; most have only a title. We translated the title and rough intent — blanks mean the ticket itself has nothing written, not that we skipped it. Sorted by last-updated date, most recently touched first. Use the search box above to find a specific idea.',
       today:'Today',legend:'Red line = today. Gray = stages not reached yet. Only features with dates on the ticket are shown.',
       statBuild:'building',statDesign:'in design',statPlan:'planning',
       foot1:'Scope: every open ticket in the APPIDEAS project — {a} active + {p} parked ({j} test/template tickets removed). Tell Claude any keys you want dropped.',
       foot2:'To refresh: open this repo (product-ops-bridge) in Claude Code and say "update the JP dashboard" — it re-pulls JIRA, rewrites the summaries and rebuilds this page.',
-      cnt:'{a} active · {p} parked'},
+      cnt:'{a} active · {p} parked',
+      fHealth:'Health',fStage:'Stage',fAll:'All',fUrgent:'⚠️ Needs attention only',fClear:'Clear filters',
+      fCount:'Showing {n} of {t} features',
+      fEmptyMsg:'No features match this filter. Try a different one, or press "Clear filters" to see everything.',
+      sortHealth:'Health first (default)',sortUpdated:'Most recently updated',sortKey:'By ticket number',
+      pUpd:'Last updated'},
   ja:{sub:'非エンジニア向けのやさしい進捗ボード — データはJIRAから',updated:'スナップショット',
       search:'検索:チケット番号(例 1927)またはキーワード(中/英/日 対応)',clear:'クリア',
       sFound:'進行中 {a} 件・保留アイデア {p} 件が見つかりました',sNone:'該当なし。別のキーワード(中国語・英語・日本語・チケット番号)でお試しください。',
@@ -240,16 +295,21 @@ var I18N = {
       green:'順調',amber:'注意',red:'遅れ',gray:'日付情報なし',
       what:'これは何?',now:'いまどこ?',when:'いつ?',healthWhy:'この状態の理由',jira:'JIRAで開く →',
       parked:'パーキングロット(未着手のアイデア)',
-      parkedNote:'現在誰も着手していないアイデアで、多くはタイトルのみ。タイトルとおおまかな目的だけ訳しています。空欄はチケット自体に記載がないためで、訳し漏れではありません。',
+      parkedNote:'現在誰も着手していないアイデアで、多くはタイトルのみ。タイトルとおおまかな目的だけ訳しています。空欄はチケット自体に記載がないためで、訳し漏れではありません。「最終更新」が新しい順に並んでいます。特定のアイデアを探すには上の検索欄をご利用ください。',
       today:'今日',legend:'赤い縦線=今日。グレー=未到達の段階。日付が入っているチケットのみ表示。',
       statBuild:'開発中',statDesign:'デザイン中',statPlan:'企画中',
       foot1:'範囲:APPIDEASプロジェクトの未完了チケットすべて — 進行中 {a} 件+保留 {p} 件(テスト/テンプレート {j} 件は除外済み)。不要なチケットは番号をClaudeに伝えて除外できます。',
       foot2:'更新方法:Claude Codeでこのrepo(product-ops-bridge)を開き「JPダッシュボードを更新して」と伝えるだけ。JIRA再取得→要約→このページ再生成まで行います。',
-      cnt:'進行中 {a} · 保留 {p}'}
+      cnt:'進行中 {a} · 保留 {p}',
+      fHealth:'健康度',fStage:'段階',fAll:'すべて',fUrgent:'⚠️ 対応が必要な項目のみ',fClear:'フィルターを解除',
+      fCount:'{t}件中{n}件を表示',
+      fEmptyMsg:'この条件に一致する機能はありません。条件を変えるか「フィルターを解除」を押してください。',
+      sortHealth:'健康度順(既定)',sortUpdated:'更新が新しい順',sortKey:'チケット番号順',
+      pUpd:'最終更新'}
 };
 
 /* ---------------- state ---------------- */
-var state = { lang:'zh', q:'' };
+var state = { lang:'zh', q:'', sort:'health', filters:{health:null, stage:null} };
 
 /* ---------------- utils ---------------- */
 function $(id){ return document.getElementById(id); }
@@ -260,11 +320,63 @@ function pick(obj){ if(!obj) return ''; return obj[state.lang] || obj.zh || obj.
 function fmtDate(iso){ if(!iso) return '—'; return String(iso).slice(5,10).replace('-','/'); }
 function todayISO(){ var d=new Date(); return d.toISOString().slice(0,10); }
 function healthPill(h){ return (h==='red')?'p-red':(h==='amber')?'p-amber':(h==='green')?'p-green':'p-gray'; }
-function sortTickets(a,b){
+function keyNum(k){ return parseInt(String(k).split('-')[1],10)||0; }
+function sortTickets(a,b,mode){
+  mode = mode || 'health';
+  if(mode==='updated'){ return (a.updated||'')<(b.updated||'') ? 1 : ((a.updated||'')>(b.updated||'') ? -1 : 0); }
+  if(mode==='key'){ return keyNum(a.key)-keyNum(b.key); }
   var d=(HEALTH_ORDER[a.health]!==undefined?HEALTH_ORDER[a.health]:3)-(HEALTH_ORDER[b.health]!==undefined?HEALTH_ORDER[b.health]:3);
   if(d)return d;
   d=(b.stage||0)-(a.stage||0); if(d)return d;
   return a.key<b.key?1:-1;
+}
+function ticketMatchesFilters(t){
+  var hf=state.filters.health;
+  if(hf==='urgent'){ if(t.health!=='red'&&t.health!=='amber') return false; }
+  else if(hf && t.health!==hf){ return false; }
+  if(state.filters.stage!==null && t.stage!==state.filters.stage){ return false; }
+  return true;
+}
+function setHealthFilter(v){ state.filters.health=v; render(); }
+function toggleUrgent(){ state.filters.health=(state.filters.health==='urgent')?null:'urgent'; render(); }
+function setStageFilter(v){ state.filters.stage=v; render(); }
+function setSort(v){ state.sort=v; render(); }
+function clearFilters(){ state.filters={health:null, stage:null}; render(); }
+
+function renderFilterBar(all){
+  var hc={green:0,amber:0,red:0,gray:0}, sc=[0,0,0,0,0];
+  all.forEach(function(t){ hc[t.health||'gray']=(hc[t.health||'gray']||0)+1; sc[Math.min(Math.max(t.stage||0,0),4)]++; });
+  $('fHealthLb').textContent=T('fHealth');
+  $('fStageLb').textContent=T('fStage');
+  var hf=state.filters.health;
+  function chip(label,val,cls,cnt){
+    var on=(hf===val);
+    return '<button class="f-chip'+(on?' on':'')+(on&&cls?(' '+cls):'')+'" onclick="setHealthFilter('+(val===null?'null':("'"+val+"'"))+')">'+esc(label)+' ('+cnt+')</button>';
+  }
+  $('fHealthChips').innerHTML =
+    chip(T('fAll'), null, '', all.length)
+    + chip(T('red'), 'red', 'h-red', hc.red)
+    + chip(T('amber'), 'amber', 'h-amber', hc.amber)
+    + chip(T('green'), 'green', 'h-green', hc.green)
+    + chip(T('gray'), 'gray', '', hc.gray);
+  $('fUrgent').textContent = T('fUrgent')+' ('+(hc.red+hc.amber)+')';
+  $('fUrgent').className = 'f-urgent'+(hf==='urgent'?' on':'');
+  var sf=state.filters.stage;
+  function schip(label,val,cnt){
+    var on=(sf===val);
+    return '<button class="f-chip'+(on?' on':'')+'" onclick="setStageFilter('+(val===null?'null':val)+')">'+esc(label)+' ('+cnt+')</button>';
+  }
+  var sh='';
+  sh+=schip(T('fAll'), null, all.length);
+  for(var i=0;i<5;i++) sh+=schip(T(STAGE_KEYS[i]), i, sc[i]);
+  $('fStageChips').innerHTML=sh;
+
+  $('fClear').style.display=(hf!==null||sf!==null)?'':'none';
+  $('fClear').textContent=T('fClear');
+  $('soHealth').textContent=T('sortHealth');
+  $('soUpdated').textContent=T('sortUpdated');
+  $('soKey').textContent=T('sortKey');
+  $('fSort').value=state.sort;
 }
 
 /* ---------------- render ---------------- */
@@ -272,7 +384,9 @@ function setLang(l){ state.lang=l; render(); }
 
 function render(){
   var d=DATA, L=state.lang;
-  var tickets=(d.tickets||[]).slice().sort(sortTickets);
+  var allTickets=(d.tickets||[]).slice();
+  var tickets=allTickets.slice().sort(function(a,b){return sortTickets(a,b,'health');});
+  var filtered=allTickets.filter(ticketMatchesFilters).sort(function(a,b){return sortTickets(a,b,state.sort);});
   var parked=d.parked||[];
   $('lz').className=(L==='zh')?'on':''; $('le').className=(L==='en')?'on':''; $('lj').className=(L==='ja')?'on':'';
   $('subT').textContent=T('sub');
@@ -312,14 +426,20 @@ function render(){
     +'<span class="chip c-gray">'+cnt.gray+' '+esc(T('gray'))+'</span>'
     +'<span class="chip c-gray">'+cnt.build+' '+esc(T('statBuild'))+' · '+cnt.design+' '+esc(T('statDesign'))+' · '+cnt.plan+' '+esc(T('statPlan'))+'</span>';
 
+  /* filter bar */
+  renderFilterBar(allTickets);
+  $('fCount').textContent=F('fCount',{n:filtered.length, t:allTickets.length});
+
   /* heatmap */
-  $('hmT').textContent=T('hm'); $('hmC').textContent=tickets.length+'';
+  $('hmT').textContent=T('hm'); $('hmC').textContent=filtered.length+'';
   var hh='<th>'+esc(T('feature'))+'</th>';
   STAGE_KEYS.forEach(function(k){ hh+='<th>'+esc(T(k))+'</th>'; });
   hh+='<th></th>';
   $('hmHead').innerHTML=hh;
+  $('hmEmpty').style.display=filtered.length?'none':'block';
+  $('hmEmpty').textContent=T('fEmptyMsg');
   var hb='';
-  tickets.forEach(function(t){
+  filtered.forEach(function(t){
     hb+='<tr><td class="name">'+esc(pick(t.title))+'<span class="k">'+esc(t.key)+'</span></td>';
     for(var s=0;s<5;s++){
       var cls='x';
@@ -333,11 +453,13 @@ function render(){
 
   /* timeline */
   $('tlT').textContent=T('tl');
-  renderTimeline(tickets);
+  renderTimeline(filtered);
 
   /* cards */
-  $('cdT').textContent=T('cd'); $('cdC').textContent=tickets.length+'';
-  $('cards').innerHTML=tickets.map(cardHTML).join('');
+  $('cdT').textContent=T('cd'); $('cdC').textContent=filtered.length+'';
+  $('cdEmpty').style.display=filtered.length?'none':'block';
+  $('cdEmpty').textContent=T('fEmptyMsg');
+  $('cards').innerHTML=filtered.map(cardHTML).join('');
 
   /* parked */
   $('pkT').textContent=T('parked'); $('pkC').textContent='('+parked.length+')';
@@ -363,6 +485,7 @@ function cardHTML(t){
 function prowHTML(p){
   var it=pick(p.intent);
   return '<div class="prow"><span class="k">'+esc(p.key)+'</span><span class="t">'+esc(pick(p.title))+'</span>'
+    +'<span class="d" title="'+esc(T('pUpd'))+'">'+esc(fmtDate(p.updated))+'</span>'
     +'<a class="go" href="'+esc(p.url)+'" target="_blank" rel="noopener">'+esc(T('open'))+'</a>'
     +(it?('<span class="i">'+esc(it)+'</span>'):'')+'</div>';
 }
