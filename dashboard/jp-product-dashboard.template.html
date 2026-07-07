@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>JP Product Dashboard</title>
+<style>
+:root{
+  --ink:#1a1d21; --ink2:#5a6472; --ink3:#9ba3ae;
+  --paper:#f6f7f9; --card:#ffffff; --line:#e3e6ea;
+  --live:#e5484d; --green:#2f9e6e; --amber:#e5a13a; --red:#e5484d; --gray:#c3c9d0;
+  --green-bg:#e7f5ee; --amber-bg:#fbf1de; --red-bg:#fdeaea; --gray-bg:#eef0f3;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","PingFang TC","Noto Sans CJK TC","Yu Gothic UI","Meiryo",sans-serif;
+  background:var(--paper); color:var(--ink); font-size:15px; line-height:1.55;
+}
+a{color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 64px}
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(246,247,249,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hd{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hd h1{font-size:17px;font-weight:800;letter-spacing:.02em}
+.hd .sub{font-size:12px;color:var(--ink2)}
+.hd .spacer{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:transparent;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff}
+.updated{font-size:12px;color:var(--ink3);font-family:var(--mono)}
+/* ---------- search ---------- */
+.searchbar{margin:18px 0 0;display:flex;gap:10px;align-items:center}
+.searchbar input{flex:1;font-size:15px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);outline:none}
+.searchbar input:focus{border-color:var(--ink2)}
+.searchbar .clr{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink2);display:none}
+.s-count{font-size:12.5px;color:var(--ink2);margin:10px 2px 0}
+/* ---------- sections ---------- */
+section{margin-top:28px}
+.sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.sec-h h2{font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.sec-h .cnt{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+/* ---------- ON AIR inbox ---------- */
+.onair{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--live);border-radius:10px;overflow:hidden}
+.onair-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--live);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.dot{animation:none}}
+.onair-h .t{font-weight:800;font-size:14px;letter-spacing:.06em}
+.onair-item{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.onair-item:last-child{border-bottom:0}
+.onair-item .k{font-family:var(--mono);font-size:12px;color:var(--ink2);white-space:nowrap;padding-top:2px}
+.onair-item .w{flex:1;min-width:220px;font-size:14px}
+.onair-item .d{font-family:var(--mono);font-size:12px;color:var(--ink3);padding-top:2px}
+.onair-item a.go{font-size:12px;font-weight:700;color:var(--live);text-decoration:none;white-space:nowrap;padding-top:2px}
+.onair-empty{padding:14px 16px;font-size:13px;color:var(--ink2)}
+/* ---------- overview ---------- */
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.ov p{font-size:14.5px;max-width:74ch}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;font-family:var(--mono)}
+.c-green{background:var(--green-bg);color:var(--green)} .c-amber{background:var(--amber-bg);color:#9a6a1a}
+.c-red{background:var(--red-bg);color:var(--red)} .c-gray{background:var(--gray-bg);color:var(--ink2)}
+/* ---------- heatmap ---------- */
+.hm-scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;max-height:560px;overflow-y:auto}
+table.hm{border-collapse:collapse;width:100%;min-width:640px}
+.hm th{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;padding:10px 8px;text-align:center;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+.hm th:first-child{text-align:left;padding-left:16px}
+.hm td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
+.hm tr:last-child td{border-bottom:0}
+.hm td.name{text-align:left;padding-left:16px;font-size:13.5px;font-weight:600;max-width:280px}
+.hm td.name .k{display:block;font-family:var(--mono);font-size:11px;color:var(--ink3);font-weight:400}
+.cell{display:inline-block;width:34px;height:20px;border-radius:5px}
+.cell.g{background:var(--green)} .cell.a{background:var(--amber)} .cell.r{background:var(--red)} .cell.x{background:var(--gray-bg)}
+.hm td.why{font-size:12px;color:var(--ink2);text-align:left;max-width:240px}
+/* ---------- timeline ---------- */
+.tl{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;position:relative}
+.tl-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tl-row:last-child{margin-bottom:0}
+.tl-name{width:190px;min-width:120px;font-size:12.5px;font-weight:600;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-track{flex:1;height:16px;background:var(--gray-bg);border-radius:8px;position:relative;overflow:visible}
+.tl-fill{position:absolute;top:0;height:100%;border-radius:8px}
+.tl-tick{position:absolute;top:-3px;width:2px;height:22px;background:var(--ink3);opacity:.5}
+.tl-today{position:absolute;top:-6px;width:2px;height:28px;background:var(--live)}
+.tl-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-top:10px;padding-left:202px}
+.tl-legend{font-size:11.5px;color:var(--ink3);margin-top:8px;padding-left:202px}
+@media(max-width:640px){.tl-name{width:96px}.tl-axis,.tl-legend{padding-left:108px}}
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card .k{font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+.card h3{font-size:15.5px;font-weight:800;line-height:1.35}
+.pill{font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;margin-left:auto}
+.p-green{background:var(--green-bg);color:var(--green)} .p-amber{background:var(--amber-bg);color:#9a6a1a} .p-red{background:var(--red-bg);color:var(--red)} .p-gray{background:var(--gray-bg);color:var(--ink2)}
+.card .row{font-size:13.5px}
+.card .row .lb{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+.card .hw{font-size:12px;color:var(--ink2);border-top:1px dashed var(--line);padding-top:8px}
+.card a.jl{font-size:12px;font-weight:700;color:var(--ink2);text-decoration:none}
+.card a.jl:hover{color:var(--ink)}
+/* ---------- parked ---------- */
+details.parked{margin-top:28px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+details.parked summary{cursor:pointer;font-size:14px;font-weight:800;color:var(--ink2);padding:14px 16px;letter-spacing:.04em}
+details.parked summary .cnt{font-family:var(--mono);font-weight:400;color:var(--ink3)}
+.parked-note{font-size:12.5px;color:var(--ink2);padding:0 16px 10px;border-bottom:1px solid var(--line)}
+.parked-list{max-height:520px;overflow-y:auto}
+.prow{display:flex;gap:12px;align-items:baseline;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px;flex-wrap:wrap}
+.prow:last-child{border-bottom:0}
+.prow .k{font-family:var(--mono);font-size:11.5px;color:var(--ink3);white-space:nowrap;min-width:118px}
+.prow .t{font-weight:600}
+.prow .i{color:var(--ink2);font-size:12.5px;flex-basis:100%;padding-left:130px}
+@media(max-width:640px){.prow .i{padding-left:0}}
+.prow a.go{font-size:12px;font-weight:700;color:var(--ink3);text-decoration:none;margin-left:auto;white-space:nowrap}
+.prow a.go:hover{color:var(--ink)}
+/* ---------- footer ---------- */
+footer{margin-top:36px;font-size:11.5px;color:var(--ink3);line-height:1.7}
+</style>
+</head>
+<body>
+
+<header><div class="hd">
+  <div><h1>JP Product Dashboard</h1><div class="sub" id="subT"></div></div>
+  <div class="spacer"></div>
+  <div class="seg">
+    <button id="lz" onclick="setLang('zh')">中</button>
+    <button id="le" onclick="setLang('en')">EN</button>
+    <button id="lj" onclick="setLang('ja')">日</button>
+  </div>
+  <span class="updated" id="upd"></span>
+</div></header>
+
+<div class="wrap">
+  <div class="searchbar">
+    <input id="q" type="search" autocomplete="off">
+    <button class="clr" id="qClr" onclick="clearSearch()"></button>
+  </div>
+
+  <section id="s-search" style="display:none">
+    <div class="s-count" id="sCount"></div>
+    <div class="cards" id="sCards" style="margin-top:12px"></div>
+    <div id="sParkedWrap" style="margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden">
+      <div class="parked-note" id="sParkedT" style="padding:12px 16px 10px"></div>
+      <div id="sParked"></div>
+    </div>
+  </section>
+
+  <div id="main">
+  <section id="s-onair">
+    <div class="onair">
+      <div class="onair-h"><span class="dot"></span><span class="t" id="onairT"></span></div>
+      <div id="onairList"></div>
+    </div>
+  </section>
+
+  <section id="s-ov">
+    <div class="sec-h"><h2 id="ovT"></h2></div>
+    <div class="ov"><p id="ovP"></p><div class="chips" id="ovChips"></div></div>
+  </section>
+
+  <section id="s-hm">
+    <div class="sec-h"><h2 id="hmT"></h2><span class="cnt" id="hmC"></span></div>
+    <div class="hm-scroll"><table class="hm"><thead><tr id="hmHead"></tr></thead><tbody id="hmBody"></tbody></table></div>
+  </section>
+
+  <section id="s-tl">
+    <div class="sec-h"><h2 id="tlT"></h2><span class="cnt" id="tlC"></span></div>
+    <div class="tl" id="tlBox"></div>
+  </section>
+
+  <section id="s-cards">
+    <div class="sec-h"><h2 id="cdT"></h2><span class="cnt" id="cdC"></span></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <details class="parked" id="s-parked">
+    <summary><span id="pkT"></span> <span class="cnt" id="pkC"></span></summary>
+    <div class="parked-note" id="pkNote"></div>
+    <div class="parked-list" id="pkList"></div>
+  </details>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* =========================================================
+   JP Product Dashboard v2 — static snapshot, data baked in.
+   No network calls, no storage: everything below runs offline.
+   Regenerate via the repo pipeline (see footer / REFRESH.md).
+========================================================= */
+
+var DATA = __PAYLOAD_JSON__;
+
+var STAGE_KEYS = ['stg0','stg1','stg2','stg3','stg4'];
+var HEALTH_ORDER = {red:0, amber:1, green:2, gray:3};
+
+/* ---------------- i18n ---------------- */
+var I18N = {
+  zh:{sub:'給非工程人員的白話進度板 — 資料來自 JIRA',updated:'快照',
+      search:'搜尋:輸入票號(例 1927)或關鍵字(中/英/日皆可)',clear:'清除',
+      sFound:'找到 {a} 個進行中的功能、{p} 個停車場點子',sNone:'找不到符合的票。換個關鍵字試試(可用中文、英文、日文或票號)。',
+      sParked:'停車場裡符合的點子',
+      onair:'需要 Cross 的事',onairNone:'目前沒有等你的事。',open:'開票 →',
+      ov:'總覽',hm:'進度熱圖',tl:'時間軸',cd:'各功能白話說明',feature:'功能',
+      stg0:'規劃',stg1:'設計',stg2:'技術準備',stg3:'開發',stg4:'上線/驗收',
+      green:'正常',amber:'吃緊',red:'落後',gray:'沒有時程資訊',
+      what:'這是什麼',now:'現在到哪',when:'什麼時候',healthWhy:'健康度說明',jira:'在 JIRA 打開 →',
+      parked:'停車場(還沒排上的點子)',
+      parkedNote:'這些點子目前沒有人在做,多數只有一個標題。這裡只翻譯標題與大致目的;沒寫的就是票裡沒有內容,不是我們漏掉。',
+      today:'今天',legend:'直紅線=今天。灰=還沒到的階段。只列出票上有填日期的功能。',
+      statBuild:'開發中',statDesign:'設計中',statPlan:'規劃中',
+      foot1:'資料範圍:APPIDEAS 專案全部未結案的票 — 進行中 {a} 個 + 停車場 {p} 個(已剔除 {j} 張測試/範本票)。如還有不想看的票,把票號告訴 Claude 剔除。',
+      foot2:'更新方式:在 Claude Code 開啟 product-ops-bridge 這個 repo,說「更新 JP dashboard」即可;它會重抓 JIRA、重寫摘要、重建這一頁。',
+      cnt:'{a} 進行中 · {p} 停車場'},
+  en:{sub:'Plain-language progress board for non-engineers — data from JIRA',updated:'Snapshot',
+      search:'Search: ticket number (e.g. 1927) or keyword (zh/en/ja all work)',clear:'Clear',
+      sFound:'Found {a} active features and {p} parked ideas',sNone:'No match. Try another keyword — Chinese, English, Japanese or a ticket number.',
+      sParked:'Matching parked ideas',
+      onair:'Needs Cross',onairNone:'Nothing is waiting on you right now.',open:'Open →',
+      ov:'Overview',hm:'Progress heatmap',tl:'Timeline',cd:'Each feature, in plain words',feature:'Feature',
+      stg0:'Planning',stg1:'Design',stg2:'Tech prep',stg3:'Building',stg4:'Launch',
+      green:'On track',amber:'Tight',red:'Behind',gray:'No dates on ticket',
+      what:'What it is',now:'Where it stands',when:'When',healthWhy:'Why this status',jira:'Open in JIRA →',
+      parked:'Parking lot (ideas not scheduled)',
+      parkedNote:'Nobody is working on these right now; most have only a title. We translated the title and rough intent — blanks mean the ticket itself has nothing written, not that we skipped it.',
+      today:'Today',legend:'Red line = today. Gray = stages not reached yet. Only features with dates on the ticket are shown.',
+      statBuild:'building',statDesign:'in design',statPlan:'planning',
+      foot1:'Scope: every open ticket in the APPIDEAS project — {a} active + {p} parked ({j} test/template tickets removed). Tell Claude any keys you want dropped.',
+      foot2:'To refresh: open this repo (product-ops-bridge) in Claude Code and say "update the JP dashboard" — it re-pulls JIRA, rewrites the summaries and rebuilds this page.',
+      cnt:'{a} active · {p} parked'},
+  ja:{sub:'非エンジニア向けのやさしい進捗ボード — データはJIRAから',updated:'スナップショット',
+      search:'検索:チケット番号(例 1927)またはキーワード(中/英/日 対応)',clear:'クリア',
+      sFound:'進行中 {a} 件・保留アイデア {p} 件が見つかりました',sNone:'該当なし。別のキーワード(中国語・英語・日本語・チケット番号)でお試しください。',
+      sParked:'該当する保留アイデア',
+      onair:'Crossの対応待ち',onairNone:'いま対応待ちの件はありません。',open:'開く →',
+      ov:'全体まとめ',hm:'進捗ヒートマップ',tl:'タイムライン',cd:'各機能のやさしい説明',feature:'機能',
+      stg0:'企画',stg1:'デザイン',stg2:'技術準備',stg3:'開発',stg4:'リリース/検証',
+      green:'順調',amber:'注意',red:'遅れ',gray:'日付情報なし',
+      what:'これは何?',now:'いまどこ?',when:'いつ?',healthWhy:'この状態の理由',jira:'JIRAで開く →',
+      parked:'パーキングロット(未着手のアイデア)',
+      parkedNote:'現在誰も着手していないアイデアで、多くはタイトルのみ。タイトルとおおまかな目的だけ訳しています。空欄はチケット自体に記載がないためで、訳し漏れではありません。',
+      today:'今日',legend:'赤い縦線=今日。グレー=未到達の段階。日付が入っているチケットのみ表示。',
+      statBuild:'開発中',statDesign:'デザイン中',statPlan:'企画中',
+      foot1:'範囲:APPIDEASプロジェクトの未完了チケットすべて — 進行中 {a} 件+保留 {p} 件(テスト/テンプレート {j} 件は除外済み)。不要なチケットは番号をClaudeに伝えて除外できます。',
+      foot2:'更新方法:Claude Codeでこのrepo(product-ops-bridge)を開き「JPダッシュボードを更新して」と伝えるだけ。JIRA再取得→要約→このページ再生成まで行います。',
+      cnt:'進行中 {a} · 保留 {p}'}
+};
+
+/* ---------------- state ---------------- */
+var state = { lang:'zh', q:'' };
+
+/* ---------------- utils ---------------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function T(k){ return (I18N[state.lang]&&I18N[state.lang][k]) || I18N.zh[k] || k; }
+function F(k,vars){ var s=T(k); Object.keys(vars||{}).forEach(function(v){ s=s.replace('{'+v+'}',vars[v]); }); return s; }
+function pick(obj){ if(!obj) return ''; return obj[state.lang] || obj.zh || obj.en || ''; }
+function fmtDate(iso){ if(!iso) return '—'; return String(iso).slice(5,10).replace('-','/'); }
+function todayISO(){ var d=new Date(); return d.toISOString().slice(0,10); }
+function healthPill(h){ return (h==='red')?'p-red':(h==='amber')?'p-amber':(h==='green')?'p-green':'p-gray'; }
+function sortTickets(a,b){
+  var d=(HEALTH_ORDER[a.health]!==undefined?HEALTH_ORDER[a.health]:3)-(HEALTH_ORDER[b.health]!==undefined?HEALTH_ORDER[b.health]:3);
+  if(d)return d;
+  d=(b.stage||0)-(a.stage||0); if(d)return d;
+  return a.key<b.key?1:-1;
+}
+
+/* ---------------- render ---------------- */
+function setLang(l){ state.lang=l; render(); }
+
+function render(){
+  var d=DATA, L=state.lang;
+  var tickets=(d.tickets||[]).slice().sort(sortTickets);
+  var parked=d.parked||[];
+  $('lz').className=(L==='zh')?'on':''; $('le').className=(L==='en')?'on':''; $('lj').className=(L==='ja')?'on':'';
+  $('subT').textContent=T('sub');
+  $('upd').textContent=T('updated')+' '+String(d.generatedAt).slice(0,16).replace('T',' ');
+  $('q').placeholder=T('search');
+  $('qClr').textContent=T('clear');
+
+  /* ON AIR */
+  $('onairT').textContent=T('onair');
+  var needs=tickets.filter(function(t){return t.needsCross&&t.needsCross.flag;});
+  var oh='';
+  if(!needs.length){ oh='<div class="onair-empty">'+esc(T('onairNone'))+'</div>'; }
+  else{
+    needs.forEach(function(t){
+      oh+='<div class="onair-item"><span class="k">'+esc(t.key)+'</span>'
+        +'<span class="w"><b>'+esc(pick(t.title))+'</b> — '+esc(pick(t.needsCross.why))+'</span>'
+        +'<span class="d">'+esc(fmtDate(t.needsCross.date))+'</span>'
+        +'<a class="go" href="'+esc(t.url)+'" target="_blank" rel="noopener">'+esc(T('open'))+'</a></div>';
+    });
+  }
+  $('onairList').innerHTML=oh;
+  document.title=(needs.length?('('+needs.length+') '):'')+'JP Product Dashboard';
+
+  /* overview */
+  $('ovT').textContent=T('ov');
+  $('ovP').textContent=pick(d.roadmap)||'';
+  var cnt={green:0,amber:0,red:0,gray:0,build:0,design:0,plan:0};
+  tickets.forEach(function(t){
+    cnt[t.health||'gray']=(cnt[t.health||'gray']||0)+1;
+    if(t.stage>=3)cnt.build++; else if(t.stage>=1)cnt.design++; else cnt.plan++;
+  });
+  $('ovChips').innerHTML=
+    '<span class="chip c-gray">'+tickets.length+' '+esc(T('feature'))+' · '+parked.length+' 🅿</span>'
+    +'<span class="chip c-green">'+cnt.green+' '+esc(T('green'))+'</span>'
+    +'<span class="chip c-amber">'+cnt.amber+' '+esc(T('amber'))+'</span>'
+    +'<span class="chip c-red">'+cnt.red+' '+esc(T('red'))+'</span>'
+    +'<span class="chip c-gray">'+cnt.gray+' '+esc(T('gray'))+'</span>'
+    +'<span class="chip c-gray">'+cnt.build+' '+esc(T('statBuild'))+' · '+cnt.design+' '+esc(T('statDesign'))+' · '+cnt.plan+' '+esc(T('statPlan'))+'</span>';
+
+  /* heatmap */
+  $('hmT').textContent=T('hm'); $('hmC').textContent=tickets.length+'';
+  var hh='<th>'+esc(T('feature'))+'</th>';
+  STAGE_KEYS.forEach(function(k){ hh+='<th>'+esc(T(k))+'</th>'; });
+  hh+='<th></th>';
+  $('hmHead').innerHTML=hh;
+  var hb='';
+  tickets.forEach(function(t){
+    hb+='<tr><td class="name">'+esc(pick(t.title))+'<span class="k">'+esc(t.key)+'</span></td>';
+    for(var s=0;s<5;s++){
+      var cls='x';
+      if(s<t.stage) cls='g';
+      else if(s===t.stage) cls=(t.health==='red')?'r':(t.health==='amber')?'a':(t.health==='green')?'g':'x';
+      hb+='<td><span class="cell '+cls+'" title="'+esc(T(STAGE_KEYS[s]))+'"></span></td>';
+    }
+    hb+='<td class="why">'+esc(pick(t.healthWhy)||'')+'</td></tr>';
+  });
+  $('hmBody').innerHTML=hb;
+
+  /* timeline */
+  $('tlT').textContent=T('tl');
+  renderTimeline(tickets);
+
+  /* cards */
+  $('cdT').textContent=T('cd'); $('cdC').textContent=tickets.length+'';
+  $('cards').innerHTML=tickets.map(cardHTML).join('');
+
+  /* parked */
+  $('pkT').textContent=T('parked'); $('pkC').textContent='('+parked.length+')';
+  $('pkNote').textContent=T('parkedNote');
+  $('pkList').innerHTML=parked.map(prowHTML).join('');
+
+  /* footer */
+  $('foot').innerHTML=esc(F('foot1',{a:tickets.length,p:parked.length,j:d.junkDropped||0}))+'<br>'+esc(F('foot2',{}));
+
+  renderSearch();
+}
+
+function cardHTML(t){
+  return '<div class="card"><div class="top"><span class="k">'+esc(t.key)+'</span>'
+    +'<span class="pill '+healthPill(t.health)+'">'+esc(T(t.health||'gray'))+' · '+esc(T(STAGE_KEYS[Math.min(Math.max(t.stage||0,0),4)]))+'</span></div>'
+    +'<h3>'+esc(pick(t.title))+'</h3>'
+    +'<div class="row"><span class="lb">'+esc(T('what'))+'</span>'+esc(pick(t.what))+'</div>'
+    +'<div class="row"><span class="lb">'+esc(T('now'))+'</span>'+esc(pick(t.now))+'</div>'
+    +'<div class="row"><span class="lb">'+esc(T('when'))+'</span>'+esc(pick(t.when))+'</div>'
+    +(pick(t.healthWhy)?('<div class="hw">'+esc(T('healthWhy'))+':'+esc(pick(t.healthWhy))+'</div>'):'')
+    +'<a class="jl" href="'+esc(t.url)+'" target="_blank" rel="noopener">'+esc(T('jira'))+'</a></div>';
+}
+function prowHTML(p){
+  var it=pick(p.intent);
+  return '<div class="prow"><span class="k">'+esc(p.key)+'</span><span class="t">'+esc(pick(p.title))+'</span>'
+    +'<a class="go" href="'+esc(p.url)+'" target="_blank" rel="noopener">'+esc(T('open'))+'</a>'
+    +(it?('<span class="i">'+esc(it)+'</span>'):'')+'</div>';
+}
+
+function renderTimeline(tickets){
+  var box=$('tlBox');
+  var withDates=tickets.filter(function(t){return t.dates&&(t.dates.start||t.dates.t0)&&t.dates.t4;})
+    .slice().sort(function(a,b){ return (a.dates.t4<b.dates.t4)?-1:1; });
+  $('tlC').textContent=withDates.length+'';
+  if(!withDates.length){ box.innerHTML='<div style="font-size:13px;color:var(--ink3)">—</div>'; return; }
+  var td=todayISO();
+  var min=null,max=null;
+  withDates.forEach(function(t){
+    var s=t.dates.start||t.dates.t0, e=t.dates.t4;
+    if(!min||s<min)min=s; if(!max||e>max)max=e;
+  });
+  if(td<min)min=td; if(td>max)max=td;
+  var minD=new Date(min), maxD=new Date(max);
+  minD.setDate(minD.getDate()-4); maxD.setDate(maxD.getDate()+4);
+  var span=maxD-minD;
+  function X(iso){ return Math.max(0,Math.min(100,((new Date(iso)-minD)/span)*100)); }
+  var h='';
+  withDates.forEach(function(t){
+    var s=t.dates.start||t.dates.t0, e=t.dates.t4;
+    var col=(t.health==='red')?'var(--red)':(t.health==='amber')?'var(--amber)':(t.health==='green')?'var(--green)':'var(--gray)';
+    h+='<div class="tl-row"><div class="tl-name" title="'+esc(t.key)+'">'+esc(pick(t.title))+'</div><div class="tl-track">';
+    var x1=X(s), x2=X(e), xt=X(td);
+    var fillEnd=Math.min(Math.max(xt,x1),x2);
+    h+='<div class="tl-fill" style="left:'+x1+'%;width:'+Math.max(fillEnd-x1,0.6)+'%;background:'+col+';opacity:.85"></div>';
+    h+='<div class="tl-fill" style="left:'+fillEnd+'%;width:'+Math.max(x2-fillEnd,0)+'%;background:var(--gray-bg)"></div>';
+    ['t0','t1','t2','t3'].forEach(function(k){ if(t.dates[k]) h+='<div class="tl-tick" style="left:'+X(t.dates[k])+'%" title="'+esc(fmtDate(t.dates[k]))+'"></div>'; });
+    h+='<div class="tl-today" style="left:'+xt+'%"></div>';
+    h+='</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink3);width:88px;flex-shrink:0">'+esc(fmtDate(s))+'→'+esc(fmtDate(e))+'</div></div>';
+  });
+  h+='<div class="tl-axis"><span>'+esc(fmtDate(min))+'</span><span style="color:var(--live);font-weight:700">'+esc(T('today'))+' '+esc(fmtDate(td))+'</span><span>'+esc(fmtDate(max))+'</span></div>';
+  h+='<div class="tl-legend">'+esc(T('legend'))+'</div>';
+  box.innerHTML=h;
+}
+
+/* ---------------- search ---------------- */
+function tHay(t){
+  var parts=[t.key];
+  ['title','what','now','when','healthWhy'].forEach(function(f){
+    if(t[f]){ parts.push(t[f].zh||'', t[f].en||'', t[f].ja||''); }
+  });
+  if(t.rawSummary) parts.push(t.rawSummary);
+  return parts.join(' ').toLowerCase();
+}
+function pHay(p){
+  var parts=[p.key];
+  ['title','intent'].forEach(function(f){ if(p[f]){ parts.push(p[f].zh||'', p[f].en||'', p[f].ja||''); } });
+  if(p.rawSummary) parts.push(p.rawSummary);
+  return parts.join(' ').toLowerCase();
+}
+function renderSearch(){
+  var q=state.q.trim().toLowerCase();
+  var on=!!q;
+  $('s-search').style.display=on?'':'none';
+  $('main').style.display=on?'none':'';
+  $('qClr').style.display=on?'':'none';
+  if(!on) return;
+  var at=(DATA.tickets||[]).filter(function(t){ return tHay(t).indexOf(q)>=0; }).sort(sortTickets);
+  var pk=(DATA.parked||[]).filter(function(p){ return pHay(p).indexOf(q)>=0; });
+  $('sCount').textContent=(at.length||pk.length)?F('sFound',{a:at.length,p:pk.length}):T('sNone');
+  $('sCards').innerHTML=at.map(cardHTML).join('');
+  $('sParkedWrap').style.display=pk.length?'':'none';
+  $('sParkedT').textContent=T('sParked')+' ('+pk.length+')';
+  $('sParked').innerHTML=pk.map(prowHTML).join('');
+}
+function clearSearch(){ state.q=''; $('q').value=''; renderSearch(); }
+
+/* ---------------- boot ---------------- */
+$('q').addEventListener('input', function(e){ state.q=e.target.value; renderSearch(); });
+render();
+</script>
+</body>
+</html>
