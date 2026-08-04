@@ -511,20 +511,78 @@ function inspectSources() {
 }
 
 /**
- * 【維護用｜會刪資料】清空 VoC_Raw_Log 並重新抓取。
- * 什麼時候要跑：從 v1 升級到 v2 之後跑一次，讓所有資料都用新的切分規則重建。
+ * 【維護用｜會刪資料】清空 VoC_Raw_Log **與 VoC_New_Candidates**，然後重新抓取。
+ *
+ * 兩張都要清：候選編號（CAND-xxx）是依附在 Raw_Log 的判定結果上的。
+ * 只清 Raw_Log 會讓舊候選變成沒有任何聲音對應的孤兒列，而重跑時模型對同一件事
+ * 可能提出略微不同的標題 → 又發一個新編號，候選數就會一路灌水（67→92→104）。
+ *
  * 影響：Slack 只會回抓最近 FIRST_RUN_LOOKBACK_DAYS 天；表單來源會全部重讀。
- * VoC_Pain_Points / VoC_New_Candidates 你手動填的最後兩欄會被保留。
+ * VoC_Pain_Points 你手填的最後兩欄會保留；VoC_New_Candidates 因為整張重建，
+ * 你在候選表上手填的備註會一併清掉 —— 有重要備註請先另存。
  */
 function resetRawLogAndRebuild() {
   var ss = openTarget_();
   setupSheets_(ss);
-  var sh = ss.getSheetByName(TAB_RAW);
-  var last = sh.getLastRow();
-  if (last > 1) sh.getRange(2, 1, last - 1, sh.getLastColumn()).clearContent();
-  logRow_(ss, 'RESET', 'OK', 'VoC_Raw_Log 已清空（' + (last - 1) + ' 列），接著重新抓取');
+
+  var raw = ss.getSheetByName(TAB_RAW);
+  var rawLast = raw.getLastRow();
+  if (rawLast > 1) raw.getRange(2, 1, rawLast - 1, raw.getLastColumn()).clearContent();
+
+  var cand = ss.getSheetByName(TAB_NEW);
+  var candLast = cand.getLastRow();
+  if (candLast > 1) cand.getRange(2, 1, candLast - 1, cand.getLastColumn()).clearContent();
+
+  logRow_(ss, 'RESET', 'OK',
+    'VoC_Raw_Log 已清空（' + (rawLast - 1) + ' 列）、VoC_New_Candidates 已清空（' +
+    (candLast - 1) + ' 列），接著重新抓取');
   SpreadsheetApp.flush();
   runDailyDigest();
+}
+
+/**
+ * 【積壓補完用】只做比對，不重新抓取資料源。
+ *
+ * 什麼時候用：VoC_Bot_Log 的 MATCH 那列出現「達單次上限」且未判定還很多的時候。
+ * runDailyDigest 每次要先花 1～2 分鐘重讀 4 份表單，剩下的時間才拿來比對；
+ * 這支跳過抓取，把整個時間預算都花在消化積壓，追進度快很多。
+ * 可以連續執行多次，直到未判定歸零。
+ */
+function catchUpMatching() {
+  var ss = openTarget_();
+  setupSheets_(ss);
+  var started = new Date();
+  logRow_(ss, 'CATCHUP', 'START', '只比對、不抓取');
+
+  var roadmap;
+  try {
+    roadmap = loadRoadmap_();
+  } catch (e) {
+    logRow_(ss, 'CATCHUP', 'ABORT', 'VoC Roadmap 讀不到：' + e.message);
+    SpreadsheetApp.flush();
+    return;
+  }
+
+  var match;
+  try {
+    match = matchPending_(ss, roadmap, started);
+    logRow_(ss, 'CATCHUP', 'OK',
+      '既存一致 ' + match.matched + ' 筆／新規候補 ' + match.newCand +
+      ' 筆／殘り未判定 ' + match.pending + ' 筆' +
+      (match.truncated ? '（達單次上限，請再執行一次 catchUpMatching）' : '（已全部判定完畢）'));
+  } catch (e) {
+    logRow_(ss, 'CATCHUP', 'ERROR', e.message);
+    SpreadsheetApp.flush();
+    return;
+  }
+
+  try {
+    rebuildAggregates_(ss, roadmap, match.newlyDecided || {});
+    logRow_(ss, 'CATCHUP', 'DONE', '彙總已重算（本次不產生新的 Daily Brief）');
+  } catch (e) {
+    logRow_(ss, 'CATCHUP', 'ERROR', '彙總重算：' + e.message);
+  }
+  SpreadsheetApp.flush();
 }
 
 /** 安裝每日排程（會先清掉舊的，可重複執行） */
@@ -1359,7 +1417,7 @@ function matchPending_(ss, roadmap, started) {
           i: k,
           text: String(all[slice[k]][9]).substring(0, 400),
           origin: String(all[slice[k]][4]),
-          date: String(all[slice[k]][3])
+          date: toYmd_(all[slice[k]][3])
         });
       }
       var got;
@@ -1480,16 +1538,26 @@ function claudeMatchBatch_(items, roadmap, candidates) {
       ? '【B: 追加検討中の候補（まだ VoC 未登録）】\n' + candLines.join('\n') + '\n\n'
       : '【B: 追加検討中の候補】まだ無し\n\n') +
     '【C: 判定対象の声（日本語・各行の先頭は連番）】\n' + voices.join('\n') + '\n\n' +
-    '各声について次を判定してください。声は日本語、リストは英語なので、意味で照合すること。\n' +
+    '各声について次を判定してください。声は日本語・中国語・英語が混在し、リストは英語なので、意味で照合すること。\n' +
+    '次の優先順で判定する（上から順に検討し、当てはまった時点で確定）：\n' +
     '1. A に同じ痛点があれば、その code を返す\n' +
-    '2. A に無く B にあれば、その CAND-xxx を返す\n' +
-    '3. A も B も該当しなければ code を null にし、new_title_jp / new_title_en を提案する\n' +
-    '4. 挨拶・了解・雑談など実質的な訴求が無い場合は noise=true\n\n' +
+    '2. A に無く B に同じ痛点があれば、その CAND-xxx を返す（表現が違っても中身が同じなら必ず B を使う）\n' +
+    '3. 実質的な訴求が無ければ noise=true\n' +
+    '4. 上のどれでもない場合に限り、code を null にして new_title_jp / new_title_en を提案する\n\n' +
     '重要な原則：\n' +
     '- 表面的な単語の一致ではなく「ユーザーが困っている中身」で判断する\n' +
     '- 同じ機能の話でも困りごとが別なら別の痛点として扱う\n' +
     '- 迷ったら conf を低くする。無理に既存へ寄せないこと\n' +
-    '- new_title_jp は 30 文字以内、痛点として読める書き方（例「月跨ぎでギフトボードが確認できない」）\n' +
+    '- **新規作成は最後の手段**。B に少しでも近い候補があれば新規を作らず B を選ぶ。\n' +
+    '  同じ痛点に毎回違う名前が付くと件数が分散し、集計が意味を失う\n' +
+    '- **痛点でないものを新規にしない。** 次はすべて noise=true：\n' +
+    '    ・称賛や満足の声（「便利です」「助かりました」など、改善要求を含まないもの）\n' +
+    '    ・事実の共有・報告のみで要望や困りごとを含まないもの\n' +
+    '    ・社内の連絡事項、議事メモの見出し、日程調整\n' +
+    '    ・質問への回答や「対応しました」といった処理済みの記録\n' +
+    '- new_title_jp は 30 文字以内、**困りごととして読める**書き方にする\n' +
+    '    良い例「月跨ぎでギフトボードが確認できない」（何に困っているか分かる）\n' +
+    '    悪い例「非公開で相談できる機能への評価」（評価であって痛点ではない）\n' +
     '- area は次から選ぶ: U2 Watch / Return, U4 Gifting / Spend, U5 Recognition / Status, ' +
     'U6 Event / Compete, S2 Broadcast / Ops, Z Strategy\n\n' +
     '次の JSON のみを返すこと。前後に説明やコードフェンスを付けない。\n' +
@@ -1609,7 +1677,7 @@ function rebuildAggregates_(ss, roadmap, newlyDecided) {
       var code = collapse_(vals[i][14]);
       if (!code) continue;
 
-      var d = String(vals[i][3]);
+      var d = toYmd_(vals[i][3]);   // 儲存格可能是 Date 型別，必須正規化
       var dt = parseYmd_(d);
       if (!agg[code]) {
         agg[code] = { total: 0, recent: 0, first: d, last: d, firstTime: dt, lastTime: dt,
@@ -1950,6 +2018,19 @@ function parseYmd_(s) {
   var m = String(s).match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
   if (!m) return 0;
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+}
+
+/**
+ * 把儲存格讀回來的「日期」正規化成 yyyy/MM/dd。
+ *
+ * 為什麼需要這個：我們寫進去的是字串 '2025/10/09'，但 Google Sheets 會自動
+ * 把它辨識成日期型別；用 getValues() 讀回來就變成 Date 物件，String() 之後
+ * 是 'Thu Oct 09 2025 01:00:00 GMT+0900'。parseYmd_ 比對不到 → 直近N日
+ * 永遠算成 0，摘要的初出日也會印出那串英文。
+ */
+function toYmd_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, TZ, 'yyyy/MM/dd');
+  return normalizeDate_(String(v === null || v === undefined ? '' : v));
 }
 
 function nowStr_() { return Utilities.formatDate(new Date(), TZ, 'yyyy/MM/dd HH:mm'); }
