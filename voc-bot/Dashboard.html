@@ -1,0 +1,1131 @@
+<!-- Dashboard.html — Apps Script HtmlService template. Served by doGet() in Code.gs. -->
+<style>
+:root{
+  color-scheme: light;
+  --plane:#f9f9f7; --surface:#fcfcfb;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --rule:#e1e0d9; --axis:#c3c2b7;
+  --accent:#2a78d6; --accent-2:#eb6834;
+  --critical:#d03b3b; --good:#0ca30c;
+  --hair:rgba(11,11,11,.10); --chip:rgba(11,11,11,.045);
+  --wash:rgba(42,120,214,.07);
+  --serif:Georgia,"Hiragino Mincho ProN","Songti TC","Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Hiragino Sans","Noto Sans TC","Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --plane:#0d0d0d; --surface:#1a1a19;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --rule:#2c2c2a; --axis:#383835;
+    --accent:#3987e5; --accent-2:#d95926;
+    --hair:rgba(255,255,255,.10); --chip:rgba(255,255,255,.06);
+    --wash:rgba(57,135,229,.12);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0d0d0d; --surface:#1a1a19;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --rule:#2c2c2a; --axis:#383835;
+  --accent:#3987e5; --accent-2:#d95926;
+  --hair:rgba(255,255,255,.10); --chip:rgba(255,255,255,.06);
+  --wash:rgba(57,135,229,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--plane);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 96px}
+.prose{max-width:640px}
+a{color:var(--accent)}
+
+/* masthead */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 0 0;flex-wrap:wrap}
+.langs{display:flex;gap:0;border:1px solid var(--hair);border-radius:100px;overflow:hidden}
+.langs button{font:inherit;font-size:12px;font-weight:600;padding:5px 13px;border:none;
+  background:transparent;color:var(--ink-2);cursor:pointer;transition:background .12s,color .12s}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--plane)}
+header.masthead{border-bottom:1px solid var(--ink);margin-bottom:26px;padding:18px 0 12px}
+.kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:650}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(32px,5vw,54px);line-height:1.06;
+  letter-spacing:-.02em;margin:12px 0 0;text-wrap:balance}
+.standfirst{font-family:var(--serif);font-size:18.5px;line-height:1.5;color:var(--ink-2);
+  margin:15px 0 0;max-width:620px}
+.byline{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:18px;
+  font-size:12px;color:var(--muted)}
+.byline b{color:var(--ink-2);font-weight:600}
+h2{font-family:var(--serif);font-size:26px;font-weight:700;letter-spacing:-.01em;
+  margin:0 0 6px;text-wrap:balance}
+.sec{margin-top:60px}
+.sec>.prose>p{color:var(--ink-2);margin:0 0 4px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  font-weight:650;margin-bottom:9px}
+
+/* tiles — clickable, each is a filter */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-top:28px}
+.tile{background:var(--surface);padding:17px 18px 15px;border:none;text-align:left;
+  font:inherit;color:inherit;cursor:pointer;transition:background .12s}
+.tile:hover{background:var(--wash)}
+.tile[aria-pressed="true"]{background:var(--wash);box-shadow:inset 3px 0 0 var(--accent)}
+.tile .v{font-size:40px;line-height:1;font-weight:680;letter-spacing:-.03em;display:block}
+.tile .l{font-size:12px;color:var(--ink-2);margin-top:7px;display:block}
+.tile .s{font-size:11px;color:var(--muted);margin-top:2px;display:block}
+.tile.alarm .v{color:var(--critical)}
+
+/* filters */
+.filters{position:sticky;top:0;z-index:30;background:var(--plane);
+  border-bottom:1px solid var(--rule);padding:10px 0;margin-top:48px;
+  display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.flabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.fgroup{display:flex;gap:4px;flex-wrap:wrap}
+button.chip{font:inherit;font-size:12.5px;padding:4px 11px;border:1px solid var(--hair);
+  background:var(--chip);color:var(--ink-2);border-radius:100px;cursor:pointer;
+  transition:background .12s,color .12s,border-color .12s}
+button.chip:hover{border-color:var(--axis)}
+button.chip[aria-pressed="true"]{background:var(--ink);color:var(--plane);border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input.search{font:inherit;font-size:13px;padding:5px 11px;border:1px solid var(--hair);
+  background:var(--surface);color:var(--ink);border-radius:100px;min-width:180px}
+.fcount{font-size:12px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* legend */
+.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:13px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:2px;flex:none}
+.sw.round{border-radius:50%}
+
+/* scatter — labelled with the pain point itself, never a code */
+.plotcard{background:var(--surface);border:1px solid var(--rule);margin-top:18px;padding:20px 20px 6px}
+.plot{position:relative;height:520px;margin:12px 0 0 44px;
+  border-left:1px solid var(--axis);border-bottom:1px solid var(--axis)}
+.qlab{position:absolute;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);font-weight:650;pointer-events:none;max-width:160px;line-height:1.35}
+.midline{position:absolute;background:var(--rule)}
+.dot{position:absolute;border-radius:50%;transform:translate(-50%,50%);cursor:pointer;
+  border:none;padding:0;box-shadow:0 0 0 2px var(--surface);transition:transform .1s}
+.dot:hover,.dot:focus-visible{transform:translate(-50%,50%) scale(1.3);z-index:8}
+.plab{position:absolute;font-size:11px;line-height:1.25;color:var(--ink);cursor:pointer;
+  background:none;border:none;padding:0;font-family:inherit;text-align:left;z-index:6;
+  text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 4px var(--surface),0 0 4px var(--surface)}
+.plab:hover{color:var(--accent);text-decoration:underline}
+.leader{position:absolute;background:var(--axis);opacity:.6;pointer-events:none}
+.axtitle{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.ytitle{position:absolute;left:-44px;top:50%;transform:rotate(-90deg) translateX(50%);
+  transform-origin:left center;white-space:nowrap}
+.tick{position:absolute;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ranked rows */
+.bars{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:16px;align-items:center;
+  padding:4px 0;cursor:pointer;border:none;background:none;font:inherit;color:inherit;
+  text-align:left;width:100%;border-radius:3px}
+.row:hover{background:var(--wash)}
+.row[aria-expanded="true"]{background:var(--wash)}
+.rmeta{display:flex;gap:8px;align-items:baseline;min-width:0}
+.pill{font-size:10px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:3px;
+  flex:none;border:1px solid currentColor}
+.pill.p0{color:var(--critical)} .pill.p1{color:var(--accent-2)}
+.pill.p2,.pill.p3{color:var(--muted)}
+.rt{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row:hover .rt{color:var(--accent)}
+.rbar{display:grid;grid-template-columns:minmax(0,1fr) 56px 88px;gap:8px;align-items:center}
+.rtrack{display:flex;align-items:center;min-width:0}
+.rfill{height:16px;border-radius:0 4px 4px 0;background:var(--accent);flex:none;min-width:2px}
+.rfill.done{background:var(--axis)}
+.rnew{height:16px;border-radius:0 4px 4px 0;background:var(--accent-2);flex:none;margin-left:2px}
+.rval{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;
+  white-space:nowrap;text-align:right}
+.rval u{text-decoration-style:dotted;text-underline-offset:3px}
+.flag{font-size:10.5px;font-weight:650;color:var(--critical);display:inline-flex;
+  align-items:center;gap:3px;line-height:1.25;text-align:right;justify-content:flex-end}
+.flag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none}
+.flag.ok{color:var(--good)} .flag.ok::before{background:var(--good)}
+.areatag{font-size:10.5px;font-weight:650;color:var(--muted);letter-spacing:.04em;text-align:right}
+
+/* evidence panel — every number traces back to here */
+.detail{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);
+  padding:16px 18px 14px;margin:2px 0 10px;font-size:13.5px}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:5px 16px;margin:0 0 14px}
+.detail dt{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.detail dd{margin:0;color:var(--ink-2)}
+.evhead{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  font-weight:650;border-top:1px solid var(--rule);padding-top:11px;margin-bottom:2px}
+.voice{border-bottom:1px solid var(--rule);padding:11px 0}
+.voice:last-child{border-bottom:none}
+.vmeta{display:flex;gap:9px;flex-wrap:wrap;align-items:center;font-size:11px;
+  color:var(--muted);margin-bottom:5px;font-variant-numeric:tabular-nums}
+.vmeta .src{color:var(--ink-2);font-weight:600}
+.conf{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid currentColor}
+.conf.hi{color:var(--good)} .conf.mid{color:var(--accent-2)} .conf.lo{color:var(--critical)}
+.vtext{font-family:var(--serif);font-size:15px;line-height:1.55;color:var(--ink);
+  border-left:2px solid var(--axis);padding-left:12px;margin:0}
+.vwhy{font-size:11.5px;color:var(--muted);margin-top:5px}
+.vfull{font-size:12.5px;color:var(--ink-2);background:var(--chip);padding:9px 11px;
+  margin-top:7px;border-radius:4px;white-space:pre-wrap}
+button.link{font:inherit;font-size:12.5px;background:none;border:none;color:var(--accent);
+  cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+a.vlink{font-size:11.5px;text-decoration:underline;text-underline-offset:2px}
+
+/* small multiples */
+.sm{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-top:18px}
+.smcell{background:var(--surface);padding:14px 16px 16px}
+.smhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  border-bottom:1px solid var(--rule);padding-bottom:7px;margin-bottom:9px}
+.smname{font-size:12.5px;font-weight:650}
+.smnum{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.smrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;
+  font-size:12px;padding:2.5px 0;border:none;background:none;font-family:inherit;
+  color:inherit;text-align:left;width:100%;cursor:pointer;border-radius:2px}
+.smrow:hover{background:var(--wash)}
+.smrow span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.smbar{display:flex;align-items:center;gap:6px}
+.smfill{height:9px;border-radius:0 3px 3px 0;background:var(--accent);min-width:2px}
+.smfill.done{background:var(--axis)}
+.smv{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;width:16px;text-align:right}
+
+/* table */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);margin-top:16px;background:var(--surface);
+  max-height:520px}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:820px}
+th,td{text-align:left;padding:8px 13px;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:650;
+  position:sticky;top:0;background:var(--surface);z-index:2}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+td.wide{white-space:normal;min-width:280px}
+tbody tr:last-child td{border-bottom:none}
+
+/* what changed — the answer, before anything else */
+.lead{border-bottom:1px solid var(--rule);padding:0 0 20px;margin:0 0 8px}
+.lanes{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px 34px}
+.lane h3{font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--ink-2);
+  margin:0 0 2px;display:flex;align-items:baseline;gap:8px}
+.lane h3 .c{font-size:23px;font-weight:680;letter-spacing:-.02em}
+.lane.newp h3 .c{color:var(--accent-2)}
+.lane.risep h3 .c{color:var(--critical)}
+.lane .hint{font-size:11.5px;color:var(--muted);margin:0 0 6px}
+.lane ul{list-style:none;margin:0;padding:0}
+.lane li{border-top:1px solid var(--rule)}
+.leadrow{display:flex;width:100%;gap:10px;align-items:baseline;background:none;border:none;
+  padding:7px 2px;text-align:left;cursor:pointer;color:inherit;font:inherit;min-height:32px}
+.leadrow:hover{background:var(--wash)}
+.leadrow .lt{flex:1;min-width:0;font-size:13.5px;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leadrow:hover .lt{color:var(--accent)}
+.leadrow .ln{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.leadrow .ln u{text-decoration:none;font-weight:680;color:var(--ink)}
+.leadrow .lp{font-size:11px;color:var(--muted);white-space:nowrap}
+.lane .more{font-size:12px;color:var(--muted);padding:7px 2px 0;background:none;border:none;
+  cursor:pointer;font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.lead .calm{font-family:var(--serif);font-size:15px;color:var(--ink-2);margin:2px 0 0}
+.refresh{font:inherit;font-size:12px;font-weight:600;color:var(--ink-2);background:none;
+  border:1px solid var(--hair);border-radius:100px;padding:3px 12px;cursor:pointer}
+.refresh:hover{background:var(--wash);color:var(--accent)}
+.refresh[disabled]{opacity:.5;cursor:default}
+.blank{border:1px dashed var(--axis);padding:24px 22px;margin:26px 0;max-width:660px}
+.blank b{display:block;font-family:var(--serif);font-size:19px;margin-bottom:6px}
+.blank p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.nores{font-size:13.5px;color:var(--muted);padding:16px 2px;border-top:1px solid var(--rule)}
+.note{font-size:12.5px;color:var(--muted);margin-top:14px;max-width:660px;line-height:1.55}
+.hidden{display:none!important}
+.err{border:1px solid var(--critical);background:var(--surface);padding:16px 18px;margin:40px 0;
+  border-left:3px solid var(--critical)}
+
+#tip{position:fixed;z-index:80;pointer-events:none;background:var(--ink);color:var(--plane);
+  padding:7px 10px;border-radius:5px;font-size:12px;line-height:1.4;max-width:280px;opacity:0;
+  transition:opacity .1s}
+#tip .tn{font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:720px){
+  .row{grid-template-columns:1fr;gap:4px}
+  .rt{white-space:normal}
+  .plot{height:600px}
+  .wrap{padding:0 16px 72px}
+}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="kicker">17LIVE JAPAN · VOICE OF CUSTOMER</span>
+    <div class="langs" id="langs" role="group" aria-label="Language"></div>
+  </div>
+
+  <div id="app"></div>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+/* ===================== payload from Apps Script ===================== */
+var DATA = <?!= payload ?>;
+
+/* ===================== i18n: UI chrome ===================== */
+/* Pain point titles are translated server-side (PAIN_I18N in Code.gs).
+   Raw user voices are NEVER translated — they are evidence. */
+var T = {
+  ja: {
+    title: "ユーザーはいま、何に困っているのか",
+    standfirst: "集まったユーザーの声を既存のVoCロードマップ上のペインに一件ずつ突き合わせ、累計の言及数と直近の増加から、いま悪化しているペインを浮かび上がらせています。",
+    asOf: "データ更新",
+    totalVoices: "収集した声",
+    sources: "出典",
+    tileUnresolved: "未対応のペイン",
+    tileUnresolvedSub: "ロードマップ{n}件中",
+    tileRising: "今回声が増えたペイン",
+    tileRisingSub: "未対応のみ",
+    tileP0: "P0かつ未対応",
+    tileP0Sub: "最優先なのに止まっている",
+    tileCand: "ロードマップ未登録の新規ペイン",
+    tileCandSub: "追加を検討したい候補",
+    filterArea: "プロダクト領域",
+    filterPriority: "優先度",
+    filterStatus: "ステータス",
+    filterAll: "すべて",
+    filterOpen: "未解決のみ",
+    filterDone: "対応済み",
+    searchPlaceholder: "キーワードで検索…",
+    countLabel: "{total}件中{shown}件のペインを表示",
+    secMapEyebrow: "インパクトマップ",
+    secMapTitle: "どのペインが最も語られ、いまも伸びているのか",
+    secMapBody: "横軸は累計の言及数、縦軸は今回新たに紐づいた声の数です。右上に位置するほど「量が多く、しかもまだ伸びている」＝放置するコストが最も高いペインになります。",
+    quadHot: "まだ悪化中",
+    quadNew: "新たに浮上",
+    quadCool: "既知・沈静化",
+    axisX: "累計言及数",
+    axisY: "今回の新規",
+    legendOpen: "未解決",
+    legendDone: "対応済み・対応中",
+    legendNew: "うち今回の新規",
+    legendSize: "円の大きさ＝優先度（P0が最大）",
+    secRankEyebrow: "全ペイン",
+    secRankTitle: "言及数の多い順",
+    secRankBody: "行をクリックすると、その数字の裏にある実際のユーザーの声が開きます。",
+    showZero: "まだ声がついていないペインも表示（{n}件）",
+    hideZero: "声のないペインを隠す",
+    showTable: "テーブルで見る",
+    hideTable: "テーブルを閉じる",
+    secAreaEyebrow: "プロダクト領域別",
+    secAreaTitle: "体験のどこが、いちばん傷んでいるのか",
+    secAreaBody: "ひとつの領域に声が集まるときは、個別のチケットではなく、共通の設計上の問題であることが多いです。",
+    secCandEyebrow: "ロードマップ外",
+    secCandTitle: "VoCロードマップにまだないペイン",
+    secCandBody: "既存のどのペインにも当てはまらなかった声を、内容ごとにまとめたものです。言及数が積み上がっているものから、追加を検討してください。",
+    colCode: "コード",
+    colPain: "ペイン",
+    colArea: "領域",
+    colPriority: "優先度",
+    colStatus: "ステータス",
+    colTotal: "累計",
+    colRecent: "今回",
+    colResolved: "対応済み",
+    evidenceTitle: "この数字の裏にあるユーザーの声",
+    evidenceCount: "{n}件の声",
+    evidenceNone: "このペインには、まだ個別の声が紐づいていません。",
+    evidenceSource: "出典",
+    evidenceDate: "日付",
+    evidenceConfidence: "マッチ信頼度",
+    evidenceWhy: "マッチした理由",
+    evidenceOpen: "原文を開く",
+    evidenceFull: "原文全体を表示",
+    evidenceSegment: "この部分がマッチしました",
+    labelEnglish: "英語タイトル",
+    labelArea: "プロダクト領域",
+    labelStatus: "ステータス",
+    labelOwner: "担当",
+    labelJira: "JIRA",
+    labelRecommend: "推奨",
+    addToVoc: "{area} / {pri} としてVoCに追加",
+    leadEyebrow: "前回の実行からの変化",
+    leadNewTitle: "ロードマップにない新しいペイン",
+    leadNewHint: "既存のどのペインにも当てはまらなかった声です。VoCへの追加を検討してください。",
+    leadRiseTitle: "未解決のまま、また声が増えたペイン",
+    leadRiseHint: "すでにロードマップにあるのに解決しておらず、今回また言及されたペインです。",
+    leadNone: "今回は新しい動きがありません。新規ペインの候補も、件数が増えた未解決ペインもゼロでした。",
+    leadNoneNew: "今回、ロードマップ外の新しいペインは出ていません。",
+    leadNoneRise: "今回、件数が増えた未解決ペインはありません。",
+    leadMore: "ほか{n}件を見る",
+    emptyTitle: "まだデータがありません",
+    emptyBody: "スプレッドシートにペインがまだ書き込まれていません。Apps Scriptエディタで runDailyDigest を一度実行してから、このページを再読み込みしてください。",
+    noResults: "この条件に当てはまるペインはありません。フィルタを外すか、検索語を変えてください。",
+    refresh: "最新に更新",
+    refreshing: "更新中…",
+    refreshFail: "更新できませんでした",
+    truncNote: "件の声は表示件数の上限（1ペインあたり{n}件）を超えたため省略されています。全件はスプレッドシートで確認できます",
+    footNote: "このダッシュボードはVoCスプレッドシートを直接読み込んでおり、すべての数字は元のユーザーの声まで辿れます。",
+    pendingNote: "件はまだ判定待ちです（次回実行で自動的に再試行されます）"
+  },
+  en: {
+    title: "What are users struggling with right now?",
+    standfirst: "Every voice we collected was matched against the pain points already on the VoC roadmap; cumulative mention count and recent increase show which ones are escalating.",
+    asOf: "data updated",
+    totalVoices: "voices collected",
+    sources: "sources",
+    tileUnresolved: "unresolved pain points",
+    tileUnresolvedSub: "of {n} on the roadmap",
+    tileRising: "gained voices this run",
+    tileRisingSub: "unresolved only",
+    tileP0: "P0 and unresolved",
+    tileP0Sub: "top priority, stalled",
+    tileCand: "new pain points not yet on the roadmap",
+    tileCandSub: "candidates to consider adding",
+    filterArea: "product area",
+    filterPriority: "priority",
+    filterStatus: "status",
+    filterAll: "all",
+    filterOpen: "unresolved only",
+    filterDone: "resolved",
+    searchPlaceholder: "search by keyword…",
+    countLabel: "{shown} of {total} pain points",
+    secMapEyebrow: "impact map",
+    secMapTitle: "Which ones are mentioned most, and still growing?",
+    secMapBody: "The horizontal axis is cumulative mentions; the vertical axis is how many voices were newly linked in this run. Upper right means large volume that is still growing — the costliest to leave alone.",
+    quadHot: "still escalating",
+    quadNew: "newly surfacing",
+    quadCool: "known issue, cooling off",
+    axisX: "cumulative mentions",
+    axisY: "new this run",
+    legendOpen: "unresolved",
+    legendDone: "resolved / in progress",
+    legendNew: "of which, new this run",
+    legendSize: "circle size = priority (P0 largest)",
+    secRankEyebrow: "all pain points",
+    secRankTitle: "Ranked by mention count",
+    secRankBody: "Click any row to open the actual user voices behind the number.",
+    showZero: "also show pain points with no voices yet ({n})",
+    hideZero: "hide pain points with no voices",
+    showTable: "view as table",
+    hideTable: "close table",
+    secAreaEyebrow: "by product area",
+    secAreaTitle: "Which parts of the experience are wearing thin?",
+    secAreaBody: "When voices cluster in one area, it is often a shared design problem rather than separate tickets.",
+    secCandEyebrow: "not on the roadmap",
+    secCandTitle: "Pain points not yet in the VoC roadmap",
+    secCandBody: "Voices that matched none of the existing pain points, grouped by what they are about. Consider adding the ones accumulating mentions.",
+    colCode: "code",
+    colPain: "pain point",
+    colArea: "area",
+    colPriority: "priority",
+    colStatus: "status",
+    colTotal: "total",
+    colRecent: "this run",
+    colResolved: "resolved",
+    evidenceTitle: "The voices behind this number",
+    evidenceCount: "{n} voices",
+    evidenceNone: "No individual voices are linked to this pain point yet.",
+    evidenceSource: "source",
+    evidenceDate: "date",
+    evidenceConfidence: "match confidence",
+    evidenceWhy: "why it matched",
+    evidenceOpen: "open original",
+    evidenceFull: "show full original message",
+    evidenceSegment: "this excerpt was matched",
+    labelEnglish: "English title",
+    labelArea: "product area",
+    labelStatus: "status",
+    labelOwner: "owner",
+    labelJira: "JIRA",
+    labelRecommend: "recommended",
+    addToVoc: "add to VoC as {area} / {pri}",
+    leadEyebrow: "what changed since the last run",
+    leadNewTitle: "new pain points, not on the roadmap",
+    leadNewHint: "Voices that matched none of the existing pain points. Consider adding them to the VoC list.",
+    leadRiseTitle: "still unresolved, and mentioned again",
+    leadRiseHint: "Already on the roadmap, still not fixed, and users brought them up again this run.",
+    leadNone: "Nothing moved this run — no new pain point candidates, and no unresolved pain point gained voices.",
+    leadNoneNew: "No new off-roadmap pain points this run.",
+    leadNoneRise: "No unresolved pain point gained voices this run.",
+    leadMore: "see {n} more",
+    emptyTitle: "No data yet",
+    emptyBody: "The spreadsheet has no pain points written to it yet. Run runDailyDigest once in the Apps Script editor, then reload this page.",
+    noResults: "No pain point matches these filters. Clear a filter or change the search term.",
+    refresh: "refresh",
+    refreshing: "refreshing\u2026",
+    refreshFail: "refresh failed",
+    truncNote: "voices were left out because a single pain point shows at most {n}. The full set is in the spreadsheet",
+    footNote: "This dashboard reads live from the VoC spreadsheet, and every number links back to the original voice.",
+    pendingNote: "voices are still awaiting matching (retried automatically on the next run)"
+  },
+  zh: {
+    title: "用戶現在到底卡在哪裡？",
+    standfirst: "把收集到的用戶心聲逐筆比對既有 VoC 路線圖上的痛點，再用累計提及數與近期增加，看出哪些痛點正在惡化。",
+    asOf: "資料更新",
+    totalVoices: "已收集心聲",
+    sources: "來源",
+    tileUnresolved: "未處理痛點",
+    tileUnresolvedSub: "路線圖 {n} 項中",
+    tileRising: "本次新增心聲的痛點",
+    tileRisingSub: "僅未處理",
+    tileP0: "P0 且未處理",
+    tileP0Sub: "最高優先卻停滯",
+    tileCand: "尚未進路線圖的新痛點",
+    tileCandSub: "建議評估加入的候選",
+    filterArea: "產品領域",
+    filterPriority: "優先度",
+    filterStatus: "狀態",
+    filterAll: "全部",
+    filterOpen: "僅未處理",
+    filterDone: "已處理",
+    searchPlaceholder: "以關鍵字搜尋…",
+    countLabel: "{total} 項痛點中顯示 {shown} 項",
+    secMapEyebrow: "影響地圖",
+    secMapTitle: "哪些痛點被提最多，而且還在成長？",
+    secMapBody: "橫軸是累計提及數，縱軸是本次新連結到的心聲數。越靠右上，代表量大而且還在成長 —— 放著不處理的代價最高。",
+    quadHot: "仍在惡化",
+    quadNew: "新浮現",
+    quadCool: "已知，正在降溫",
+    axisX: "累計提及數",
+    axisY: "本次新增",
+    legendOpen: "未處理",
+    legendDone: "已處理／處理中",
+    legendNew: "其中本次新增",
+    legendSize: "圓圈大小＝優先度（P0 最大）",
+    secRankEyebrow: "全部痛點",
+    secRankTitle: "依提及數排序",
+    secRankBody: "點任一列，可展開這個數字背後真實的用戶心聲。",
+    showZero: "一併顯示尚無心聲的痛點（{n}）",
+    hideZero: "隱藏尚無心聲的痛點",
+    showTable: "以表格檢視",
+    hideTable: "關閉表格",
+    secAreaEyebrow: "依產品領域",
+    secAreaTitle: "體驗的哪些環節已經在磨損？",
+    secAreaBody: "當心聲集中在同一個領域，通常不是各自獨立的 ticket，而是共通的設計問題。",
+    secCandEyebrow: "路線圖外",
+    secCandTitle: "尚未納入 VoC 路線圖的痛點",
+    secCandBody: "這些心聲沒有對應到任何既有痛點，依主題分組。提及數持續累積的，建議評估加入。",
+    colCode: "編號",
+    colPain: "痛點",
+    colArea: "領域",
+    colPriority: "優先度",
+    colStatus: "狀態",
+    colTotal: "累計",
+    colRecent: "本次",
+    colResolved: "已處理",
+    evidenceTitle: "這個數字背後的用戶心聲",
+    evidenceCount: "{n} 則心聲",
+    evidenceNone: "這個痛點目前還沒有連結到個別心聲。",
+    evidenceSource: "來源",
+    evidenceDate: "日期",
+    evidenceConfidence: "比對信心度",
+    evidenceWhy: "比對理由",
+    evidenceOpen: "開啟原文",
+    evidenceFull: "顯示完整原文",
+    evidenceSegment: "比對到的是這一段",
+    labelEnglish: "英文標題",
+    labelArea: "產品領域",
+    labelStatus: "狀態",
+    labelOwner: "負責人",
+    labelJira: "JIRA",
+    labelRecommend: "建議",
+    addToVoc: "以 {area} / {pri} 加入 VoC",
+    leadEyebrow: "距上次執行的變化",
+    leadNewTitle: "路線圖上沒有的新痛點",
+    leadNewHint: "這些心聲對不上任何既有痛點，建議評估是否加入 VoC。",
+    leadRiseTitle: "尚未解決，而且又被提到的痛點",
+    leadRiseHint: "已經在路線圖上、還沒解決，這次又再度被使用者提起。",
+    leadNone: "這次沒有新的動靜：既沒有新痛點候選，也沒有任何未解決痛點的次數增加。",
+    leadNoneNew: "這次沒有出現路線圖以外的新痛點。",
+    leadNoneRise: "這次沒有未解決痛點的次數增加。",
+    leadMore: "看其餘 {n} 項",
+    emptyTitle: "目前還沒有資料",
+    emptyBody: "試算表裡還沒有寫入任何痛點。請先在 Apps Script 編輯器執行一次 runDailyDigest，再重新整理這一頁。",
+    noResults: "沒有符合這些條件的痛點，請清掉篩選或換個搜尋字詞。",
+    refresh: "更新到最新",
+    refreshing: "更新中\u2026",
+    refreshFail: "更新失敗",
+    truncNote: "筆心聲因為單一痛點最多顯示 {n} 筆而未列出，完整內容請看試算表",
+    footNote: "本儀表板直接讀取 VoC 試算表，每個數字都能回溯到原始的用戶心聲。",
+    pendingNote: "筆尚未完成比對（下次執行會自動重試）"
+  }
+};
+
+var AREA_ORDER = ["S2","U2","U4","U5","U6","Z"];
+function areaKey(a){ var m = String(a||"").match(/^([A-Z]+\d*)/); return m ? m[1] : "—"; }
+function areaShort(a){ return String(a||"—").split(" ")[0] || "—"; }
+
+/* ===================== state ===================== */
+var state = { lang: "ja", area:"ALL", pri:"ALL", res:"ALL", q:"", zero:false, open:null, tile:null };
+try { var sv = localStorage.getItem("voclang"); if (sv && T[sv]) state.lang = sv; } catch(e){}
+
+function t(k){ return (T[state.lang] && T[state.lang][k]) || (T.en && T.en[k]) || k; }
+function title(d){ return d[state.lang] || d.en || d.ja || d.raw || d.code; }
+function $(s){ return document.querySelector(s); }
+function esc(s){ return String(s===null||s===undefined?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fill(s,o){ var r=String(s); for(var k in o){ r=r.split("{"+k+"}").join(o[k]); } return r; }
+
+/* ===================== tooltip ===================== */
+var tip;
+function showTip(e,html){ tip.innerHTML=html; tip.style.opacity="1"; moveTip(e); }
+function moveTip(e){
+  var p = e.touches ? e.touches[0] : e, r = tip.getBoundingClientRect();
+  var x = p.clientX+14, y = p.clientY-10;
+  if (x+r.width > innerWidth-10) x = p.clientX-r.width-14;
+  if (y+r.height > innerHeight-10) y = innerHeight-r.height-10;
+  tip.style.left = Math.max(8,x)+"px"; tip.style.top = Math.max(8,y)+"px";
+}
+function hideTip(){ tip.style.opacity="0"; }
+function bindTip(el,html){
+  el.addEventListener("mouseenter",function(e){ showTip(e,html); });
+  el.addEventListener("mousemove",moveTip);
+  el.addEventListener("mouseleave",hideTip);
+  el.addEventListener("focus",function(){ var b=el.getBoundingClientRect();
+    showTip({clientX:b.left+b.width/2, clientY:b.top}, html); });
+  el.addEventListener("blur",hideTip);
+}
+
+/* ===================== filtering ===================== */
+function passes(d){
+  if (state.area!=="ALL" && areaKey(d.area)!==state.area) return false;
+  if (state.pri!=="ALL" && d.pri!==state.pri) return false;
+  if (state.res==="OPEN" && !d.open) return false;
+  if (state.res==="DONE" && d.open) return false;
+  if (state.tile==="P0OPEN" && !(d.open && d.pri==="P0")) return false;
+  if (state.tile==="RISING" && !(d.open && d.fresh>0)) return false;
+  if (state.q){
+    var hay = ((d.ja||"")+(d.en||"")+(d.zh||"")+(d.raw||"")+(d.code||"")+(d.area||"")).toLowerCase();
+    var vs = DATA.voices && DATA.voices[d.code];
+    if (vs) for (var i=0;i<vs.length;i++) hay += " " + (vs[i].text||"") + " " + (vs[i].full||"");
+    if (hay.toLowerCase().indexOf(state.q) < 0) return false;
+  }
+  return true;
+}
+
+/* ===================== shell ===================== */
+function shell(){
+  var s = DATA.stats || {};
+  return ''
+  + '<header class="masthead">'
+  +   '<h1>'+esc(t("title"))+'</h1>'
+  +   '<p class="standfirst">'+esc(t("standfirst"))+'</p>'
+  +   '<div class="byline">'
+  +     '<span>'+esc(t("asOf"))+' <b>'+esc(DATA.asOf||"—")+'</b></span>'
+  +     '<span>'+esc(t("totalVoices"))+' <b>'+(s.segments||0)+'</b>'
+  +       ' <span style="color:var(--muted)">('+(s.messages||0)+' → '+(s.judged||0)+')</span></span>'
+  +     '<span>'+esc(t("sources"))+' <b><a href="'+esc(DATA.sheetUrl)+'" target="_blank" rel="noopener">VoC sheet</a></b></span>'
+  +     '<button class="refresh" id="refresh" type="button">'+esc(t("refresh"))+'</button>'
+  +   '</div>'
+  + '</header>'
+  + '<section class="lead" id="lead"></section>'
+  + '<div class="tiles" id="tiles"></div>'
+  + '<div class="filters" role="group">'
+  +   '<span class="flabel">'+esc(t("filterArea"))+'</span><div class="fgroup" id="f-area"></div>'
+  +   '<span class="flabel" style="margin-left:6px">'+esc(t("filterPriority"))+'</span><div class="fgroup" id="f-pri"></div>'
+  +   '<span class="flabel" style="margin-left:6px">'+esc(t("filterStatus"))+'</span><div class="fgroup" id="f-res"></div>'
+  +   '<input class="search" id="q" type="search" placeholder="'+esc(t("searchPlaceholder"))+'">'
+  +   '<span class="fcount" id="fcount"></span>'
+  + '</div>'
+  + '<section class="sec"><div class="prose">'
+  +   '<div class="eyebrow">'+esc(t("secMapEyebrow"))+'</div><h2>'+esc(t("secMapTitle"))+'</h2>'
+  +   '<p>'+esc(t("secMapBody"))+'</p></div>'
+  +   '<div class="plotcard"><div class="plot" id="plot">'
+  +     '<span class="axtitle ytitle">'+esc(t("axisY"))+'</span></div>'
+  +     '<div style="margin:8px 0 0 44px"><span class="axtitle">'+esc(t("axisX"))+' &rarr;</span></div>'
+  +     '<div class="legend" style="margin-left:44px;padding-bottom:12px">'
+  +       '<span><i class="sw round" style="background:var(--accent)"></i>'+esc(t("legendOpen"))+'</span>'
+  +       '<span><i class="sw round" style="background:var(--axis)"></i>'+esc(t("legendDone"))+'</span>'
+  +       '<span style="color:var(--muted)">'+esc(t("legendSize"))+'</span></div>'
+  + '</section>'
+  + '<section class="sec"><div class="prose">'
+  +   '<div class="eyebrow">'+esc(t("secRankEyebrow"))+'</div><h2>'+esc(t("secRankTitle"))+'</h2>'
+  +   '<p>'+esc(t("secRankBody"))+'</p></div>'
+  +   '<div class="legend">'
+  +     '<span><i class="sw" style="background:var(--accent)"></i>'+esc(t("legendOpen"))+'</span>'
+  +     '<span><i class="sw" style="background:var(--axis)"></i>'+esc(t("legendDone"))+'</span>'
+  +     '<span><i class="sw" style="background:var(--accent-2)"></i>'+esc(t("legendNew"))+'</span></div>'
+  +   '<div class="bars" id="bars"></div>'
+  +   '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:14px">'
+  +     '<button class="link" id="toggleZero"></button>'
+  +     '<button class="link" id="toggleTable">'+esc(t("showTable"))+'</button></div>'
+  +   '<div class="tablewrap hidden" id="tablewrap"><table><thead><tr>'
+  +     '<th>'+esc(t("colCode"))+'</th><th>'+esc(t("colPain"))+'</th><th>'+esc(t("colArea"))+'</th>'
+  +     '<th>'+esc(t("colPriority"))+'</th><th>'+esc(t("colStatus"))+'</th>'
+  +     '<th class="n">'+esc(t("colTotal"))+'</th><th class="n">'+esc(t("colRecent"))+'</th>'
+  +     '<th>'+esc(t("colResolved"))+'</th></tr></thead><tbody id="tbody"></tbody></table></div>'
+  + '</section>'
+  + '<section class="sec"><div class="prose">'
+  +   '<div class="eyebrow">'+esc(t("secAreaEyebrow"))+'</div><h2>'+esc(t("secAreaTitle"))+'</h2>'
+  +   '<p>'+esc(t("secAreaBody"))+'</p></div><div class="sm" id="sm"></div></section>'
+  + '<section class="sec"><div class="prose">'
+  +   '<div class="eyebrow">'+esc(t("secCandEyebrow"))+'</div><h2>'+esc(t("secCandTitle"))+'</h2>'
+  +   '<p>'+esc(t("secCandBody"))+'</p></div>'
+  +   '<div class="legend"><span><i class="sw" style="background:var(--accent-2)"></i>'
+  +     +esc(t("colTotal"))+'</span></div>'
+  +   '<div class="bars" id="cands"></div></section>'
+  + '<p class="note" id="foot"></p>';
+}
+
+/* ===================== renderers ===================== */
+function chips(host, items, key){
+  host.innerHTML="";
+  host.setAttribute("data-key", key);
+  items.forEach(function(it){
+    var b=document.createElement("button");
+    b.className="chip"; b.type="button"; b.textContent=it[1];
+    b.setAttribute("data-v", it[0]);
+    b.setAttribute("aria-pressed", String(state[key]===it[0]));
+    b.onclick=function(){ state[key]=it[0]; state.tile=null; render(); };
+    host.appendChild(b);
+  });
+}
+
+/** 篩選狀態也可能被統計卡或摘要改掉，每次重畫都把 chip 的選取狀態同步回來 */
+function syncChips(){
+  ["f-area","f-pri","f-res"].forEach(function(id){
+    var host=document.getElementById(id); if(!host) return;
+    var key=host.getAttribute("data-key");
+    [].forEach.call(host.children, function(b){
+      b.setAttribute("aria-pressed", String(state[key]===b.getAttribute("data-v")));
+    });
+  });
+}
+
+/* ---- what changed: the two questions Cross actually opens this page to answer ----
+   1. which pain points are NEW (nowhere on the VoC roadmap)  → propose adding them
+   2. which known pain points are STILL unresolved and were mentioned again
+   Both lanes are deliberately unaffected by the filters — this is the bottom line. */
+function leadBlock(){
+  var LEAD_N = 5;
+  var news = (DATA.cands||[]).slice()
+    .sort(function(a,b){ return b.fresh-a.fresh || b.total-a.total; });
+  var rise = (DATA.pains||[]).filter(function(d){ return d.open && d.fresh>0; })
+    .sort(function(a,b){ return b.fresh-a.fresh || b.total-a.total; });
+
+  if (!news.length && !rise.length){
+    return '<div class="eyebrow">'+esc(t("leadEyebrow"))+'</div>'
+      + '<p class="calm">'+esc(t("leadNone"))+'</p>';
+  }
+  return '<div class="eyebrow">'+esc(t("leadEyebrow"))+'</div><div class="lanes">'
+    + lane("newp", news, t("leadNewTitle"), t("leadNewHint"), t("leadNoneNew"), "cands", LEAD_N)
+    + lane("risep", rise, t("leadRiseTitle"), t("leadRiseHint"), t("leadNoneRise"), "bars", LEAD_N)
+    + '</div>';
+
+  function lane(cls, arr, head, hint, none, jump, n){
+    var h = '<div class="lane '+cls+'"><h3><span class="c">'+arr.length+'</span>'
+          + esc(head)+'</h3>';
+    if (!arr.length) return h + '<p class="hint">'+esc(none)+'</p></div>';
+    h += '<p class="hint">'+esc(hint)+'</p><ul>';
+    arr.slice(0,n).forEach(function(d){
+      h += '<li><button class="leadrow" type="button" data-code="'+esc(d.code)+'">'
+        +    '<span class="lt">'+esc(title(d))+'</span>'
+        +    '<span class="ln"><u>'+d.total+'</u> +'+d.fresh+'</span>'
+        +    '<span class="lp">'+esc(d.pri)+' · '+esc(areaShort(d.area))+'</span>'
+        +  '</button></li>';
+    });
+    h += '</ul>';
+    if (arr.length > n) h += '<button class="more" type="button" data-jump="'+jump+'">'
+      + esc(fill(t("leadMore"),{n:arr.length-n})) + '</button>';
+    return h + '</div>';
+  }
+}
+
+function render(){
+  var pains = (DATA.pains||[]);
+  var matched = pains.filter(passes).slice()
+    .sort(function(a,b){ return b.total-a.total || b.fresh-a.fresh; });
+  var rows = state.zero ? matched : matched.filter(function(d){ return d.total>0; });
+  var silent = matched.length - rows.length;
+  var cands = (DATA.cands||[]).filter(passes).slice()
+    .sort(function(a,b){ return b.total-a.total; });
+
+  // tiles — clickable filters, so every headline number is traceable
+  var unres = pains.filter(function(d){ return d.open; }).length;
+  var rising = pains.filter(function(d){ return d.open && d.fresh>0; }).length;
+  var p0 = pains.filter(function(d){ return d.open && d.pri==="P0"; }).length;
+  $("#tiles").innerHTML = ''
+   + tile("OPEN","alarm",unres,t("tileUnresolved"),fill(t("tileUnresolvedSub"),{n:pains.length}))
+   + tile("RISING","",rising,t("tileRising"),t("tileRisingSub"))
+   + tile("P0OPEN","",p0,t("tileP0"),t("tileP0Sub"))
+   + tile("CAND","",(DATA.cands||[]).length,t("tileCand"),t("tileCandSub"));
+  [].forEach.call(document.querySelectorAll(".tile"), function(el){
+    el.onclick=function(){
+      var k=el.getAttribute("data-k");
+      if (k==="CAND"){ document.getElementById("cands").scrollIntoView({behavior:"smooth",block:"center"}); return; }
+      if (k==="OPEN"){ state.res = state.res==="OPEN" ? "ALL":"OPEN"; state.tile=null; }
+      else { state.tile = state.tile===k ? null : k; state.res="ALL"; }
+      render();
+    };
+  });
+
+  $("#lead").innerHTML = leadBlock();
+  [].forEach.call(document.querySelectorAll(".leadrow"), function(el){
+    el.onclick=function(){
+      // 從摘要點進去要看得到，先把可能把它擋掉的篩選清乾淨
+      state.area="ALL"; state.pri="ALL"; state.res="ALL"; state.tile=null; state.q="";
+      state.zero=true;
+      var qi=$("#q"); if(qi) qi.value="";
+      openPain(el.getAttribute("data-code"));
+    };
+  });
+  [].forEach.call(document.querySelectorAll(".lane .more"), function(el){
+    el.onclick=function(){
+      var h=document.getElementById(el.getAttribute("data-jump"));
+      if(h) h.scrollIntoView({behavior:"smooth", block:"start"});
+    };
+  });
+
+  syncChips();
+  $("#fcount").textContent = fill(t("countLabel"), {shown:matched.length, total:pains.length});
+  var tz=$("#toggleZero");
+  tz.textContent = state.zero ? t("hideZero") : fill(t("showZero"),{n:silent});
+  tz.style.display = (silent>0||state.zero) ? "" : "none";
+
+  drawPlot(matched.filter(function(d){ return d.total>0; }));
+  drawBars(rows);
+  drawSmall(pains);
+  drawCands(cands);
+  drawTable(matched);
+
+  // 篩到一個都不剩時要講出來，不然畫面只是空白，看起來像壞掉
+  if (!rows.length) $("#bars").innerHTML = '<p class="nores">'+esc(t("noResults"))+'</p>';
+  if (!cands.length && (DATA.cands||[]).length)
+    $("#cands").innerHTML = '<p class="nores">'+esc(t("noResults"))+'</p>';
+
+  var s=DATA.stats||{};
+  $("#foot").innerHTML = esc(t("footNote"))
+    + ' · <a href="'+esc(DATA.sheetUrl)+'" target="_blank" rel="noopener">VoC_Pain_Points / VoC_Raw_Log</a>'
+    + (s.pending ? ' · <b>'+s.pending+'</b> '+esc(t("pendingNote")) : '')
+    + (DATA.droppedTotal ? ' · <b>'+DATA.droppedTotal+'</b> '
+        + esc(fill(t("truncNote"),{n:DATA.maxVoices||60})) : '');
+}
+
+function tile(k,cls,v,l,s){
+  return '<button class="tile '+cls+'" type="button" data-k="'+k+'" aria-pressed="'
+    + String((k==="OPEN"&&state.res==="OPEN")||state.tile===k) + '">'
+    + '<span class="v">'+v+'</span><span class="l">'+esc(l)+'</span><span class="s">'+esc(s)+'</span></button>';
+}
+
+/* ---- scatter: labelled with the pain point text, collision-resolved ---- */
+function drawPlot(pts){
+  var p=$("#plot");
+  [].forEach.call(p.querySelectorAll(".dot,.plab,.qlab,.midline,.tick,.leader"),
+    function(n){ n.remove(); });
+  if (!pts.length) return;
+
+  var W=p.clientWidth, H=p.clientHeight;
+  var maxX=Math.max(2,Math.max.apply(null,pts.map(function(d){return d.total;})));
+  var maxY=Math.max(1,Math.max.apply(null,pts.map(function(d){return d.fresh;})));
+  var PADL=10, PADR=14, PADB=12, PADT=18;
+  function X(v){ return PADL + (v/maxX)*(W-PADL-PADR); }
+  function Y(v){ return PADB + (v/maxY)*(H-PADB-PADT); }   // px from bottom
+
+  [[X(maxX/2),"v"],[Y(maxY/2),"h"]].forEach(function(a){
+    var l=document.createElement("div"); l.className="midline";
+    if(a[1]==="v") l.style.cssText="left:"+a[0]+"px;top:0;bottom:0;width:1px";
+    else l.style.cssText="bottom:"+a[0]+"px;left:0;right:0;height:1px";
+    p.appendChild(l);
+  });
+  function q(txt,css){ var s=document.createElement("span"); s.className="qlab";
+    s.textContent=txt; s.style.cssText=css; p.appendChild(s); }
+  q(t("quadHot"),"right:8px;top:6px;text-align:right;color:var(--critical)");
+  q(t("quadNew"),"left:8px;top:6px");
+  q(t("quadCool"),"right:8px;bottom:6px;text-align:right");
+
+  [0,maxX].forEach(function(v){ var e=document.createElement("span"); e.className="tick";
+    e.textContent=v; e.style.cssText="left:"+X(v)+"px;bottom:-19px;transform:translateX(-50%)"; p.appendChild(e); });
+  [0,maxY].forEach(function(v){ var e=document.createElement("span"); e.className="tick";
+    e.textContent=v; e.style.cssText="bottom:"+Y(v)+"px;left:-22px;transform:translateY(50%)"; p.appendChild(e); });
+
+  var SIZE={P0:19,P1:15,P2:12,P3:10};
+  var maxChars = state.lang==="en" ? 26 : 15;
+  // 先把象限標註的位置佔起來，否則痛點標籤會蓋掉它們
+  var QW=170, QH=32;
+  var boxes=[
+    {x:W-QW-8, y:2,      w:QW, h:QH},   // 右上：延焼中
+    {x:8,      y:2,      w:QW, h:QH},   // 左上：新たに浮上
+    {x:W-QW-8, y:H-QH-2, w:QW, h:QH}    // 右下：沈静化
+  ];
+  function hits(b){
+    for(var i=0;i<boxes.length;i++){ var o=boxes[i];
+      if(!(b.x+b.w<o.x-4||o.x+o.w<b.x-4||b.y+b.h<o.y-3||o.y+o.h<b.y-3)) return true; }
+    return false;
+  }
+  var ordered = pts.slice().sort(function(a,b){ return (b.total+b.fresh)-(a.total+a.fresh); });
+
+  ordered.forEach(function(d){
+    var s=SIZE[d.pri]||10, cx=X(d.total), cy=Y(d.fresh);
+    var el=document.createElement("button");
+    el.className="dot"; el.type="button";
+    el.style.cssText="left:"+cx+"px;bottom:"+cy+"px;width:"+s+"px;height:"+s+"px;background:"
+      + (d.open?"var(--accent)":"var(--axis)");
+    el.setAttribute("aria-label", title(d)+" — "+d.total+" / +"+d.fresh);
+    bindTip(el,"<b>"+esc(title(d))+"</b><br><span class='tn'>"+esc(t("colTotal"))+" "+d.total
+      +" · "+esc(t("colRecent"))+" +"+d.fresh+"</span><br>"+esc(d.pri)+" · "+esc(d.status));
+    el.onclick=function(){ openPain(d.code); };
+    p.appendChild(el);
+    boxes.push({x:cx-s/2, y:H-cy-s/2, w:s, h:s});
+
+    // label with the pain point itself
+    var txt=title(d); if(txt.length>maxChars) txt=txt.substring(0,maxChars-1)+"…";
+    var lw=txt.length*(state.lang==="en"?6.2:11.2)+6, lh=15;
+    var placed=null;
+    var offsets=[[s/2+7,0],[-(lw+s/2+7),0],[s/2+7,-17],[s/2+7,17],[-(lw+s/2+7),-17],
+                 [-(lw+s/2+7),17],[s/2+7,-34],[s/2+7,34],[-(lw+s/2+7),-34],[-(lw+s/2+7),34]];
+    for(var i=0;i<offsets.length;i++){
+      var bx=cx+offsets[i][0], by=H-cy-lh/2+offsets[i][1];
+      if(bx<0||bx+lw>W||by<0||by+lh>H) continue;
+      var box={x:bx,y:by,w:lw,h:lh};
+      if(!hits(box)){ placed=box; break; }
+    }
+    if(placed){
+      boxes.push(placed);
+      var lb=document.createElement("button");
+      lb.className="plab"; lb.type="button"; lb.textContent=txt;
+      lb.style.cssText="left:"+placed.x+"px;top:"+placed.y+"px;width:"+lw+"px";
+      lb.onclick=function(){ openPain(d.code); };
+      bindTip(lb,"<b>"+esc(title(d))+"</b><br><span class='tn'>"+esc(t("colTotal"))+" "+d.total
+        +" · "+esc(t("colRecent"))+" +"+d.fresh+"</span>");
+      p.appendChild(lb);
+      var dy=Math.abs((placed.y+lh/2)-(H-cy));
+      if(dy>8){
+        var ld=document.createElement("div"); ld.className="leader";
+        var lx=placed.x<cx ? placed.x+lw : placed.x;
+        ld.style.cssText="left:"+Math.min(lx,cx)+"px;top:"+Math.min(placed.y+lh/2,H-cy)+"px;width:"
+          + Math.max(1,Math.abs(cx-lx))+"px;height:1px";
+        p.appendChild(ld);
+      }
+    }
+  });
+}
+
+/* ---- ranked rows ---- */
+function drawBars(rows){
+  var host=$("#bars"); host.innerHTML="";
+  var max=Math.max(1,Math.max.apply(null,rows.map(function(d){return d.total;}).concat([1])));
+  rows.forEach(function(d){
+    var w=(d.total/max)*100, wn=(d.fresh/max)*100;
+    var b=document.createElement("button");
+    b.className="row"; b.type="button"; b.id="pain-"+cssId(d.code);
+    b.setAttribute("aria-expanded", String(state.open===d.code));
+    b.innerHTML=''
+      + '<span class="rmeta"><span class="pill '+d.pri.toLowerCase()+'">'+esc(d.pri)+'</span>'
+      +   '<span class="rt">'+esc(title(d))+'</span></span>'
+      + '<span class="rbar"><span class="rtrack">'
+      +   '<span class="rfill'+(d.open?"":" done")+'" style="width:'+Math.max(w-wn,0)+'%"></span>'
+      +   (d.fresh?'<span class="rnew" style="width:'+wn+'%"></span>':'')
+      + '</span><span class="rval"><u>'+d.total+'</u>'+(d.fresh?' +'+d.fresh:'')+'</span>'
+      + '<span class="flag'+(d.open?"":" ok")+'">'+esc(d.open?t("legendOpen"):t("legendDone"))+'</span></span>';
+    bindTip(b,"<b>"+esc(title(d))+"</b><br>"+esc(d.en)+"<br><span class='tn'>"
+      +esc(t("colTotal"))+" "+d.total+" · "+esc(t("colRecent"))+" +"+d.fresh+"</span><br>"
+      +esc(d.status)+" · "+esc(areaShort(d.area)));
+    b.onclick=function(){ openPain(d.code); };
+    host.appendChild(b);
+    if(state.open===d.code) host.appendChild(evidence(d,false));
+  });
+}
+
+function cssId(s){ return String(s).replace(/[^A-Za-z0-9_-]/g,"_"); }
+
+function openPain(code){
+  state.open = (state.open===code) ? null : code;
+  render();
+  if(state.open){
+    var el=document.getElementById("pain-"+cssId(code));
+    if(el) el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+}
+
+/* ---- the evidence panel: every number traces to the actual voices ---- */
+function evidence(d, isCand){
+  var vs=(DATA.voices&&DATA.voices[d.code])||[];
+  var extra=(DATA.dropped&&DATA.dropped[d.code])||0;
+  var wrap=document.createElement("div");
+  wrap.className="detail";
+  if(isCand) wrap.style.borderLeftColor="var(--accent-2)";
+
+  var meta='<dl>';
+  if(!isCand){
+    meta+='<dt>'+esc(t("labelEnglish"))+'</dt><dd>'+esc(d.en||d.raw)+'</dd>'
+       +  '<dt>'+esc(t("labelArea"))+'</dt><dd>'+esc(d.area||"—")+'</dd>'
+       +  '<dt>'+esc(t("labelStatus"))+'</dt><dd>'+esc(d.status||"—")+'</dd>';
+    if(d.owner) meta+='<dt>'+esc(t("labelOwner"))+'</dt><dd>'+esc(d.owner)+'</dd>';
+    if(d.jira)  meta+='<dt>'+esc(t("labelJira"))+'</dt><dd>'+esc(d.jira)+'</dd>';
+    if(d.origins) meta+='<dt>'+esc(t("evidenceSource"))+'</dt><dd>'+esc(d.origins)+'</dd>';
+    if(d.first) meta+='<dt>'+esc(t("evidenceDate"))+'</dt><dd>'+esc(d.first)+' → '+esc(d.last||"—")+'</dd>';
+    if(d.memo) meta+='<dt>Memo</dt><dd>'+esc(d.memo)+'</dd>';
+  } else {
+    meta+='<dt>'+esc(t("colCode"))+'</dt><dd>'+esc(d.code)+'</dd>'
+       +  '<dt>'+esc(t("labelRecommend"))+'</dt><dd>'
+       +  esc(fill(t("addToVoc"),{area:areaShort(d.area), pri:d.pri}))+'</dd>';
+    if(d.first) meta+='<dt>'+esc(t("evidenceDate"))+'</dt><dd>'+esc(d.first)+' → '+esc(d.last||"—")+'</dd>';
+    if(d.state) meta+='<dt>'+esc(t("colStatus"))+'</dt><dd>'+esc(d.state)+'</dd>';
+  }
+  meta+='</dl>';
+
+  var body='<div class="evhead">'+esc(t("evidenceTitle"))+' — '
+    + esc(fill(t("evidenceCount"),{n:vs.length+extra}))+'</div>';
+  if(!vs.length){
+    body+='<p style="margin:9px 0 0;color:var(--muted)">'+esc(t("evidenceNone"))+'</p>';
+  } else {
+    vs.forEach(function(v,i){
+      var cf = v.conf===null ? "" :
+        '<span class="conf '+(v.conf>=.8?"hi":v.conf>=.6?"mid":"lo")+'">'
+        + esc(t("evidenceConfidence"))+' '+Math.round(v.conf*100)+'%</span>';
+      body+='<div class="voice">'
+        + '<div class="vmeta"><span class="src">'+esc(v.src||"—")+'</span>'
+        +   (v.det?'<span>'+esc(v.det)+'</span>':'')
+        +   '<span>'+esc(v.d||"—")+'</span>'
+        +   (v.kind?'<span>'+esc(v.kind)+'</span>':'')
+        +   (v.by?'<span>'+esc(v.by)+'</span>':'')
+        +   cf
+        +   (v.link?' <a class="vlink" href="'+esc(v.link)+'" target="_blank" rel="noopener">'
+              +esc(t("evidenceOpen"))+' ↗</a>':'')
+        + '</div>'
+        + '<p class="vtext">'+esc(v.text)+'</p>'
+        + (v.why?'<div class="vwhy">'+esc(t("evidenceWhy"))+'：'+esc(v.why)+'</div>':'')
+        + (v.full?'<button class="link" style="font-size:11.5px;margin-top:6px" '
+            +'data-full="'+cssId(d.code)+'-'+i+'">'+esc(t("evidenceFull"))+' ▾</button>'
+            +'<div class="vfull hidden" id="full-'+cssId(d.code)+'-'+i+'">'+esc(v.full)+'</div>':'')
+        + '</div>';
+    });
+    if(extra) body+='<p style="margin:9px 0 0;color:var(--muted);font-size:12px">+'+extra+'</p>';
+  }
+  wrap.innerHTML=meta+body;
+  [].forEach.call(wrap.querySelectorAll("[data-full]"), function(btn){
+    btn.onclick=function(ev){ ev.stopPropagation();
+      var el=document.getElementById("full-"+btn.getAttribute("data-full"));
+      if(el) el.classList.toggle("hidden"); };
+  });
+  return wrap;
+}
+
+/* ---- small multiples ---- */
+function drawSmall(pains){
+  var host=$("#sm"); host.innerHTML="";
+  var groups={};
+  pains.forEach(function(d){ var k=areaKey(d.area); (groups[k]=groups[k]||[]).push(d); });
+  var keys=Object.keys(groups).sort(function(a,b){
+    var ia=AREA_ORDER.indexOf(a), ib=AREA_ORDER.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+  keys.forEach(function(k){
+    var items=groups[k].slice().sort(function(a,b){ return b.total-a.total; });
+    var sum=items.reduce(function(s,d){ return s+d.total; },0);
+    var open=items.filter(function(d){ return d.open && d.total>0; }).length;
+    var max=Math.max(1,Math.max.apply(null,items.map(function(d){return d.total;}).concat([1])));
+    var cell=document.createElement("div"); cell.className="smcell";
+    var head=document.createElement("div"); head.className="smhead";
+    head.innerHTML='<span class="smname">'+esc(items[0].area||k)+'</span>'
+      + '<span class="smnum">'+sum+' · '+esc(t("legendOpen"))+' '+open+'</span>';
+    cell.appendChild(head);
+    items.slice(0,7).forEach(function(d){
+      var b=document.createElement("button"); b.className="smrow"; b.type="button";
+      b.innerHTML='<span>'+esc(title(d))+'</span><span class="smbar">'
+        + '<span class="smfill'+(d.open?"":" done")+'" style="width:'+((d.total/max)*52+2)+'px"></span>'
+        + '<span class="smv">'+d.total+'</span></span>';
+      b.onclick=function(){ openPain(d.code); };
+      cell.appendChild(b);
+    });
+    if(items.length>7){
+      var m=document.createElement("div"); m.className="smrow"; m.style.color="var(--muted)";
+      m.innerHTML='<span>+'+(items.length-7)+'</span><span></span>';
+      cell.appendChild(m);
+    }
+    host.appendChild(cell);
+  });
+}
+
+/* ---- candidates ---- */
+function drawCands(cands){
+  var host=$("#cands"); host.innerHTML="";
+  var max=Math.max(1,Math.max.apply(null,cands.map(function(d){return d.total;}).concat([1])));
+  cands.forEach(function(d){
+    var b=document.createElement("button"); b.className="row"; b.type="button";
+    b.id="pain-"+cssId(d.code);
+    b.setAttribute("aria-expanded", String(state.open===d.code));
+    b.innerHTML='<span class="rmeta"><span class="pill '+String(d.pri).toLowerCase()+'">'+esc(d.pri)+'</span>'
+      + '<span class="rt">'+esc(title(d))+'</span></span>'
+      + '<span class="rbar"><span class="rtrack"><span class="rfill" style="width:'
+      +   ((d.total/max)*100)+'%;background:var(--accent-2)"></span></span>'
+      + '<span class="rval"><u>'+d.total+'</u>'+(d.fresh?' +'+d.fresh:'')+'</span>'
+      + '<span class="areatag">'+esc(areaShort(d.area))+'</span></span>';
+    bindTip(b,"<b>"+esc(title(d))+"</b><br><span class='tn'>"+esc(t("colTotal"))+" "+d.total
+      +"</span> · "+esc(fill(t("addToVoc"),{area:areaShort(d.area),pri:d.pri})));
+    b.onclick=function(){ openPain(d.code); };
+    host.appendChild(b);
+    if(state.open===d.code) host.appendChild(evidence(d,true));
+  });
+}
+
+function drawTable(rows){
+  $("#tbody").innerHTML = rows.map(function(d){
+    return '<tr><td>'+esc(d.code)+'</td><td class="wide">'+esc(title(d))+'</td>'
+      + '<td>'+esc(areaShort(d.area))+'</td><td>'+esc(d.pri)+'</td><td>'+esc(d.status)+'</td>'
+      + '<td class="n">'+d.total+'</td><td class="n">'+(d.fresh||"")+'</td>'
+      + '<td>'+esc(d.open?t("legendOpen"):t("legendDone"))+'</td></tr>';
+  }).join("");
+}
+
+/* ===================== boot ===================== */
+function mountControls(){
+  chips($("#f-area"), [["ALL",t("filterAll")]].concat(AREA_ORDER.map(function(a){return [a,a];})), "area");
+  chips($("#f-pri"), [["ALL",t("filterAll")],["P0","P0"],["P1","P1"],["P2","P2"],["P3","P3"]], "pri");
+  chips($("#f-res"), [["ALL",t("filterAll")],["OPEN",t("filterOpen")],["DONE",t("filterDone")]], "res");
+  var qi=$("#q"); qi.value=state.q;
+  qi.oninput=function(e){ state.q=e.target.value.trim().toLowerCase(); render(); };
+  $("#toggleZero").onclick=function(){ state.zero=!state.zero; render(); };
+  $("#toggleTable").onclick=function(e){
+    var w=$("#tablewrap"), closed=w.classList.toggle("hidden");
+    e.target.textContent = closed ? t("showTable") : t("hideTable");
+  };
+}
+
+/* 伺服器端會把資料快取 10 分鐘，所以留一顆按鈕強制重讀，不用整頁重載 */
+function wireRefresh(){
+  var b=$("#refresh"); if(!b) return;
+  b.onclick=function(){
+    if (typeof google === "undefined" || !google.script || !google.script.run) return;
+    b.disabled=true; b.textContent=t("refreshing");
+    google.script.run
+      .withSuccessHandler(function(res){
+        b.disabled=false;
+        if(!res || res.error){ b.textContent=t("refreshFail"); return; }
+        DATA=res; boot();
+      })
+      .withFailureHandler(function(){ b.disabled=false; b.textContent=t("refreshFail"); })
+      .refreshDashboardData();
+  };
+}
+
+function boot(){
+  tip=$("#tip");
+  var lb=$("#langs");
+  lb.innerHTML="";   // boot() 會被語言切換與更新按鈕重複呼叫，不清掉會一直長出新按鈕
+  [["ja","日本語"],["en","English"],["zh","繁體中文"]].forEach(function(l){
+    var b=document.createElement("button"); b.type="button"; b.textContent=l[1];
+    b.setAttribute("aria-pressed", String(state.lang===l[0]));
+    b.onclick=function(){
+      state.lang=l[0];
+      try{ localStorage.setItem("voclang", l[0]); }catch(e){}
+      document.documentElement.lang = l[0]==="zh" ? "zh-Hant" : l[0];
+      boot();
+    };
+    lb.appendChild(b);
+  });
+  if(DATA.error){
+    $("#app").innerHTML='<div class="err"><b>Could not load data.</b><br>'+esc(DATA.error)+'</div>';
+    return;
+  }
+  document.documentElement.lang = state.lang==="zh" ? "zh-Hant" : state.lang;
+  if(!(DATA.pains||[]).length && !(DATA.cands||[]).length){
+    // 還沒跑過 runDailyDigest 就開網頁的人，看到的不該是一片空白
+    $("#app").innerHTML='<div class="blank"><b>'+esc(t("emptyTitle"))+'</b><p>'
+      + esc(t("emptyBody"))+'</p></div>';
+    return;
+  }
+  $("#app").innerHTML=shell();
+  mountControls();
+  wireRefresh();
+  render();
+  addEventListener("resize", function(){
+    clearTimeout(window.__rz);
+    window.__rz=setTimeout(function(){
+      drawPlot((DATA.pains||[]).filter(passes).filter(function(d){return d.total>0;}));
+    },150);
+  });
+}
+
+boot();
+</script>
