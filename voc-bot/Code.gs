@@ -129,6 +129,20 @@ var NEW_BOT_COLS = 16;
 
 var LOG_HEADERS = ['日時', '種別', '結果', '内容'];
 
+// --- Dashboard（網頁應用）---
+/** 單一痛點最多帶幾則原始聲音進 dashboard（防 payload 爆掉） */
+var DASH_MAX_VOICES = 60;
+/** 原始聲音本文／原文的字數上限 */
+var DASH_TEXT_CAP = 700;
+var DASH_FULL_CAP = 1200;
+/** dashboard 資料快取秒數。試算表一天只更新一次，10 分鐘足夠新鮮 */
+var DASH_CACHE_SEC = 600;
+/** 快取分塊大小（字元）。CacheService 每筆上限 100KB，日文一字 3 bytes，取 30000 保守 */
+var DASH_CACHE_CHUNK = 30000;
+/** 超過這個大小就不快取，避免塞爆快取空間 */
+var DASH_CACHE_MAX = 2000000;
+var DASH_CACHE_KEY = 'voc_dash_v1';
+
 // --- 判定值 ---
 var V_MATCH = '既存一致';
 var V_MATCH_REVIEW = '既存一致(要確認)';
@@ -389,6 +403,7 @@ function runDailyDigest() {
     stats.pp.length + ' 個／新候補 ' + stats.cand.length + ' 個／耗時 ' + secs + ' 秒' +
     (problems.length ? '。警告：' + problems.join(' | ') : ''));
   SpreadsheetApp.flush();
+  clearDashboardCache();   // 剛跑完就把快取清掉，dashboard 立刻看得到新數字
 }
 
 /** 【驗證用】檢查 Roadmap、Slack、每份表單、目標表寫入權限。結果寫進 VoC_Bot_Log。 */
@@ -583,6 +598,7 @@ function catchUpMatching() {
     logRow_(ss, 'CATCHUP', 'ERROR', '彙總重算：' + e.message);
   }
   SpreadsheetApp.flush();
+  clearDashboardCache();
 }
 
 /** 安裝每日排程（會先清掉舊的，可重複執行） */
@@ -720,6 +736,9 @@ function loadRoadmap_() {
       resolved: isResolved_(status, shipped),
       requests: collapse_(pick_(row, m.requests)),
       note: collapse_(pick_(row, m.note)).substring(0, 300),
+      owner: collapse_(pick_(row, m.owner)),
+      jira: [collapse_(pick_(row, m.jira1)), collapse_(pick_(row, m.jira2))]
+              .filter(function (x) { return x; }).join(' / '),
       rowNum: r + 1
     };
     items.push(item);
@@ -746,7 +765,8 @@ function findRoadmapHeader_(values) {
 /** Roadmap 有「兩個」都叫 Source 的欄：第一個是代碼(S2.0)，第二個是 VoC/Strategy */
 function mapRoadmapCols_(headers) {
   var m = { code: -1, sourceType: -1, date: -1, title: -1, area: -1, priority: -1,
-            status: -1, shipped: -1, requests: -1, note: -1, rank: -1 };
+            status: -1, shipped: -1, requests: -1, note: -1, rank: -1,
+            owner: -1, jira1: -1, jira2: -1 };
   var sources = [];
   for (var c = 0; c < headers.length; c++) {
     var h = headers[c];
@@ -760,6 +780,9 @@ function mapRoadmapCols_(headers) {
     else if (h.indexOf('shipped') >= 0 && m.shipped < 0) m.shipped = c;
     else if (h.indexOf('requests') >= 0 && m.requests < 0) m.requests = c;
     else if (h.indexOf('note') >= 0 && m.note < 0) m.note = c;
+    else if (h.indexOf('accountable') >= 0 && m.owner < 0) m.owner = c;
+    else if (h.indexOf('jira 1') >= 0 && m.jira1 < 0) m.jira1 = c;
+    else if (h.indexOf('jira 2') >= 0 && m.jira2 < 0) m.jira2 = c;
     else if (h.indexOf('rank') >= 0 && m.rank < 0) m.rank = c;
   }
   m.code = sources.length > 0 ? sources[0] : -1;
@@ -2035,3 +2058,339 @@ function toYmd_(v) {
 
 function nowStr_() { return Utilities.formatDate(new Date(), TZ, 'yyyy/MM/dd HH:mm'); }
 function nowDateStr_() { return Utilities.formatDate(new Date(), TZ, 'yyyy/MM/dd'); }
+
+/**
+ * 痛點標題的三語對照。key = VoCコード 或 候補ID。
+ * 這裡沒有的代碼（例如你之後在 Roadmap 新增的列），dashboard 會自動退回
+ * 試算表上的英文標題顯示 —— 不會整列消失。
+ */
+var PAIN_I18N = {
+  'S2.0': { ja: '無料ティッカー渋滞で画面が覆われ配信の妨げになる', en: 'Free ticker congestion covers the stream and blocks work', zh: '免費跑馬燈壅塞蓋住直播畫面、影響開播' },
+  'U6.2': { ja: 'フレンド戦で勝ちを稼げる、ブロックしても再マッチ', en: 'Friend battles farm wins; blocked users still get matched', zh: '好友戰可刷勝場、封鎖後仍會被配對' },
+  'Z2': { ja: '賞品通知のIAMが繰り返し届いて煩わしい', en: 'Repeated prize-notification IAMs annoy users', zh: '中獎通知 IAM 重複發送、用戶覺得煩' },
+  'S5.0': { ja: 'ブロックした相手にコンテンツを見られてしまう', en: 'Blocked users can still view the liver\'s content', zh: '封鎖後對方仍能觀看主播的內容' },
+  'S2.2': { ja: 'AIアシスタントに不具合、回答も不正確', en: 'AI assistant is buggy and returns inaccurate answers', zh: 'AI 助理有 bug、回應也不準確' },
+  'U2.0': { ja: '画面がシステム要素で埋まり、非表示にできない', en: 'Screen cluttered with system elements that can\'t be hidden', zh: '畫面被系統元素塞滿、又無法隱藏' },
+  'U5.2': { ja: 'ランキングの算出ロジックが不明で軸も少ない', en: 'Ranking logic is opaque and has too few dimensions', zh: '排行榜計算邏輯不透明、維度也太少' },
+  'U5.3': { ja: 'レベルが強制表示で、自分で隠せない', en: 'Level is force-shown; users cannot hide it', zh: '等級被強制顯示、無法自己隱藏' },
+  'S2.1': { ja: '配信中に頻繁にクラッシュ、キーボードも重い', en: 'Frequent crashes while live; keyboard is laggy', zh: '開播中頻繁閃退、鍵盤也卡頓' },
+  'U5.1': { ja: 'アーミーに階級がなく帰属感が薄い、加入拒否もできない', en: 'Army lacks ranks/belonging; unwanted Army can\'t be blocked', zh: 'Army 缺階級與歸屬感，也擋不掉不想要的 Army' },
+  'U5.0': { ja: 'バッジが小さく窮屈で達成感が伝わらない', en: 'Badge display too small and cramped to show achievement', zh: '徽章太小又太擠、看不到成就感' },
+  'U4.0': { ja: '紅包が海外botに荒らされて不公平', en: 'Red envelope gamed by overseas bots — unfair', zh: '紅包被海外 bot 鑽漏洞、不公平' },
+  'S2.6': { ja: 'ギフトボードが全視聴者に公開され隠せない', en: 'Gift board is public; livers cannot hide it from viewers', zh: '禮物榜對所有觀眾公開，主播無法隱藏' },
+  'U4.4': { ja: '高額ギフトの誤送信を取り消せず、送信時に落ちる', en: 'Mis-sent high-value gifts can\'t be undone; sending crashes', zh: '高額禮物誤送無法取消，送出時還會閃退' },
+  'U4.2': { ja: 'ギフトが多すぎて目的のものを探せない', en: 'Too many gifts in the list to find the one you want', zh: '禮物太多，找不到想送的那一個' },
+  'S2.7': { ja: 'マイイベントの設定保存・ギフト指定・途中変更ができない', en: 'My Event can\'t save settings, pick gifts, or switch midway', zh: '我的活動無法記住設定、指定禮物或中途調整' },
+  'U2.5': { ja: '有料ギフトのコメントがまとめられて埋もれる', en: 'Paid gift comments get merged together and go unseen', zh: '付費禮物留言被合併顯示，容易被忽略' },
+  'Z1': { ja: 'ライバー審査の承認に時間がかかりすぎる', en: 'Liver approval takes too long', zh: '主播審核流程耗時過長' },
+  'U6.0': { ja: 'VSモード切替時に不具合が出てマッチ情報が壊れる', en: 'Switching VS mode glitches and breaks match info', zh: 'VS 模式切換異常，賽況資訊錯亂' },
+  'U6.1': { ja: 'PKモードが浅く、勝っても達成感がない', en: 'PK mode is too shallow; winning feels unrewarding', zh: 'PK 模式深度不足，獲勝缺乏成就感' },
+  'U4.1': { ja: 'ギフトの価格帯に中間がなく課金しづらい', en: 'Gift price gap: nothing mid-tier to spend on', zh: '禮物價格帶缺中間級距，難以課金' },
+  'S2.5': { ja: 'ライバーの同意なくガーディアンが替わってしまう', en: 'Guardian can be replaced without the liver\'s consent', zh: '守護者未經主播同意就被他人取代' },
+  'U2.1': { ja: 'プロフィール改修でライバーの自己紹介が消える恐れ', en: 'Profile revamp may wipe livers\' bios', zh: '個人檔案改版可能清空主播簡介' },
+  'U2.2': { ja: '主要タブが隠れていて入口が見つからない', en: 'Key tabs are hidden; users can\'t find the entry point', zh: '主要分頁被隱藏，找不到入口' },
+  'U2.3': { ja: 'ライブ・アーカイブで早送りやシークができない', en: 'Cannot fast-forward or seek in live or archive playback', zh: '直播與回放無法快轉或拖曳進度' },
+  'U4.3': { ja: 'VIPギフトの導線が複雑で分かりにくい', en: 'VIP gift flow is convoluted and hard to understand', zh: 'VIP 禮物流程繁瑣難懂' },
+  'U5.4': { ja: '称号をカスタマイズできず認証バッジも付かない', en: 'Titles cannot be customized and no verified badge exists', zh: '稱號無法自訂，也拿不到認證徽章' },
+  'U6.4': { ja: 'オン/オフラインのコンテストがバラバラでルールも不明瞭', en: 'Online/offline contest formats disjointed; rules unclear', zh: '線上線下賽事脫節、規則也不清楚' },
+  'U6.3': { ja: '試合中にチャットが見えず待つだけ', en: 'Cannot see chat during matches, just idle waiting', zh: '比賽中看不到聊天室，只能空等' },
+  'S2.4': { ja: 'BC目標達成がティッカーで通知されない', en: 'No milestone ticker when BC targets are hit', zh: 'BC 目標達成時沒有跑馬燈提示' },
+  'S2.3': { ja: 'コメントが多すぎて読み切れず要約もない', en: 'Too many comments to read; no auto-summary', zh: '留言太多讀不完，也沒有自動摘要' },
+  'U2.4': { ja: '画面タップでハートを送る楽しさが失われた', en: 'Lost the thrill of tapping the screen to send hearts', zh: '失去點擊畫面送愛心的樂趣' },
+  'GACHA-HIDE': { ja: 'ライバーがガチャ景品を個別に隠せない', en: 'Livers cannot hide individual gacha prizes', zh: '主播無法隱藏個別扭蛋獎品' },
+  'PKSHOP': { ja: '17Shop・ガチャ利用中はPK/グループ通話が使えない', en: 'Livers using 17Shop or gacha cannot use PK or group call', zh: '使用 17Shop、扭蛋的主播無法開 PK 或多人通話' },
+  'CALLIN': { ja: 'アーミー限定の1対1通話ができない', en: 'No 1-on-1 call-in for Army members (video/audio)', zh: '沒有 Army 專屬的一對一通話' },
+  'CAND-035': { ja: 'ガーディアンをON/OFFで切り替えられない', en: 'Guardian cannot be toggled on or off', zh: '守護者無法切換開啟／關閉' },
+  'CAND-009': { ja: 'ライバーを匿名で応援できない', en: 'No way to support a liver anonymously', zh: '無法匿名應援主播' },
+  'CAND-093': { ja: 'ティッカー渋滞で配信を30分延長せざるを得ない', en: 'Ticker congestion forces livers to extend streams 30 min', zh: '跑馬燈壅塞迫使主播延長直播30分鐘' },
+  'CAND-005': { ja: '分配をそのままBCとしてギフトに使えない', en: 'Revenue share cannot be sent directly as BC', zh: '分潤無法直接轉為 BC 送出' },
+  'CAND-016': { ja: 'ギフトが頻繁すぎて特別感が薄れる', en: 'Frequent gifts dilute the sense of specialness', zh: '禮物太常出現，特別感變淡' },
+  'CAND-002': { ja: 'ランキングの種類が少なく物足りない', en: 'Too few ranking types; current ones feel stale', zh: '排行榜種類太少、缺乏新鮮感' },
+  'CAND-077': { ja: 'AI生成画像が「18歳未満に見える」と大量削除される', en: 'AI images mass-deleted for "looking under 18"', zh: 'AI 生成圖片被判「看起來未滿18歲」大量刪除' },
+  'CAND-096': { ja: '台湾にあるアシスタント機能が日本にない', en: 'Assistant feature available in TW is missing in JP', zh: '台灣已有的助理功能日本尚未開放' },
+  'CAND-066': { ja: 'VSの減点仕様が厳しすぎる', en: 'VS negative-score rule is too punishing', zh: 'VS 負分機制設計過於嚴苛' },
+  'CAND-059': { ja: 'アーミーの審査と履歴削除ができない', en: 'No way to vet Army members or delete their history', zh: 'Army 無法審核，也無法刪除加入紀錄' },
+  'CAND-017': { ja: '一定時間経つと配信が見られなくなる', en: 'Stream viewing cuts off after a set amount of time', zh: '觀看一段時間後直播就中斷' },
+  'CAND-025': { ja: 'ギフトで簡単な反応をすぐ返せない', en: 'Cannot send a quick gift reaction for simple replies', zh: '無法用禮物快速做出簡單回應' },
+  'CAND-015': { ja: 'ティッカー渋滞で高額ギフトが埋もれる', en: 'Ticker congestion buries high-value gifts', zh: '跑馬燈壅塞，高額禮物被淹沒' },
+  'CAND-019': { ja: '「My Lucky」が廃止され代わりがない', en: '"My Lucky" removed, with no replacement', zh: '「My Lucky」下架後無替代功能' }
+};
+
+// ===========================================================================
+// Dashboard —— 網頁應用（doGet）
+//
+// 部署：Apps Script 編輯器右上「部署 → 新增部署作業 → 網頁應用」
+//   執行身分：我（你自己）／存取權：17media 內的任何人
+// 之後拿到的網址就是給團隊看的 dashboard，資料直接讀試算表，永遠最新。
+//
+// 設計原則：**所有數字都能點回原始聲音。** 每一則聲音都帶原文、出所、日期、
+// 連結、比對信心與判定依據。原始聲音一律不翻譯 —— 那是證據。
+// ===========================================================================
+
+function doGet() {
+  var json;
+  try {
+    json = dashJson_(false);
+  } catch (e) {
+    json = JSON.stringify({ error: String(e && e.message ? e.message : e) });
+  }
+  var t = HtmlService.createTemplateFromFile('Dashboard');
+  t.payload = escapeForInlineScript_(json);
+  return t.evaluate()
+    .setTitle('JP VoC Pain Point Tracker')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/**
+ * 讓 dashboard 上的「最新に更新」按鈕重新拉資料，不用整頁重載。
+ * 一定跳過快取——按這顆按鈕的人就是覺得畫面舊了。
+ */
+function refreshDashboardData() {
+  try { return JSON.parse(dashJson_(true)); }
+  catch (e) { return { error: String(e && e.message ? e.message : e) }; }
+}
+
+/**
+ * 把 JSON 字串安全地嵌進 <script> 裡。
+ *
+ * JSON.stringify 不會處理這四個字元，但它們在 HTML/JS 裡有特殊意義：
+ *   <  >   使用者只要寫過 "</script>" 就會提早關掉 script 標籤，整頁空白
+ *   &     在 HTML 內容裡會被當實體開頭
+ *   U+2028 U+2029  在 JSON 合法、在 JS 字串字面值裡卻是換行 → SyntaxError
+ * 全部換成 \uXXXX，語意完全不變（parse 回來還是原字元），但不再有殺傷力。
+ */
+function escapeForInlineScript_(json) {
+  return String(json)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+/**
+ * 取得 dashboard 的 JSON。預設走快取——不然每個人開一次網頁，
+ * 就要把 4 個分頁 + Roadmap 全部重讀一遍。
+ */
+function dashJson_(force) {
+  if (!force) {
+    var hit = dashCacheGet_();
+    if (hit) return hit;
+  }
+  var json = JSON.stringify(buildDashboardPayload_());
+  dashCachePut_(json);
+  return json;
+}
+
+function dashCacheGet_() {
+  try {
+    var c = CacheService.getScriptCache();
+    var n = Number(c.get(DASH_CACHE_KEY) || 0);
+    if (!n) return '';
+    var keys = [], i;
+    for (i = 0; i < n; i++) keys.push(DASH_CACHE_KEY + '_' + i);
+    var got = c.getAll(keys), out = '';
+    for (i = 0; i < n; i++) {
+      var part = got[DASH_CACHE_KEY + '_' + i];
+      if (part === null || part === undefined) return '';  // 缺一塊就整份作廢，寧可重算
+      out += part;
+    }
+    return out;
+  } catch (e) { return ''; }
+}
+
+function dashCachePut_(json) {
+  try {
+    if (!json || json.length > DASH_CACHE_MAX) return;
+    var parts = chunkSafe_(json, DASH_CACHE_CHUNK), map = {}, i;
+    for (i = 0; i < parts.length; i++) map[DASH_CACHE_KEY + '_' + i] = parts[i];
+    map[DASH_CACHE_KEY] = String(parts.length);
+    CacheService.getScriptCache().putAll(map, DASH_CACHE_SEC);
+  } catch (e) { /* 快取失敗不影響出圖 */ }
+}
+
+/** 切塊時不切開 emoji（surrogate pair），不然拼回來會變亂碼 */
+function chunkSafe_(s, size) {
+  var out = [], i = 0;
+  while (i < s.length) {
+    var end = Math.min(i + size, s.length);
+    var c = s.charCodeAt(end - 1);
+    if (end < s.length && c >= 0xD800 && c <= 0xDBFF) end--;
+    out.push(s.substring(i, end));
+    i = end;
+  }
+  return out;
+}
+
+function clearDashboardCache() {
+  try {
+    var c = CacheService.getScriptCache();
+    var n = Number(c.get(DASH_CACHE_KEY) || 0), keys = [DASH_CACHE_KEY], i;
+    for (i = 0; i < n; i++) keys.push(DASH_CACHE_KEY + '_' + i);
+    c.removeAll(keys);
+  } catch (e) { /* noop */ }
+}
+
+function cut_(v, n) {
+  var s = String(v === null || v === undefined ? '' : v).replace(/\s+/g, ' ').trim();
+  return s.length > n ? s.substring(0, n - 1) + '…' : s;
+}
+
+function buildDashboardPayload_() {
+  var ss = openTarget_();
+
+  // Roadmap 只讀一次，用來補「該找誰」與 JIRA —— 這兩欄不在 VoC_Pain_Points 上
+  var rm = {};
+  try { rm = loadRoadmap_().byCode || {}; } catch (e) { rm = {}; }
+
+  // ---- 痛點 ----
+  var pains = [];
+  var pp = ss.getSheetByName(TAB_PP);
+  if (pp && pp.getLastRow() > 1) {
+    var pv = pp.getRange(2, 1, pp.getLastRow() - 1, PP_HEADERS.length).getValues();
+    for (var i = 0; i < pv.length; i++) {
+      var code = collapse_(pv[i][0]);
+      if (!code) continue;
+      var en = collapse_(pv[i][1]);
+      var tr = PAIN_I18N[code] || {};
+      pains.push({
+        code: code,
+        en: tr.en || en,
+        ja: tr.ja || en,
+        zh: tr.zh || en,
+        raw: en,                                   // 試算表上的原始英文標題
+        area: collapse_(pv[i][2]),
+        pri: collapse_(pv[i][3]) || '—',
+        status: collapse_(pv[i][4]) || '—',
+        open: collapse_(pv[i][5]) === '未解決',
+        total: Number(pv[i][6]) || 0,
+        recent: Number(pv[i][7]) || 0,            // 直近N日
+        fresh: Number(pv[i][8]) || 0,             // 今回新規
+        delta: Number(pv[i][10]) || 0,
+        first: toYmd_(pv[i][11]),
+        last: toYmd_(pv[i][12]),
+        origins: collapse_(pv[i][13]),
+        roadmapN: collapse_(pv[i][14]),
+        owner: (rm[code] && rm[code].owner) || '',
+        jira: (rm[code] && rm[code].jira) || '',
+        memo: collapse_(pv[i][19])
+      });
+    }
+  }
+
+  // ---- 新痛點候選 ----
+  var cands = [];
+  var nc = ss.getSheetByName(TAB_NEW);
+  if (nc && nc.getLastRow() > 1) {
+    var cv = nc.getRange(2, 1, nc.getLastRow() - 1, NEW_HEADERS.length).getValues();
+    for (var c = 0; c < cv.length; c++) {
+      var id = collapse_(cv[c][0]);
+      if (!id) continue;
+      var cjp = collapse_(cv[c][1]), cen = collapse_(cv[c][2]);
+      var ctr = PAIN_I18N[id] || {};
+      cands.push({
+        code: id,
+        ja: ctr.ja || cjp,
+        en: ctr.en || cen || cjp,
+        // 還沒翻中文的新候補（每次跑都可能長出來）退回日文原題，
+        // 對中文讀者比退回英文好讀
+        zh: ctr.zh || cjp || cen,
+        raw: cjp,
+        area: collapse_(cv[c][3]),
+        pri: collapse_(cv[c][4]) || 'P2',
+        total: Number(cv[c][5]) || 0,
+        recent: Number(cv[c][6]) || 0,
+        fresh: Number(cv[c][7]) || 0,
+        delta: Number(cv[c][9]) || 0,
+        first: toYmd_(cv[c][10]),
+        last: toYmd_(cv[c][11]),
+        origins: collapse_(cv[c][12]),
+        state: collapse_(cv[c][16]),
+        memo: collapse_(cv[c][17])
+      });
+    }
+  }
+
+  // ---- 原始聲音（依 VoCコード 分組）—— dashboard 的核心 ----
+  var voices = {}, dropped = {};
+  var stats = { segments: 0, judged: 0, pending: 0, noise: 0, messages: {} };
+  var raw = ss.getSheetByName(TAB_RAW);
+  if (raw && raw.getLastRow() > 1) {
+    var rv = raw.getRange(2, 1, raw.getLastRow() - 1, RAW_HEADERS.length).getValues();
+    for (var r = 0; r < rv.length; r++) {
+      var row = rv[r];
+      if (!String(row[0])) continue;
+      stats.segments++;
+      stats.messages[String(row[1] || row[0])] = true;
+
+      var verdict = collapse_(row[13]);
+      if (!verdict || verdict === V_PENDING) { stats.pending++; continue; }
+      if (verdict === V_NOISE) { stats.noise++; continue; }
+      stats.judged++;
+
+      var vcode = collapse_(row[14]);
+      if (!vcode) continue;
+      if (!voices[vcode]) voices[vcode] = [];
+      if (voices[vcode].length >= DASH_MAX_VOICES) { dropped[vcode] = (dropped[vcode] || 0) + 1; continue; }
+
+      var seg = cut_(row[9], DASH_TEXT_CAP);
+      var full = cut_(row[19], DASH_FULL_CAP);
+      voices[vcode].push({
+        d: toYmd_(row[3]),
+        src: collapse_(row[4]),
+        det: collapse_(row[5]),
+        kind: collapse_(row[6]),
+        text: seg,
+        full: (full && full !== seg) ? full : '',
+        by: collapse_(row[10]),
+        link: collapse_(row[12]),
+        verdict: verdict,
+        conf: row[16] === '' || row[16] === null ? null : Number(row[16]),
+        why: cut_(row[17], 300),
+        part: collapse_(row[18])
+      });
+    }
+  }
+  for (var k in voices) {
+    voices[k].sort(function (a, b) { return (b.d || '').localeCompare(a.d || ''); });
+  }
+  var droppedTotal = 0;
+  for (var dk in dropped) droppedTotal += dropped[dk];
+
+  // ---- 最後一次執行時間 ----
+  var asOf = '', lastRun = '';
+  var lg = ss.getSheetByName(TAB_LOG);
+  if (lg && lg.getLastRow() > 1) {
+    var n = Math.min(lg.getLastRow() - 1, 120);
+    var lv = lg.getRange(lg.getLastRow() - n + 1, 1, n, LOG_HEADERS.length).getValues();
+    for (var q = lv.length - 1; q >= 0; q--) {
+      if (String(lv[q][1]) === 'RUN' && String(lv[q][2]).indexOf('DONE') === 0) {
+        asOf = collapse_(lv[q][0]); lastRun = collapse_(lv[q][3]); break;
+      }
+    }
+    if (!asOf) asOf = collapse_(lv[lv.length - 1][0]);
+  }
+
+  return {
+    asOf: asOf || nowStr_(),
+    lastRun: lastRun,
+    generatedAt: nowStr_(),
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/' + TARGET_SHEET_ID + '/edit',
+    roadmapUrl: 'https://docs.google.com/spreadsheets/d/' + VOC_ROADMAP_SHEET_ID +
+                '/edit#gid=' + VOC_ROADMAP_GID,
+    recentDays: RECENT_DAYS,
+    stats: {
+      messages: Object.keys(stats.messages).length,
+      segments: stats.segments,
+      judged: stats.judged,
+      pending: stats.pending,
+      noise: stats.noise
+    },
+    maxVoices: DASH_MAX_VOICES,
+    pains: pains,
+    cands: cands,
+    voices: voices,
+    dropped: dropped,
+    droppedTotal: droppedTotal
+  };
+}
