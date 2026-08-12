@@ -720,6 +720,10 @@ function loadRoadmap_() {
       resolved: isResolved_(status, shipped),
       requests: collapse_(pick_(row, m.requests)),
       note: collapse_(pick_(row, m.note)).substring(0, 300),
+      // rank / submitDate 只給 VoC Console 顯示「層級多高」用，比對邏輯不吃這兩欄。
+      // Roadmap 沒有這兩欄時是空字串，介面會自動隱藏該欄，不會壞掉。
+      rank: collapse_(pick_(row, m.rank)),
+      submitDate: toYmd_(pickRaw_(row, m.date)),
       rowNum: r + 1
     };
     items.push(item);

@@ -1,0 +1,1341 @@
+<!-- VoC Console — 介面本體。由 Dashboard.gs 的 doGet() 提供。
+     設計原則：所有數字都是從 VoC_Raw_Log 逐列算出來的，因此每個數字都點得下去，
+     一定看得到構成它的那幾則原始聲音。沒有任何「算不出來源」的數字。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+:root{
+  /* 經 dataviz validator 驗證過的深色配色（surface #1a1a19，全項 PASS） */
+  --plane:#0d0d0d; --surface:#1a1a19; --surface2:#212120; --surface3:#2a2a28;
+  --ink:#ffffff; --ink2:#c3c2b7; --ink3:#898781;
+  --grid:#2c2c2a; --line:#383835; --border:rgba(255,255,255,.10);
+  --in:#3987e5;      /* 在 roadmap */
+  --out:#d95926;     /* 不在 roadmap */
+  --pend:#199e70;    /* 未判定 */
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --sans:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP","Noto Sans TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--plane);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;
+     -webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- 版面 ---------- */
+.wrap{max-width:1560px;margin:0 auto;padding:0 22px 90px}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(13,13,13,.93);backdrop-filter:blur(12px);
+        border-bottom:1px solid var(--border)}
+.topbar-in{max-width:1560px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font-size:15px;font-weight:650;letter-spacing:.02em}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--in);display:inline-block;
+            transform:translateY(-2px)}
+.brand span{font-size:12px;color:var(--ink3)}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px}
+.seg button{padding:5px 11px;font-size:12.5px;color:var(--ink3);border-radius:6px;white-space:nowrap}
+.seg button:hover{color:var(--ink2)}
+.seg button[data-on="1"]{background:var(--surface3);color:var(--ink);font-weight:600}
+.seg-label{font-size:11px;color:var(--ink3);margin-right:-8px;letter-spacing:.04em}
+.iconbtn{padding:6px 12px;font-size:12.5px;color:var(--ink2);border:1px solid var(--border);
+         border-radius:8px;background:var(--surface2)}
+.iconbtn:hover{background:var(--surface3);color:var(--ink)}
+
+/* ---------- BLUF ---------- */
+.bluf{padding:30px 0 4px}
+.bluf .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+.bluf h1{font-size:26px;line-height:1.42;font-weight:600;letter-spacing:-.01em;max-width:1080px}
+.bluf h1 em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums}
+.bluf h1 .c-in{color:var(--in)} .bluf h1 .c-out{color:var(--out)} .bluf h1 .c-pend{color:var(--pend)}
+.bluf .sub{margin-top:11px;font-size:13px;color:var(--ink3)}
+
+.focus{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.fcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--line);
+       border-radius:11px;padding:15px 17px;cursor:pointer;transition:background .12s,border-color .12s;text-align:left}
+.fcard:hover{background:var(--surface2)}
+.fcard.k-in{border-left-color:var(--in)} .fcard.k-out{border-left-color:var(--out)}
+.fcard.k-mis{border-left-color:var(--warn)}
+.fcard .lab{font-size:11px;letter-spacing:.05em;color:var(--ink3);margin-bottom:8px;
+            display:flex;align-items:center;gap:7px}
+.fcard .ttl{font-size:14px;font-weight:600;line-height:1.45;color:var(--ink);
+            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fcard .met{margin-top:9px;font-size:12px;color:var(--ink2)}
+.fcard .met b{font-variant-numeric:tabular-nums;font-weight:650}
+.fcard .empty{font-size:13px;color:var(--ink3)}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:16px 18px;
+     cursor:pointer;text-align:left;transition:background .12s}
+.kpi:hover{background:var(--surface2)}
+.kpi .lab{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:7px}
+.kpi .val{font-size:34px;font-weight:650;letter-spacing:-.02em;margin-top:7px;line-height:1}
+.kpi .foot{margin-top:9px;font-size:11.5px;color:var(--ink3)}
+.kpi .foot b{color:var(--ink2);font-variant-numeric:tabular-nums}
+.swatch{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none}
+
+.honest{margin-top:10px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+        font-size:11.5px;color:var(--ink3)}
+.honest .chip{border:1px solid var(--border);border-radius:999px;padding:3px 10px;background:var(--surface);
+              cursor:pointer}
+.honest .chip:hover{background:var(--surface2);color:var(--ink2)}
+.honest .chip.alert{border-color:rgba(250,178,25,.4);color:var(--warn)}
+
+/* ---------- 卡片 / 區塊 ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:12px}
+.card-h{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;
+        gap:12px;flex-wrap:wrap}
+.card-h h2{font-size:13px;font-weight:650;letter-spacing:.01em}
+.card-h .hint{font-size:11.5px;color:var(--ink3);margin-left:auto}
+.card-b{padding:16px 18px}
+
+/* ---------- 圖 ---------- */
+.legend{display:flex;gap:15px;font-size:11.5px;color:var(--ink2);align-items:center}
+.legend i{display:inline-flex;align-items:center;gap:6px;font-style:normal}
+#chart{width:100%;height:132px;display:block}
+#chart .bar{cursor:pointer}
+#chart .bar:hover .hit{fill:rgba(255,255,255,.05)}
+.tip{position:fixed;z-index:90;background:#2a2a28;border:1px solid var(--border);border-radius:8px;
+     padding:9px 11px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .1s;
+     box-shadow:0 8px 26px rgba(0,0,0,.55);white-space:nowrap}
+.tip b{font-variant-numeric:tabular-nums}
+.tip .r{display:flex;align-items:center;gap:7px;margin-top:4px;color:var(--ink2)}
+
+/* ---------- 分頁 ---------- */
+.tabs{display:flex;gap:2px;margin-top:26px;border-bottom:1px solid var(--border)}
+.tabs button{padding:10px 16px;font-size:13.5px;color:var(--ink3);border-bottom:2px solid transparent;
+             margin-bottom:-1px;display:flex;align-items:center;gap:8px}
+.tabs button:hover{color:var(--ink2)}
+.tabs button[data-on="1"]{color:var(--ink);border-bottom-color:var(--in);font-weight:600}
+.tabs .n{font-size:11px;color:var(--ink3);background:var(--surface2);border-radius:999px;padding:1px 7px;
+         font-variant-numeric:tabular-nums}
+
+/* ---------- 表 ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{position:sticky;top:53px;z-index:10;background:var(--surface2);text-align:left;font-weight:600;
+        font-size:11px;letter-spacing:.05em;color:var(--ink3);padding:9px 11px;white-space:nowrap;
+        border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.tbl th:hover{color:var(--ink2)}
+.tbl th.no{cursor:default}
+.tbl th .ar{opacity:.55;font-size:9px;margin-left:3px}
+.tbl td{padding:10px 11px;border-bottom:1px solid var(--grid);vertical-align:top}
+/* 表頭是 sticky 的，捲動時會蓋在列上面。scroll-margin-top 讓「捲到某一列」
+   自動讓開表頭高度，否則捲到定位後那一列會躲在表頭底下、點不到。 */
+.tbl tbody tr{cursor:pointer;scroll-margin-top:104px}
+.tbl tbody tr:hover{background:var(--surface2)}
+.tbl .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl .dim{color:var(--ink3)}
+.tbl .ttl{font-weight:550;line-height:1.45;max-width:520px}
+.tbl .ttl .en{display:block;color:var(--ink3);font-weight:400;font-size:11.5px;margin-top:2px}
+.tbl .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--ink2);
+           white-space:nowrap}
+.tbl .clip{max-width:400px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;
+           -webkit-line-clamp:2;-webkit-box-orient:vertical}
+.scroll{overflow-x:auto}
+
+/* ---------- 標籤 ---------- */
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:999px;
+     border:1px solid var(--border);white-space:nowrap;line-height:1.6}
+.tag.in{color:var(--in);border-color:rgba(57,135,229,.42);background:rgba(57,135,229,.10)}
+.tag.out{color:var(--out);border-color:rgba(217,89,38,.45);background:rgba(217,89,38,.12)}
+.tag.pend{color:var(--pend);border-color:rgba(25,158,112,.42);background:rgba(25,158,112,.10)}
+.tag.orph{color:var(--ink3)}
+.tag.crit{color:var(--crit);border-color:rgba(208,59,59,.45);background:rgba(208,59,59,.12)}
+.tag.warn{color:var(--warn);border-color:rgba(250,178,25,.38);background:rgba(250,178,25,.10)}
+.tag.good{color:var(--good);border-color:rgba(12,163,12,.4);background:rgba(12,163,12,.10)}
+.tag.plain{color:var(--ink2)}
+.pri{font-weight:700;font-size:11.5px;font-variant-numeric:tabular-nums}
+.pri.p0{color:var(--crit)} .pri.p1{color:var(--serious)} .pri.p2{color:var(--ink2)}
+.pri.p3{color:var(--ink3)} .pri.px{color:var(--ink3)}
+
+/* ---------- 覆蓋率 ---------- */
+.cov{display:flex;height:34px;border-radius:8px;overflow:hidden;gap:2px;background:var(--surface)}
+.cov div{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;
+         color:#fff;min-width:2px;cursor:pointer;font-variant-numeric:tabular-nums}
+.cov div:hover{filter:brightness(1.14)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini{width:100%;border-collapse:collapse;font-size:12.5px}
+.mini td,.mini th{padding:8px 10px;border-bottom:1px solid var(--grid)}
+.mini th{text-align:left;font-size:11px;letter-spacing:.05em;color:var(--ink3);font-weight:600}
+.mini td.r{text-align:right;font-variant-numeric:tabular-nums}
+.mini tbody tr{cursor:pointer}
+.mini tbody tr:hover{background:var(--surface2)}
+.meter{height:5px;border-radius:3px;background:var(--surface3);overflow:hidden;margin-top:5px}
+.meter i{display:block;height:100%;border-radius:3px}
+
+/* ---------- 篩選列 ---------- */
+.filters{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:13px 18px;
+         border-bottom:1px solid var(--border)}
+.filters input[type=search],.filters select{background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:7px 11px;color:var(--ink);font:inherit;font-size:12.5px;outline:none}
+.filters input[type=search]{min-width:250px}
+.filters input:focus,.filters select:focus{border-color:var(--in)}
+.filters .count{margin-left:auto;font-size:11.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+
+/* ---------- 抽屜 ---------- */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:60;opacity:0;pointer-events:none;
+       transition:opacity .16s}
+.scrim[data-on="1"]{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(760px,94vw);background:var(--surface);
+        border-left:1px solid var(--border);z-index:70;transform:translateX(100%);
+        transition:transform .2s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+        box-shadow:-20px 0 50px rgba(0,0,0,.5)}
+.drawer[data-on="1"]{transform:none}
+.dh{padding:19px 22px;border-bottom:1px solid var(--border);flex:none}
+.dh .row1{display:flex;align-items:flex-start;gap:12px}
+.dh h3{font-size:16px;font-weight:650;line-height:1.42;flex:1}
+.dh .close{font-size:22px;color:var(--ink3);line-height:1;padding:0 4px}
+.dh .close:hover{color:var(--ink)}
+.dh .meta{margin-top:11px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.dh .acts{margin-top:13px;display:flex;gap:8px;flex-wrap:wrap}
+.db{overflow-y:auto;flex:1;padding:6px 22px 30px}
+.ev{padding:15px 0;border-bottom:1px solid var(--grid)}
+.ev .top{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:var(--ink3);
+         margin-bottom:8px}
+.ev .who{color:var(--ink2);font-weight:600}
+.ev .txt{font-size:13.5px;line-height:1.72;white-space:pre-wrap;word-break:break-word}
+.ev .why{margin-top:9px;font-size:11.5px;color:var(--ink3);border-left:2px solid var(--line);
+         padding-left:10px;line-height:1.6}
+.ev .acts{margin-top:10px;display:flex;gap:14px;font-size:11.5px}
+.ev .acts a,.ev .acts button{color:var(--in);text-decoration:none}
+.ev .acts a:hover,.ev .acts button:hover{text-decoration:underline}
+.ev .full{margin-top:10px;background:var(--surface2);border-radius:8px;padding:12px 14px;
+          font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink2);word-break:break-word}
+
+/* ---------- 雜項 ---------- */
+.boot{position:fixed;inset:0;background:var(--plane);z-index:100;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:17px}
+.boot .t{font-size:13px;color:var(--ink2)}
+.boot .track{width:230px;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.boot .track i{display:block;height:100%;background:var(--in);width:0;transition:width .3s}
+.boot .sub{font-size:11.5px;color:var(--ink3)}
+.warnbar{background:rgba(250,178,25,.10);border:1px solid rgba(250,178,25,.32);color:var(--warn);
+         border-radius:10px;padding:11px 15px;font-size:12.5px;margin-top:14px;line-height:1.6}
+.warnbar b{display:block;margin-bottom:3px}
+.empty{padding:44px 18px;text-align:center;color:var(--ink3);font-size:13px}
+.more{width:100%;padding:13px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--grid)}
+.more:hover{background:var(--surface2);color:var(--ink)}
+.demo{background:rgba(217,89,38,.13);border:1px solid rgba(217,89,38,.45);color:var(--out);
+      border-radius:10px;padding:11px 15px;font-size:12.5px;margin-top:14px;font-weight:600}
+.csvbox{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.68);display:none;
+        align-items:center;justify-content:center;padding:30px}
+.csvbox[data-on="1"]{display:flex}
+.csvbox .inner{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+               width:min(860px,96vw);max-height:84vh;display:flex;flex-direction:column}
+.csvbox textarea{flex:1;min-height:320px;background:var(--plane);color:var(--ink2);border:none;
+                 border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+                 padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;resize:none;outline:none}
+@media(max-width:1120px){
+  .kpis{grid-template-columns:repeat(2,1fr)} .focus{grid-template-columns:1fr} .grid2{grid-template-columns:1fr}
+  .bluf h1{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<div class="boot" id="boot">
+  <div class="t" id="bootT">連線中…</div>
+  <div class="track"><i id="bootBar"></i></div>
+  <div class="sub" id="bootS">正在讀取 VoC_Raw_Log</div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="dot"></span><b>VoC Console</b>
+      <span id="stamp"></span>
+    </div>
+    <span class="seg-label">日期基準</span>
+    <div class="seg" id="basisSeg">
+      <button data-v="occ" title="用戶實際說出這句話的日期">発生日</button>
+      <button data-v="ing" title="bot 抓到這句話的日期。補抓舊訊息時，兩者會差很多">取込日</button>
+    </div>
+    <span class="seg-label">期間</span>
+    <div class="seg" id="periodSeg">
+      <button data-v="1">昨日</button>
+      <button data-v="7">近 7 日</button>
+      <button data-v="30">近 30 日</button>
+      <button data-v="0">全期</button>
+    </div>
+    <button class="iconbtn" id="reload">重新整理</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="bluf">
+    <div class="eyebrow">Bottom line</div>
+    <h1 id="blufH">—</h1>
+    <div class="sub" id="blufS"></div>
+  </section>
+
+  <div id="problems"></div>
+
+  <div class="focus" id="focus"></div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="honest" id="honest"></div>
+
+  <div class="card">
+    <div class="card-h">
+      <h2>每日新增聲音</h2>
+      <div class="legend">
+        <i><span class="swatch" style="background:var(--in)"></span>在 roadmap</i>
+        <i><span class="swatch" style="background:var(--out)"></span>不在 roadmap</i>
+        <i><span class="swatch" style="background:var(--pend)"></span>未判定</i>
+      </div>
+      <div class="hint">點任一天 → 看那天的所有原始聲音</div>
+    </div>
+    <div class="card-b"><svg id="chart"></svg></div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button data-v="new">本期新增<span class="n" id="tn-new">0</span></button>
+    <button data-v="all">痛點總表<span class="n" id="tn-all">0</span></button>
+    <button data-v="cov">Roadmap 覆蓋</button>
+    <button data-v="raw">Raw 大表<span class="n" id="tn-raw">0</span></button>
+  </nav>
+  <div id="view"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh">
+    <div class="row1"><h3 id="dTitle">—</h3><button class="close" id="dClose">&times;</button></div>
+    <div class="meta" id="dMeta"></div>
+    <div class="acts" id="dActs"></div>
+  </div>
+  <div class="db" id="dBody"></div>
+</aside>
+
+<div class="tip" id="tip"></div>
+
+<div class="csvbox" id="csvbox">
+  <div class="inner">
+    <div class="card-h" style="border-bottom:none">
+      <h2 id="csvTitle">匯出</h2>
+      <div class="hint">全選後複製，貼進 Excel／Google Sheet 即可</div>
+    </div>
+    <textarea id="csvText" readonly></textarea>
+    <div class="card-h" style="border-bottom:none">
+      <button class="iconbtn" id="csvCopy">全選並複製</button>
+      <button class="iconbtn" id="csvClose">關閉</button>
+      <span class="hint" id="csvNote"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* === 離線預覽用的虛構資料。正式部署時不會有這一段 —— Dashboard.html 會改走
+   google.script.run 讀真正的 VoC_Raw_Log。此檔由 voc-bot/build-preview.py 產生。 === */
+window.__VOC_DEMO__ = (function(){
+  var CORE = {"ok": true, "generatedAt": "2026/08/12 08:10", "recentDays": 30, "degraded": false, "roadmapTab": "JP Needs — Product Roadmap (DEMO)", "roadmap": [{"code": "S2.0", "title": "Free ticker covers the livestream screen", "area": "S2 Broadcast / Ops", "priority": "P0", "rank": "1", "status": "In development", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 2}, {"code": "S2.1", "title": "App crashes when switching camera mid-stream", "area": "S2 Broadcast / Ops", "priority": "P0", "rank": "2", "status": "In development", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 3}, {"code": "S2.6", "title": "Cannot hide the gift board during a stream", "area": "S2 Broadcast / Ops", "priority": "P1", "rank": "5", "status": "Backlog", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 4}, {"code": "S2.7", "title": "My-event settings are not remembered", "area": "S2 Broadcast / Ops", "priority": "P1", "rank": "6", "status": "Discovery", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 5}, {"code": "S5.0", "title": "Blocked users can still view the profile", "area": "S5 Safety", "priority": "P0", "rank": "3", "status": "Shipped", "resolved": true, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 6}, {"code": "U2.0", "title": "System overlays clutter the viewing screen", "area": "U2 Watch / Return", "priority": "P2", "rank": "11", "status": "Backlog", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 7}, {"code": "U2.2", "title": "Hard to find the event entry point", "area": "U2 Watch / Return", "priority": "P2", "rank": "12", "status": "", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 8}, {"code": "U4.0", "title": "Overseas bots farm the red-envelope campaign", "area": "U4 Gifting / Spend", "priority": "P0", "rank": "4", "status": "In development", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 9}, {"code": "U4.1", "title": "No mid-tier price point between gifts", "area": "U4 Gifting / Spend", "priority": "P2", "rank": "13", "status": "Backlog", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 10}, {"code": "U4.4", "title": "Expensive gifts cannot be undone after misfire", "area": "U4 Gifting / Spend", "priority": "P1", "rank": "7", "status": "Discovery", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 11}, {"code": "U5.1", "title": "Army rank does not create a sense of belonging", "area": "U5 Recognition / Status", "priority": "P2", "rank": "14", "status": "", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 12}, {"code": "U6.0", "title": "VS mode does not switch match information", "area": "U6 Event / Compete", "priority": "P1", "rank": "8", "status": "Shipped", "resolved": true, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 13}, {"code": "U6.2", "title": "Blocked users still get matched in PK", "area": "U6 Event / Compete", "priority": "P1", "rank": "9", "status": "Backlog", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 14}, {"code": "Z1", "title": "PM roadmap is not shared back to the JP team", "area": "Z Strategy", "priority": "P2", "rank": "15", "status": "", "resolved": false, "requests": "", "note": "", "sourceType": "VoC", "submitDate": "", "codeAuto": false, "row": 15}], "candidates": [{"code": "CAND-001", "title": "配信中に固定コメントをピン留めしたい", "titleEn": "Pin a comment during a live stream", "area": "U2 Watch / Return", "priority": "P2"}, {"code": "CAND-002", "title": "月間ランキングの集計時刻を明示してほしい", "titleEn": "Show monthly ranking cutoff time", "area": "U5 Recognition / Status", "priority": "P2"}, {"code": "CAND-003", "title": "ギフト履歴をCSVで出したい", "titleEn": "Export gift history as CSV", "area": "U4 Gifting / Spend", "priority": "P1"}, {"code": "CAND-004", "title": "iPadの横画面に対応してほしい", "titleEn": "Support iPad landscape layout", "area": "U2 Watch / Return", "priority": "P2"}, {"code": "CAND-005", "title": "配信予約のリマインド通知がほしい", "titleEn": "Reminder for scheduled streams", "area": "S2 Broadcast / Ops", "priority": "P1"}, {"code": "CAND-006", "title": "サブアカウントの通報導線が分かりにくい", "titleEn": "Sub-account reporting flow unclear", "area": "S5 Safety", "priority": "P2"}], "rawCount": 145, "pageSize": 1200, "hardMax": 30000, "problems": [], "verdicts": {"match": "既存一致", "review": "既存一致(要確認)", "rule": "規則式(精度低)", "cand": "新規候補", "pending": "未判定", "noise": "ノイズ"}};
+  var ROWS = [["demo0018-01", "2026/07/12", "2026/07/12", "JP feedback for Cross", "自由記述欄", "バグ", "バグ・不具合 / Bugs", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "デモ配信者B", "", "既存一致(要確認)", "S2.1", "App crashes when switching camera mid-stream", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0053-01", "2026/07/14", "2026/07/12", "VIP Feedback", "回答フォーム", "通報", "規約・不正対策 / Abuse & Policy", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "サンプル代理店E", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0080-01", "2026/07/13", "2026/07/12", "JP feedback for Cross", "自由記述欄", "提案", "課金・報酬・BC / Payment & Revenue", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "サンプルVIP-01", "", "既存一致", "U4.1", "No mid-tier price point between gifts", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0112-01", "2026/07/12", "2026/07/12", "プロライバー定例会", "議事メモ", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "デモ配信者A", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0127-01", "2026/07/13", "2026/07/12", "VIP Feedback", "回答フォーム", "要望", "VOD・配信機能 / VOD & Streaming", "予約枠の通知がほしいです。", "予約枠の通知がほしいです。", "デモ配信者A", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0031-01", "2026/07/15", "2026/07/13", "JP feedback for Cross", "自由記述欄", "要望", "イベント・マイイベント / Events", "イベントを作るたびに同じ項目を入力しなおすのが負担です。", "イベントを作るたびに同じ項目を入力しなおすのが負担です。", "テスト運営C", "", "既存一致(要確認)", "S2.7", "My-event settings are not remembered", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0044-01", "2026/07/14", "2026/07/13", "VIP Feedback", "回答フォーム", "不満", "アプリUI・導線 / App UI & Navigation", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "デモリスナーD", "", "既存一致", "U2.0", "System overlays clutter the viewing screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0062-01", "2026/07/13", "2026/07/13", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "サンプル代理店E", "https://example.com/demo-source/demo0062-01", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0071-01", "2026/07/13", "2026/07/13", "VIP Feedback", "回答フォーム", "通報", "規約・不正対策 / Abuse & Policy", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "テスト運営C", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0117-01", "2026/07/15", "2026/07/13", "Slack #UserFeedback", "スレッド返信", "要望", "課金・報酬・BC / Payment & Revenue", "ギフト履歴をCSVで書き出せると、事務所側の集計が楽になります。", "ギフト履歴をCSVで書き出せると、事務所側の集計が楽になります。", "サンプルVIP-02", "https://example.com/demo-source/demo0117-01", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0088-01", "2026/07/16", "2026/07/14", "プロライバー定例会", "議事メモ", "不満", "課金・報酬・BC / Payment & Revenue", "誤送信の相談が今月に入って増えています。", "誤送信の相談が今月に入って増えています。", "サンプルVIP-02", "", "既存一致(要確認)", "U4.4", "Expensive gifts cannot be undone after misfire", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0097-01", "2026/07/15", "2026/07/14", "VIP Feedback", "回答フォーム", "通報", "VS・PK・マッチング / VS & Matching", "身内マッチが続いていて、公平性に疑問の声が出ています。", "身内マッチが続いていて、公平性に疑問の声が出ています。", "デモ配信者B", "", "既存一致", "U6.2", "Blocked users still get matched in PK", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0111-01", "2026/07/16", "2026/07/14", "Slack #UserFeedback", "スレッド返信", "質問", "イベント・マイイベント / Events", "月間ランキングの集計が何時までなのか明示してほしいです。", "月間ランキングの集計が何時までなのか明示してほしいです。", "デモ配信者A", "https://example.com/demo-source/demo0111-01", "新規候補", "CAND-002", "月間ランキングの集計時刻を明示してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0029-01", "2026/07/15", "2026/07/15", "JP feature requests Q3", "シート2行目以降", "要望", "ギフトボード / Gift Board", "ギフトボードを一時的に非表示にしたいです。競争を煽りたくない日もあります。", "ギフトボードを一時的に非表示にしたいです。競争を煽りたくない日もあります。", "サンプルVIP-02", "", "既存一致", "S2.6", "Cannot hide the gift board during a stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0042-01", "2026/07/17", "2026/07/15", "プロライバー定例会", "議事メモ", "不満", "アプリUI・導線 / App UI & Navigation", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "サンプルVIP-02", "", "規則式(精度低)", "U2.0", "System overlays clutter the viewing screen", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0060-01", "2026/07/17", "2026/07/15", "JP feature requests Q3", "シート2行目以降", "通報", "規約・不正対策 / Abuse & Policy", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "テスト運営C", "", "既存一致(要確認)", "U4.0", "Overseas bots farm the red-envelope campaign", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0069-01", "2026/07/17", "2026/07/15", "プロライバー定例会", "議事メモ", "通報", "規約・不正対策 / Abuse & Policy", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "サンプル代理店E", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0078-01", "2026/07/16", "2026/07/15", "プロライバー定例会", "議事メモ", "提案", "課金・報酬・BC / Payment & Revenue", "ギフトの価格帯が上下に離れすぎていて、中間がありません。", "ギフトの価格帯が上下に離れすぎていて、中間がありません。", "デモ配信者A", "", "既存一致", "U4.1", "No mid-tier price point between gifts", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0049-01", "2026/07/16", "2026/07/16", "プロライバー定例会", "議事メモ", "質問", "アプリUI・導線 / App UI & Navigation", "参加ページにたどり着けないという問い合わせが今週も来ています。", "参加ページにたどり着けないという問い合わせが今週も来ています。", "デモリスナーD", "", "既存一致", "U2.2", "Hard to find the event entry point", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0094-01", "2026/07/17", "2026/07/16", "VIP Feedback", "回答フォーム", "バグ", "VS・PK・マッチング / VS & Matching", "マッチ情報が前の相手のまま表示されています。", "マッチ情報が前の相手のまま表示されています。", "サンプルVIP-01", "", "既存一致(要確認)", "U6.0", "VS mode does not switch match information", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0087-01", "2026/07/18", "2026/07/17", "JP feedback for Cross", "自由記述欄", "不満", "課金・報酬・BC / Payment & Revenue", "高額ギフトを誤爆してしまい、取り消せませんでした。確認ダイアログがほしい。", "高額ギフトを誤爆してしまい、取り消せませんでした。確認ダイアログがほしい。", "サンプルVIP-01", "", "既存一致", "U4.4", "Expensive gifts cannot be undone after misfire", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0096-01", "2026/07/17", "2026/07/17", "Slack #UserFeedback", "スレッド返信", "通報", "VS・PK・マッチング / VS & Matching", "ブロックしたはずの相手とマッチングしました。", "ブロックしたはずの相手とマッチングしました。", "サンプルVIP-02", "https://example.com/demo-source/demo0096-01", "既存一致", "U6.2", "Blocked users still get matched in PK", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0009-01", "2026/07/20", "2026/07/18", "JP feedback for Cross", "自由記述欄", "不満", "ティッカー・表示UI / Ticker & Overlay", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "サンプルVIP-02", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0122-01", "2026/07/19", "2026/07/18", "プロライバー定例会", "議事メモ", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "サンプル代理店E", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0023-01", "2026/07/20", "2026/07/19", "JP feature requests Q3", "シート2行目以降", "バグ", "バグ・不具合 / Bugs", "カメラ切替のタイミングで強制終了します。iPhone 15 Proです。", "カメラ切替のタイミングで強制終了します。iPhone 15 Proです。", "テスト運営C", "", "規則式(精度低)", "S2.1", "App crashes when switching camera mid-stream", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0085-01", "2026/07/21", "2026/07/19", "プロライバー定例会", "議事メモ", "不満", "課金・報酬・BC / Payment & Revenue", "高額ギフトを誤爆してしまい、取り消せませんでした。確認ダイアログがほしい。", "高額ギフトを誤爆してしまい、取り消せませんでした。確認ダイアログがほしい。", "デモリスナーD", "", "規則式(精度低)", "U4.4", "Expensive gifts cannot be undone after misfire", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0133-01", "2026/07/20", "2026/07/19", "JP feedback for Cross", "自由記述欄", "要望", "VOD・配信機能 / VOD & Streaming", "配信予約をしてもリマインドが来ないので、視聴者が集まりません。", "配信予約をしてもリマインドが来ないので、視聴者が集まりません。", "デモ配信者B", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0006-01", "2026/07/21", "2026/07/20", "プロライバー定例会", "議事メモ", "不満", "ティッカー・表示UI / Ticker & Overlay", "金テロが顔の位置に被ってしまい、表情が見えないと言われました。位置を変えられませ…", "金テロが顔の位置に被ってしまい、表情が見えないと言われました。位置を変えられませんか。", "テスト運営C", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0090-01", "2026/07/20", "2026/07/20", "JP feedback for Cross", "自由記述欄", "提案", "アーミー・ガーディアン・階級 / Community Rank", "アーミーの階級が上がっても実感がなく、所属感につながっていません。", "アーミーの階級が上がっても実感がなく、所属感につながっていません。", "テスト運営C", "", "既存一致(要確認)", "U5.1", "Army rank does not create a sense of belonging", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0054-01", "2026/07/22", "2026/07/21", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "サンプルVIP-02", "https://example.com/demo-source/demo0054-01", "既存一致(要確認)", "U4.0", "Overseas bots farm the red-envelope campaign", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0081-01", "2026/07/21", "2026/07/21", "VIP Feedback", "回答フォーム", "不満", "課金・報酬・BC / Payment & Revenue", "高額ギフトを誤爆してしまい、取り消せませんでした。確認ダイアログがほしい。", "高額ギフトを誤爆してしまい、取り消せませんでした。確認ダイアログがほしい。", "サンプルVIP-02", "", "既存一致", "U4.4", "Expensive gifts cannot be undone after misfire", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0103-01", "2026/07/22", "2026/07/21", "JP feedback for Cross", "自由記述欄", "要望", "社内システム・PMプロセス / Internal & PM", "PM側のロードマップが日本チームに共有されておらず、認識合わせができていません。", "PM側のロードマップが日本チームに共有されておらず、認識合わせができていません。", "サンプルVIP-01", "", "規則式(精度低)", "Z1", "PM roadmap is not shared back to the JP team", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0001-01", "2026/07/23", "2026/07/22", "JP feedback for Cross", "自由記述欄", "不満", "ティッカー・表示UI / Ticker & Overlay", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "サンプル代理店E", "", "既存一致(要確認)", "S2.0", "Free ticker covers the livestream screen", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0076-01", "2026/07/24", "2026/07/22", "JP feedback for Cross", "自由記述欄", "提案", "課金・報酬・BC / Payment & Revenue", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "デモ配信者A", "", "既存一致", "U4.1", "No mid-tier price point between gifts", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0004-01", "2026/07/23", "2026/07/23", "Slack #UserFeedback", "スレッド返信", "不満", "ティッカー・表示UI / Ticker & Overlay", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "サンプルVIP-01", "https://example.com/demo-source/demo0004-01", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0017-01", "2026/07/24", "2026/07/23", "VIP Feedback", "回答フォーム", "バグ", "バグ・不具合 / Bugs", "配信中にインカメへ切り替えたらアプリが落ちました。今日で3回目です。", "配信中にインカメへ切り替えたらアプリが落ちました。今日で3回目です。", "サンプルVIP-01", "", "規則式(精度低)", "S2.1", "App crashes when switching camera mid-stream", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0052-01", "2026/07/23", "2026/07/23", "プロライバー定例会", "議事メモ", "通報", "規約・不正対策 / Abuse & Policy", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "デモ配信者A", "", "規則式(精度低)", "U4.0", "Overseas bots farm the red-envelope campaign", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0116-01", "2026/07/25", "2026/07/23", "JP feature requests Q3", "シート2行目以降", "要望", "課金・報酬・BC / Payment & Revenue", "ギフト履歴をCSVで書き出せると、事務所側の集計が楽になります。", "ギフト履歴をCSVで書き出せると、事務所側の集計が楽になります。", "サンプル代理店E", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0024-01", "2026/07/26", "2026/07/24", "JP feedback for Cross", "自由記述欄", "バグ", "バグ・不具合 / Bugs", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "サンプルVIP-02", "", "既存一致", "S2.1", "App crashes when switching camera mid-stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0086-01", "2026/07/24", "2026/07/24", "プロライバー定例会", "議事メモ", "不満", "課金・報酬・BC / Payment & Revenue", "誤送信の相談が今月に入って増えています。", "誤送信の相談が今月に入って増えています。", "デモ配信者A", "", "既存一致", "U4.4", "Expensive gifts cannot be undone after misfire", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0114-01", "2026/07/25", "2026/07/24", "VIP Feedback", "回答フォーム", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "デモ配信者A", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0119-01", "2026/07/25", "2026/07/24", "JP feedback for Cross", "自由記述欄", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "サンプル代理店E", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0129-01", "2026/07/24", "2026/07/24", "VIP Feedback", "回答フォーム", "要望", "VOD・配信機能 / VOD & Streaming", "予約枠の通知がほしいです。", "予約枠の通知がほしいです。", "テスト運営C", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0075-01", "2026/07/26", "2026/07/25", "Slack #UserFeedback", "スレッド返信", "提案", "課金・報酬・BC / Payment & Revenue", "ギフトの価格帯が上下に離れすぎていて、中間がありません。", "ギフトの価格帯が上下に離れすぎていて、中間がありません。", "サンプルVIP-01", "https://example.com/demo-source/demo0075-01", "既存一致(要確認)", "U4.1", "No mid-tier price point between gifts", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0106-01", "2026/07/25", "2026/07/25", "VIP Feedback", "回答フォーム", "要望", "アプリUI・導線 / App UI & Navigation", "配信中に固定したいコメントをピン留めできる機能がほしいです。", "配信中に固定したいコメントをピン留めできる機能がほしいです。", "サンプルVIP-01", "", "新規候補", "CAND-001", "配信中に固定コメントをピン留めしたい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0036-01", "2026/07/28", "2026/07/26", "JP feature requests Q3", "シート2行目以降", "要望", "イベント・マイイベント / Events", "子袋の設定だけ引き継がれないようで、毎回作り直しています。", "子袋の設定だけ引き継がれないようで、毎回作り直しています。", "テスト運営C", "", "既存一致", "S2.7", "My-event settings are not remembered", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0072-01", "2026/07/26", "2026/07/26", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "テスト運営C", "https://example.com/demo-source/demo0072-01", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0113-01", "2026/07/28", "2026/07/26", "プロライバー定例会", "議事メモ", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "テスト運営C", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0128-01", "2026/07/28", "2026/07/26", "VIP Feedback", "回答フォーム", "要望", "VOD・配信機能 / VOD & Streaming", "予約枠の通知がほしいです。", "予約枠の通知がほしいです。", "デモリスナーD", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0037-01", "2026/07/29", "2026/07/27", "JP feature requests Q3", "シート2行目以降", "要望", "イベント・マイイベント / Events", "イベントを作るたびに同じ項目を入力しなおすのが負担です。", "イベントを作るたびに同じ項目を入力しなおすのが負担です。", "デモリスナーD", "", "既存一致", "S2.7", "My-event settings are not remembered", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0073-01", "2026/07/27", "2026/07/27", "VIP Feedback", "回答フォーム", "通報", "規約・不正対策 / Abuse & Policy", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "テスト運営C", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0100-01", "2026/07/30", "2026/07/28", "JP feedback for Cross", "自由記述欄", "通報", "VS・PK・マッチング / VS & Matching", "身内マッチが続いていて、公平性に疑問の声が出ています。", "身内マッチが続いていて、公平性に疑問の声が出ています。", "デモ配信者A", "", "既存一致", "U6.2", "Blocked users still get matched in PK", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0020-01", "2026/07/29", "2026/07/29", "プロライバー定例会", "議事メモ", "バグ", "バグ・不具合 / Bugs", "カメラ切替のタイミングで強制終了します。iPhone 15 Proです。", "カメラ切替のタイミングで強制終了します。iPhone 15 Proです。", "テスト運営C", "", "既存一致", "S2.1", "App crashes when switching camera mid-stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0091-01", "2026/07/31", "2026/07/29", "JP feedback for Cross", "自由記述欄", "提案", "アーミー・ガーディアン・階級 / Community Rank", "アーミーの階級が上がっても実感がなく、所属感につながっていません。", "アーミーの階級が上がっても実感がなく、所属感につながっていません。", "テスト運営C", "", "既存一致", "U5.1", "Army rank does not create a sense of belonging", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0015-01", "2026/08/01", "2026/07/30", "JP feature requests Q3", "シート2行目以降", "バグ", "バグ・不具合 / Bugs", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "デモ配信者A", "", "既存一致", "S2.1", "App crashes when switching camera mid-stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0028-01", "2026/07/30", "2026/07/30", "JP feature requests Q3", "シート2行目以降", "要望", "ギフトボード / Gift Board", "ギフター一覧を隠す設定がほしいという要望を複数人から受けています。", "ギフター一覧を隠す設定がほしいという要望を複数人から受けています。", "デモ配信者B", "", "既存一致", "S2.6", "Cannot hide the gift board during a stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0041-01", "2026/07/30", "2026/07/30", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "ブロックした相手にプロフィールを見られていました。仕様でしょうか。", "ブロックした相手にプロフィールを見られていました。仕様でしょうか。", "デモリスナーD", "https://example.com/demo-source/demo0041-01", "既存一致", "S5.0", "Blocked users can still view the profile", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0059-01", "2026/07/30", "2026/07/30", "JP feature requests Q3", "シート2行目以降", "通報", "規約・不正対策 / Abuse & Policy", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "サンプルVIP-02", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0068-01", "2026/08/01", "2026/07/30", "JP feature requests Q3", "シート2行目以降", "通報", "規約・不正対策 / Abuse & Policy", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "テスト運営C", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0089-01", "2026/08/02", "2026/07/31", "VIP Feedback", "回答フォーム", "提案", "アーミー・ガーディアン・階級 / Community Rank", "アーミーの階級が上がっても実感がなく、所属感につながっていません。", "アーミーの階級が上がっても実感がなく、所属感につながっていません。", "サンプル代理店E", "", "既存一致", "U5.1", "Army rank does not create a sense of belonging", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0107-01", "2026/07/31", "2026/07/31", "JP feature requests Q3", "シート2行目以降", "要望", "アプリUI・導線 / App UI & Navigation", "配信中に固定したいコメントをピン留めできる機能がほしいです。", "配信中に固定したいコメントをピン留めできる機能がほしいです。", "デモリスナーD", "", "新規候補", "CAND-001", "配信中に固定コメントをピン留めしたい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0074-01", "2026/08/01", "2026/08/01", "プロライバー定例会", "議事メモ", "提案", "課金・報酬・BC / Payment & Revenue", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "デモ配信者B", "", "既存一致", "U4.1", "No mid-tier price point between gifts", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0110-01", "2026/08/03", "2026/08/01", "JP feature requests Q3", "シート2行目以降", "質問", "イベント・マイイベント / Events", "月間ランキングの集計が何時までなのか明示してほしいです。", "月間ランキングの集計が何時までなのか明示してほしいです。", "テスト運営C", "", "新規候補", "CAND-002", "月間ランキングの集計時刻を明示してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0014-01", "2026/08/04", "2026/08/02", "Slack #UserFeedback", "スレッド返信", "不満", "ティッカー・表示UI / Ticker & Overlay", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "サンプルVIP-02", "https://example.com/demo-source/demo0014-01", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0027-01", "2026/08/03", "2026/08/02", "Slack #UserFeedback", "スレッド返信", "要望", "ギフトボード / Gift Board", "ギフトボードを一時的に非表示にしたいです。競争を煽りたくない日もあります。", "ギフトボードを一時的に非表示にしたいです。競争を煽りたくない日もあります。", "デモ配信者A", "https://example.com/demo-source/demo0027-01", "既存一致(要確認)", "S2.6", "Cannot hide the gift board during a stream", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0040-01", "2026/08/02", "2026/08/02", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "ブロックした相手にプロフィールを見られていました。仕様でしょうか。", "ブロックした相手にプロフィールを見られていました。仕様でしょうか。", "デモ配信者A", "https://example.com/demo-source/demo0040-01", "既存一致", "S5.0", "Blocked users can still view the profile", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0058-01", "2026/08/04", "2026/08/02", "VIP Feedback", "回答フォーム", "通報", "規約・不正対策 / Abuse & Policy", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "サンプルVIP-01", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0067-01", "2026/08/03", "2026/08/02", "JP feature requests Q3", "シート2行目以降", "通報", "規約・不正対策 / Abuse & Policy", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "デモ配信者A", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0055-01", "2026/08/05", "2026/08/03", "プロライバー定例会", "議事メモ", "通報", "規約・不正対策 / Abuse & Policy", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "サンプルVIP-02", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0064-01", "2026/08/04", "2026/08/03", "JP feature requests Q3", "シート2行目以降", "通報", "規約・不正対策 / Abuse & Policy", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "自投げと思われる動きが特定のルームで続いています。取り締まりをお願いします。", "サンプルVIP-01", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0082-01", "2026/08/05", "2026/08/03", "JP feedback for Cross", "自由記述欄", "不満", "課金・報酬・BC / Payment & Revenue", "誤送信の相談が今月に入って増えています。", "誤送信の相談が今月に入って増えています。", "サンプルVIP-02", "", "既存一致(要確認)", "U4.4", "Expensive gifts cannot be undone after misfire", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0104-01", "2026/08/05", "2026/08/03", "プロライバー定例会", "議事メモ", "要望", "アプリUI・導線 / App UI & Navigation", "重要な連絡を上に固定できると助かります。", "重要な連絡を上に固定できると助かります。", "デモ配信者A", "", "新規候補", "CAND-001", "配信中に固定コメントをピン留めしたい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0109-01", "2026/08/05", "2026/08/03", "Slack #UserFeedback", "スレッド返信", "質問", "イベント・マイイベント / Events", "月間ランキングの集計が何時までなのか明示してほしいです。", "月間ランキングの集計が何時までなのか明示してほしいです。", "サンプルVIP-01", "https://example.com/demo-source/demo0109-01", "新規候補", "CAND-002", "月間ランキングの集計時刻を明示してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0012-01", "2026/08/04", "2026/08/04", "プロライバー定例会", "議事メモ", "不満", "ティッカー・表示UI / Ticker & Overlay", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "デモ配信者B", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0056-01", "2026/08/06", "2026/08/04", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "サンプルVIP-02", "https://example.com/demo-source/demo0056-01", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0065-01", "2026/08/06", "2026/08/04", "JP feature requests Q3", "シート2行目以降", "通報", "規約・不正対策 / Abuse & Policy", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "海外からのボットらしきアカウントがお年玉を大量に取得しています。", "デモ配信者B", "", "規則式(精度低)", "U4.0", "Overseas bots farm the red-envelope campaign", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo9005-01", "2026/08/04", "2026/08/04", "VIP Feedback", "回答フォーム", "", "", "判定できなかったサンプル", "配信の件、先日の話の続きですが対応いかがでしょうか。", "テスト運営C", "", "未判定", "", "", "", "規則式では判定できず（デモデータ）", "1/1"], ["demo8003-01", "2026/08/04", "2026/08/04", "JP feedback for Cross", "自由記述欄", "", "", "挨拶", "お疲れ様です。本日もよろしくお願いいたします。", "デモリスナーD", "", "ノイズ", "", "", "0.95", "実質的な訴求なしと判定（デモデータ）", "1/1"], ["demo0030-01", "2026/08/07", "2026/08/05", "JP feature requests Q3", "シート2行目以降", "要望", "ギフトボード / Gift Board", "ギフター一覧を隠す設定がほしいという要望を複数人から受けています。", "ギフター一覧を隠す設定がほしいという要望を複数人から受けています。", "サンプルVIP-02", "", "既存一致(要確認)", "S2.6", "Cannot hide the gift board during a stream", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0032-01", "2026/08/05", "2026/08/05", "VIP Feedback", "回答フォーム", "要望", "イベント・マイイベント / Events", "マイイベントの設定が毎回リセットされます。前回の内容を覚えていてほしい。", "マイイベントの設定が毎回リセットされます。前回の内容を覚えていてほしい。", "サンプルVIP-01", "", "規則式(精度低)", "S2.7", "My-event settings are not remembered", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0033-01", "2026/08/05", "2026/08/05", "プロライバー定例会", "議事メモ", "要望", "イベント・マイイベント / Events", "子袋の設定だけ引き継がれないようで、毎回作り直しています。", "子袋の設定だけ引き継がれないようで、毎回作り直しています。", "デモリスナーD", "", "既存一致", "S2.7", "My-event settings are not remembered", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0034-01", "2026/08/05", "2026/08/05", "Slack #UserFeedback", "スレッド返信", "要望", "イベント・マイイベント / Events", "子袋の設定だけ引き継がれないようで、毎回作り直しています。", "子袋の設定だけ引き継がれないようで、毎回作り直しています。", "サンプルVIP-01", "https://example.com/demo-source/demo0034-01", "規則式(精度低)", "S2.7", "My-event settings are not remembered", "0.45", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0035-01", "2026/08/05", "2026/08/05", "JP feature requests Q3", "シート2行目以降", "要望", "イベント・マイイベント / Events", "イベントを作るたびに同じ項目を入力しなおすのが負担です。", "イベントを作るたびに同じ項目を入力しなおすのが負担です。", "サンプルVIP-01", "", "既存一致", "S2.7", "My-event settings are not remembered", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0043-01", "2026/08/05", "2026/08/05", "VIP Feedback", "回答フォーム", "不満", "アプリUI・導線 / App UI & Navigation", "システム表示をまとめて隠すボタンがほしいです。", "システム表示をまとめて隠すボタンがほしいです。", "テスト運営C", "", "既存一致", "U2.0", "System overlays clutter the viewing screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0045-01", "2026/08/07", "2026/08/05", "Slack #UserFeedback", "スレッド返信", "不満", "アプリUI・導線 / App UI & Navigation", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "サンプルVIP-01", "https://example.com/demo-source/demo0045-01", "既存一致", "U2.0", "System overlays clutter the viewing screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0046-01", "2026/08/06", "2026/08/05", "JP feature requests Q3", "シート2行目以降", "不満", "アプリUI・導線 / App UI & Navigation", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "画面上の表示物が多すぎて、配信自体が見づらいという声があります。", "デモ配信者A", "", "既存一致(要確認)", "U2.0", "System overlays clutter the viewing screen", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0061-01", "2026/08/07", "2026/08/05", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "デモリスナーD", "https://example.com/demo-source/demo0061-01", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0063-01", "2026/08/07", "2026/08/05", "プロライバー定例会", "議事メモ", "通報", "規約・不正対策 / Abuse & Policy", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "紅包が数秒で消えます。明らかに人間の操作ではありません。", "デモ配信者B", "", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0070-01", "2026/08/05", "2026/08/05", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "サンプルVIP-01", "https://example.com/demo-source/demo0070-01", "既存一致", "U4.0", "Overseas bots farm the red-envelope campaign", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0121-01", "2026/08/07", "2026/08/05", "プロライバー定例会", "議事メモ", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "サンプルVIP-01", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0131-01", "2026/08/05", "2026/08/05", "JP feature requests Q3", "シート2行目以降", "要望", "VOD・配信機能 / VOD & Streaming", "予約枠の通知がほしいです。", "予約枠の通知がほしいです。", "サンプル代理店E", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0132-01", "2026/08/07", "2026/08/05", "JP feature requests Q3", "シート2行目以降", "要望", "VOD・配信機能 / VOD & Streaming", "配信予約をしてもリマインドが来ないので、視聴者が集まりません。", "配信予約をしてもリマインドが来ないので、視聴者が集まりません。", "デモ配信者B", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0008-01", "2026/08/08", "2026/08/06", "VIP Feedback", "回答フォーム", "不満", "ティッカー・表示UI / Ticker & Overlay", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "サンプルVIP-01", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0010-01", "2026/08/08", "2026/08/06", "プロライバー定例会", "議事メモ", "不満", "ティッカー・表示UI / Ticker & Overlay", "金テロが顔の位置に被ってしまい、表情が見えないと言われました。位置を変えられませ…", "金テロが顔の位置に被ってしまい、表情が見えないと言われました。位置を変えられませんか。", "サンプルVIP-01", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0011-01", "2026/08/06", "2026/08/06", "VIP Feedback", "回答フォーム", "不満", "ティッカー・表示UI / Ticker & Overlay", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "デモ配信者A", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0022-01", "2026/08/06", "2026/08/06", "JP feedback for Cross", "自由記述欄", "バグ", "バグ・不具合 / Bugs", "配信中にインカメへ切り替えたらアプリが落ちました。今日で3回目です。", "配信中にインカメへ切り替えたらアプリが落ちました。今日で3回目です。", "サンプルVIP-01", "", "既存一致(要確認)", "S2.1", "App crashes when switching camera mid-stream", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0083-01", "2026/08/08", "2026/08/06", "Slack #UserFeedback", "スレッド返信", "不満", "課金・報酬・BC / Payment & Revenue", "誤送信の相談が今月に入って増えています。", "誤送信の相談が今月に入って増えています。", "サンプル代理店E", "https://example.com/demo-source/demo0083-01", "既存一致", "U4.4", "Expensive gifts cannot be undone after misfire", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0084-01", "2026/08/07", "2026/08/06", "JP feedback for Cross", "自由記述欄", "不満", "課金・報酬・BC / Payment & Revenue", "誤送信の相談が今月に入って増えています。", "誤送信の相談が今月に入って増えています。", "サンプルVIP-01", "", "既存一致", "U4.4", "Expensive gifts cannot be undone after misfire", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0118-01", "2026/08/07", "2026/08/06", "JP feedback for Cross", "自由記述欄", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "デモリスナーD", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0005-01", "2026/08/08", "2026/08/07", "プロライバー定例会", "議事メモ", "不満", "ティッカー・表示UI / Ticker & Overlay", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "テロップが画面中央に出るので、コラボ中に相手の顔が隠れてしまいます。", "サンプル代理店E", "", "既存一致(要確認)", "S2.0", "Free ticker covers the livestream screen", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0051-01", "2026/08/07", "2026/08/07", "JP feedback for Cross", "自由記述欄", "質問", "アプリUI・導線 / App UI & Navigation", "参加ページにたどり着けないという問い合わせが今週も来ています。", "参加ページにたどり着けないという問い合わせが今週も来ています。", "デモリスナーD", "", "既存一致", "U2.2", "Hard to find the event entry point", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0079-01", "2026/08/07", "2026/08/07", "JP feedback for Cross", "自由記述欄", "提案", "課金・報酬・BC / Payment & Revenue", "ギフトの価格帯が上下に離れすぎていて、中間がありません。", "ギフトの価格帯が上下に離れすぎていて、中間がありません。", "デモ配信者B", "", "既存一致", "U4.1", "No mid-tier price point between gifts", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0120-01", "2026/08/07", "2026/08/07", "JP feature requests Q3", "シート2行目以降", "要望", "課金・報酬・BC / Payment & Revenue", "履歴のエクスポートができないため手作業で転記しています。", "履歴のエクスポートができないため手作業で転記しています。", "サンプル代理店E", "", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0130-01", "2026/08/08", "2026/08/07", "JP feedback for Cross", "自由記述欄", "要望", "VOD・配信機能 / VOD & Streaming", "予約枠の通知がほしいです。", "予約枠の通知がほしいです。", "サンプルVIP-01", "", "新規候補", "CAND-005", "配信予約のリマインド通知がほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo8001-01", "2026/08/07", "2026/08/07", "VIP Feedback", "回答フォーム", "", "", "挨拶", "お疲れ様です。本日もよろしくお願いいたします。", "デモ配信者A", "", "ノイズ", "", "", "0.95", "実質的な訴求なしと判定（デモデータ）", "1/1"], ["demo0007-01", "2026/08/10", "2026/08/08", "VIP Feedback", "回答フォーム", "不満", "ティッカー・表示UI / Ticker & Overlay", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "サンプル代理店E", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0019-01", "2026/08/10", "2026/08/08", "プロライバー定例会", "議事メモ", "バグ", "バグ・不具合 / Bugs", "カメラ切替のタイミングで強制終了します。iPhone 15 Proです。", "カメラ切替のタイミングで強制終了します。iPhone 15 Proです。", "サンプルVIP-01", "", "既存一致", "S2.1", "App crashes when switching camera mid-stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0099-01", "2026/08/09", "2026/08/08", "プロライバー定例会", "議事メモ", "通報", "VS・PK・マッチング / VS & Matching", "ブロックしたはずの相手とマッチングしました。", "ブロックしたはずの相手とマッチングしました。", "サンプル代理店E", "", "既存一致", "U6.2", "Blocked users still get matched in PK", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0101-01", "2026/08/10", "2026/08/08", "JP feedback for Cross", "自由記述欄", "通報", "VS・PK・マッチング / VS & Matching", "身内マッチが続いていて、公平性に疑問の声が出ています。", "身内マッチが続いていて、公平性に疑問の声が出ています。", "デモ配信者B", "", "既存一致(要確認)", "U6.2", "Blocked users still get matched in PK", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0102-01", "2026/08/08", "2026/08/08", "Slack #UserFeedback", "スレッド返信", "要望", "社内システム・PMプロセス / Internal & PM", "PM側のロードマップが日本チームに共有されておらず、認識合わせができていません。", "PM側のロードマップが日本チームに共有されておらず、認識合わせができていません。", "サンプルVIP-01", "https://example.com/demo-source/demo0102-01", "既存一致", "Z1", "PM roadmap is not shared back to the JP team", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0108-01", "2026/08/09", "2026/08/08", "VIP Feedback", "回答フォーム", "要望", "アプリUI・導線 / App UI & Navigation", "重要な連絡を上に固定できると助かります。", "重要な連絡を上に固定できると助かります。", "サンプルVIP-01", "", "新規候補", "CAND-001", "配信中に固定コメントをピン留めしたい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo9003-01", "2026/08/08", "2026/08/08", "プロライバー定例会", "議事メモ", "", "", "判定できなかったサンプル", "配信の件、先日の話の続きですが対応いかがでしょうか。", "サンプル代理店E", "", "未判定", "", "", "", "規則式では判定できず（デモデータ）", "1/1"], ["demo8000-01", "2026/08/08", "2026/08/08", "JP feature requests Q3", "シート2行目以降", "", "", "挨拶", "ありがとうございました！", "デモ配信者B", "", "ノイズ", "", "", "0.95", "実質的な訴求なしと判定（デモデータ）", "1/1"], ["demo0013-01", "2026/08/09", "2026/08/09", "JP feedback for Cross", "自由記述欄", "不満", "ティッカー・表示UI / Ticker & Overlay", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "サンプルVIP-02", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0039-01", "2026/08/11", "2026/08/09", "JP feedback for Cross", "自由記述欄", "要望", "イベント・マイイベント / Events", "マイイベントの設定が毎回リセットされます。前回の内容を覚えていてほしい。", "マイイベントの設定が毎回リセットされます。前回の内容を覚えていてほしい。", "サンプルVIP-01", "", "既存一致", "S2.7", "My-event settings are not remembered", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0057-01", "2026/08/09", "2026/08/09", "JP feedback for Cross", "自由記述欄", "通報", "規約・不正対策 / Abuse & Policy", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "テスト運営C", "", "既存一致(要確認)", "U4.0", "Overseas bots farm the red-envelope campaign", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0066-01", "2026/08/11", "2026/08/09", "Slack #UserFeedback", "スレッド返信", "通報", "規約・不正対策 / Abuse & Policy", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "不正取得の疑いがあるアカウントを3件まとめて報告します。", "テスト運営C", "https://example.com/demo-source/demo0066-01", "既存一致(要確認)", "U4.0", "Overseas bots farm the red-envelope campaign", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0115-01", "2026/08/09", "2026/08/09", "Slack #UserFeedback", "スレッド返信", "要望", "課金・報酬・BC / Payment & Revenue", "ギフト履歴をCSVで書き出せると、事務所側の集計が楽になります。", "ギフト履歴をCSVで書き出せると、事務所側の集計が楽になります。", "デモ配信者A", "https://example.com/demo-source/demo0115-01", "新規候補", "CAND-003", "ギフト履歴をCSVで出したい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0125-01", "2026/08/09", "2026/08/09", "JP feature requests Q3", "シート2行目以降", "要望", "アプリUI・導線 / App UI & Navigation", "iPadの横画面に対応してほしいという声が事務所から来ています。", "iPadの横画面に対応してほしいという声が事務所から来ています。", "デモ配信者A", "", "新規候補", "CAND-004", "iPadの横画面に対応してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0135-01", "2026/08/11", "2026/08/09", "JP feature requests Q3", "シート2行目以降", "提案", "規約・不正対策 / Abuse & Policy", "サブアカウントを通報したいのですが、導線が分かりにくいです。", "サブアカウントを通報したいのですが、導線が分かりにくいです。", "サンプル代理店E", "", "新規候補", "CAND-006", "サブアカウントの通報導線が分かりにくい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo9002-01", "2026/08/09", "2026/08/09", "Slack #UserFeedback", "スレッド返信", "", "", "判定できなかったサンプル", "配信の件、先日の話の続きですが対応いかがでしょうか。", "テスト運営C", "", "未判定", "", "", "", "規則式では判定できず（デモデータ）", "1/1"], ["demo0002-01", "2026/08/11", "2026/08/10", "JP feedback for Cross", "自由記述欄", "不満", "ティッカー・表示UI / Ticker & Overlay", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "無料テロップの表示時間が長すぎて、配信画面がずっと塞がっています。", "サンプルVIP-02", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0003-01", "2026/08/12", "2026/08/10", "プロライバー定例会", "議事メモ", "不満", "ティッカー・表示UI / Ticker & Overlay", "金テロが顔の位置に被ってしまい、表情が見えないと言われました。位置を変えられませ…", "金テロが顔の位置に被ってしまい、表情が見えないと言われました。位置を変えられませんか。", "テスト運営C", "", "既存一致", "S2.0", "Free ticker covers the livestream screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0016-01", "2026/08/12", "2026/08/10", "JP feedback for Cross", "自由記述欄", "バグ", "バグ・不具合 / Bugs", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "デモ配信者A", "", "既存一致", "S2.1", "App crashes when switching camera mid-stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0050-01", "2026/08/11", "2026/08/10", "プロライバー定例会", "議事メモ", "質問", "アプリUI・導線 / App UI & Navigation", "イベントの入口がどこにあるのか分からないと視聴者から聞かれます。", "イベントの入口がどこにあるのか分からないと視聴者から聞かれます。", "サンプルVIP-01", "", "既存一致(要確認)", "U2.2", "Hard to find the event entry point", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0077-01", "2026/08/10", "2026/08/10", "VIP Feedback", "回答フォーム", "提案", "課金・報酬・BC / Payment & Revenue", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "課金額の選択肢に中間帯を足してほしいという要望が出ています。", "サンプル代理店E", "", "既存一致", "U4.1", "No mid-tier price point between gifts", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0098-01", "2026/08/10", "2026/08/10", "VIP Feedback", "回答フォーム", "通報", "VS・PK・マッチング / VS & Matching", "身内マッチが続いていて、公平性に疑問の声が出ています。", "身内マッチが続いていて、公平性に疑問の声が出ています。", "デモ配信者B", "", "既存一致", "U6.2", "Blocked users still get matched in PK", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0126-01", "2026/08/10", "2026/08/10", "JP feedback for Cross", "自由記述欄", "要望", "アプリUI・導線 / App UI & Navigation", "iPadの横画面に対応してほしいという声が事務所から来ています。", "iPadの横画面に対応してほしいという声が事務所から来ています。", "テスト運営C", "", "新規候補", "CAND-004", "iPadの横画面に対応してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo9004-01", "2026/08/10", "2026/08/10", "JP feedback for Cross", "自由記述欄", "", "", "判定できなかったサンプル", "配信の件、先日の話の続きですが対応いかがでしょうか。", "テスト運営C", "", "未判定", "", "", "", "規則式では判定できず（デモデータ）", "1/1"], ["demo8002-01", "2026/08/10", "2026/08/10", "Slack #UserFeedback", "スレッド返信", "", "", "挨拶", "承知しました。", "デモリスナーD", "", "ノイズ", "", "", "0.95", "実質的な訴求なしと判定（デモデータ）", "1/1"], ["demo0021-01", "2026/08/11", "2026/08/11", "Slack #UserFeedback", "スレッド返信", "バグ", "バグ・不具合 / Bugs", "配信中にインカメへ切り替えたらアプリが落ちました。今日で3回目です。", "配信中にインカメへ切り替えたらアプリが落ちました。今日で3回目です。", "デモリスナーD", "https://example.com/demo-source/demo0021-01", "既存一致", "S2.1", "App crashes when switching camera mid-stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0038-01", "2026/08/12", "2026/08/11", "JP feature requests Q3", "シート2行目以降", "要望", "イベント・マイイベント / Events", "マイイベントの設定が毎回リセットされます。前回の内容を覚えていてほしい。", "マイイベントの設定が毎回リセットされます。前回の内容を覚えていてほしい。", "サンプルVIP-02", "", "既存一致(要確認)", "S2.7", "My-event settings are not remembered", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0047-01", "2026/08/11", "2026/08/11", "プロライバー定例会", "議事メモ", "不満", "アプリUI・導線 / App UI & Navigation", "システム表示をまとめて隠すボタンがほしいです。", "システム表示をまとめて隠すボタンがほしいです。", "サンプル代理店E", "", "既存一致", "U2.0", "System overlays clutter the viewing screen", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0092-01", "2026/08/12", "2026/08/11", "JP feedback for Cross", "自由記述欄", "バグ", "VS・PK・マッチング / VS & Matching", "マッチ情報が前の相手のまま表示されています。", "マッチ情報が前の相手のまま表示されています。", "テスト運営C", "", "既存一致(要確認)", "U6.0", "VS mode does not switch match information", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0105-01", "2026/08/11", "2026/08/11", "JP feedback for Cross", "自由記述欄", "要望", "アプリUI・導線 / App UI & Navigation", "配信中に固定したいコメントをピン留めできる機能がほしいです。", "配信中に固定したいコメントをピン留めできる機能がほしいです。", "サンプルVIP-02", "", "新規候補", "CAND-001", "配信中に固定コメントをピン留めしたい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0123-01", "2026/08/12", "2026/08/11", "JP feature requests Q3", "シート2行目以降", "要望", "アプリUI・導線 / App UI & Navigation", "iPadの横画面に対応してほしいという声が事務所から来ています。", "iPadの横画面に対応してほしいという声が事務所から来ています。", "デモ配信者A", "", "新規候補", "CAND-004", "iPadの横画面に対応してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo9000-01", "2026/08/11", "2026/08/11", "JP feature requests Q3", "シート2行目以降", "", "", "判定できなかったサンプル", "配信の件、先日の話の続きですが対応いかがでしょうか。", "サンプル代理店E", "", "未判定", "", "", "", "規則式では判定できず（デモデータ）", "1/1"], ["demo9001-01", "2026/08/11", "2026/08/11", "Slack #UserFeedback", "スレッド返信", "", "", "判定できなかったサンプル", "配信の件、先日の話の続きですが対応いかがでしょうか。", "サンプルVIP-02", "", "未判定", "", "", "", "規則式では判定できず（デモデータ）", "1/1"], ["demo0025-01", "2026/08/12", "2026/08/12", "JP feedback for Cross", "自由記述欄", "バグ", "バグ・不具合 / Bugs", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "配信が突然切れて、再入場したら視聴者が半分になっていました。", "サンプルVIP-01", "", "既存一致(要確認)", "S2.1", "App crashes when switching camera mid-stream", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0026-01", "2026/08/12", "2026/08/12", "JP feature requests Q3", "シート2行目以降", "要望", "ギフトボード / Gift Board", "ギフター一覧を隠す設定がほしいという要望を複数人から受けています。", "ギフター一覧を隠す設定がほしいという要望を複数人から受けています。", "サンプルVIP-02", "", "既存一致", "S2.6", "Cannot hide the gift board during a stream", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0048-01", "2026/08/12", "2026/08/12", "VIP Feedback", "回答フォーム", "質問", "アプリUI・導線 / App UI & Navigation", "イベントの入口がどこにあるのか分からないと視聴者から聞かれます。", "イベントの入口がどこにあるのか分からないと視聴者から聞かれます。", "サンプルVIP-01", "", "既存一致(要確認)", "U2.2", "Hard to find the event entry point", "0.5", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0093-01", "2026/08/12", "2026/08/12", "JP feedback for Cross", "自由記述欄", "バグ", "VS・PK・マッチング / VS & Matching", "VSモードで対戦情報が切り替わらないままでした。", "VSモードで対戦情報が切り替わらないままでした。", "サンプルVIP-02", "", "既存一致", "U6.0", "VS mode does not switch match information", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0095-01", "2026/08/12", "2026/08/12", "JP feedback for Cross", "自由記述欄", "バグ", "VS・PK・マッチング / VS & Matching", "マッチ情報が前の相手のまま表示されています。", "マッチ情報が前の相手のまま表示されています。", "デモリスナーD", "", "既存一致", "U6.0", "VS mode does not switch match information", "0.9", "既存痛点の記述と一致（デモデータ）", "1/1"], ["demo0124-01", "2026/08/12", "2026/08/12", "Slack #UserFeedback", "スレッド返信", "要望", "アプリUI・導線 / App UI & Navigation", "iPadの横画面に対応してほしいという声が事務所から来ています。", "iPadの横画面に対応してほしいという声が事務所から来ています。", "サンプル代理店E", "https://example.com/demo-source/demo0124-01", "新規候補", "CAND-004", "iPadの横画面に対応してほしい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"], ["demo0134-01", "2026/08/12", "2026/08/12", "プロライバー定例会", "議事メモ", "提案", "規約・不正対策 / Abuse & Policy", "サブアカウントを通報したいのですが、導線が分かりにくいです。", "サブアカウントを通報したいのですが、導線が分かりにくいです。", "テスト運営C", "", "新規候補", "CAND-006", "サブアカウントの通報導線が分かりにくい", "0.8", "ロードマップ上に該当なし。新規候補として登録（デモデータ）", "1/1"]];
+  return {
+    apiCore: function(){ return CORE; },
+    apiRaw: function(off){
+      off = off || 0;
+      var page = ROWS.slice(off, off + 1200);
+      return { ok:true, offset:off, rows:page, total:ROWS.length,
+               done:(off + page.length) >= ROWS.length, capped:false };
+    },
+    apiDetail: function(id){
+      for (var i = 0; i < ROWS.length; i++){
+        if (ROWS[i][0] === id) return { ok:true, id:id, body:ROWS[i][8],
+          original:'【示範資料】' + ROWS[i][8] + '\n\n（正式版這裡會顯示切分前的整則訊息原文）',
+          origin:ROWS[i][3], owner:ROWS[i][9], link:'', why:ROWS[i][15], split:'1/1', sheetRow:i+2 };
+      }
+      return { ok:false, error:'示範資料中找不到這一筆' };
+    }
+  };
+})();
+</script>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   1. 資料層
+   ========================================================================= */
+
+/* Raw 每一列的欄位位置。必須跟 Dashboard.gs 的 DASH_WIRE 註解一致。 */
+var R = { ID:0, ING:1, OCC:2, ORIGIN:3, ODET:4, KIND:5, THEME:6, SUM:7, BODY:8,
+          OWNER:9, LINK:10, VERDICT:11, CODE:12, TOPIC:13, CONF:14, WHY:15, SPLIT:16 };
+
+var S = {
+  core:null, raw:[], items:[], byCode:{}, rmSet:{}, candSet:{},
+  basis:'occ', period:7, view:'new', today:'',
+  sort:{ all:{k:'total',d:-1}, "new":{k:'cur',d:-1} },
+  rawShow:300, rawFilter:{ q:'', origin:'', theme:'', bucket:'' },
+  demo:false
+};
+
+/* GAS 與離線預覽共用同一份介面：有 google.script.run 就走後端，否則吃內嵌的示範資料。 */
+var HAS_GAS = (typeof google !== 'undefined' && google.script && google.script.run);
+
+function call(fn, arg){
+  return new Promise(function(res, rej){
+    if (HAS_GAS) {
+      google.script.run.withSuccessHandler(res).withFailureHandler(function(e){
+        rej(new Error(e && e.message ? e.message : String(e)));
+      })[fn](arg);
+    } else if (window.__VOC_DEMO__ && window.__VOC_DEMO__[fn]) {
+      setTimeout(function(){ res(window.__VOC_DEMO__[fn](arg)); }, 60);
+    } else {
+      rej(new Error('沒有可用的資料來源：這個頁面不是由 Apps Script 提供的，也沒有內嵌示範資料。'));
+    }
+  });
+}
+
+/* =========================================================================
+   2. 日期工具（一律用 yyyy/MM/dd 字串，字典序＝時間序）
+   ========================================================================= */
+
+function p2(n){ return (n<10?'0':'')+n; }
+function ymdToDate(s){
+  var m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(String(s||''));
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+}
+function dateToYmd(d){ return d.getFullYear()+'/'+p2(d.getMonth()+1)+'/'+p2(d.getDate()); }
+function shiftYmd(s, n){ var d = ymdToDate(s); if(!d) return ''; d.setDate(d.getDate()+n); return dateToYmd(d); }
+function mmdd(s){ return String(s||'').slice(5); }
+
+/* 期間窗。今天以「後端 generatedAt 的日期」為準（日本時區），不用瀏覽器時鐘，
+   否則 Cross 在台灣、資料在日本，跨日那幾個小時會算錯一天。 */
+function windowOf(days){
+  if (days === 0) return { from:'0000/00/00', to:'9999/99/99', label:'全期' };
+  if (days === 1){ var y = shiftYmd(S.today, -1); return { from:y, to:y, label:'昨日（'+mmdd(y)+'）' }; }
+  return { from: shiftYmd(S.today, -(days-1)), to: S.today, label:'近 '+days+' 日' };
+}
+function inWin(ymd, w){ return ymd && ymd >= w.from && ymd <= w.to; }
+function dateOf(row){ return S.basis === 'ing' ? row[R.ING] : row[R.OCC]; }
+
+/* =========================================================================
+   3. 分類：這一則聲音算不算「已在 roadmap」
+   ========================================================================= */
+
+function bucketOf(row){
+  var v = row[R.VERDICT], V = S.core.verdicts;
+  if (v === V.noise) return 'noise';
+  if (!v || v === V.pending) return 'pending';
+  var code = row[R.CODE];
+  if (!code) return 'pending';
+  if (S.rmSet[code]) return 'in';
+  if (S.candSet[code]) return 'out';
+  return 'orphan';   // 代碼存在但 roadmap／候選清單都查無此人（roadmap 那列被刪或改名）
+}
+var BUCKET_LABEL = { in:'已在 roadmap', out:'不在 roadmap', pending:'未判定',
+                     noise:'雜訊', orphan:'代碼已失效' };
+function bucketTag(b){
+  var cls = (b === 'in') ? 'in' : (b === 'out') ? 'out' : (b === 'pending') ? 'pend' : 'orph';
+  return '<span class="tag '+cls+'">'+BUCKET_LABEL[b]+'</span>';
+}
+/* 判定是「規則式」或「要確認」＝ 這個歸類本身沒把握，必須讓 Cross 看得到 */
+function isSoft(row){
+  var v = row[R.VERDICT], V = S.core.verdicts;
+  return v === V.review || v === V.rule;
+}
+
+/* =========================================================================
+   4. 建立痛點清單（roadmap ∪ 候選 ∪ raw 裡出現過的代碼）
+   ========================================================================= */
+
+function buildItems(){
+  var map = {};
+  function ensure(code){
+    if (!map[code]) map[code] = {
+      code:code, title:'', titleEn:'', area:'', priority:'', rank:'', status:'',
+      resolved:false, inRoadmap:false, known:false, requests:'', note:'', submitDate:'',
+      total:0, soft:0, cur:0, d1:0, d7:0, d30:0, first:'', last:'',
+      origins:{}, themes:{}, kinds:{}, owners:{}, rows:[], byDay:{}
+    };
+    return map[code];
+  }
+
+  S.rmSet = {}; S.candSet = {};
+  var i, it;
+  for (i = 0; i < S.core.roadmap.length; i++){
+    it = S.core.roadmap[i];
+    S.rmSet[it.code] = true;
+    var a = ensure(it.code);
+    a.title = it.title; a.area = it.area; a.priority = it.priority; a.rank = it.rank;
+    a.status = it.status; a.resolved = it.resolved; a.inRoadmap = true; a.known = true;
+    a.requests = it.requests; a.note = it.note; a.submitDate = it.submitDate;
+  }
+  for (i = 0; i < S.core.candidates.length; i++){
+    it = S.core.candidates[i];
+    S.candSet[it.code] = true;
+    var b = ensure(it.code);
+    b.title = it.title; b.titleEn = it.titleEn; b.area = it.area;
+    b.priority = it.priority; b.inRoadmap = false; b.known = true;
+  }
+
+  var w1 = windowOf(1), w7 = windowOf(7), w30 = windowOf(30), wc = windowOf(S.period);
+
+  for (i = 0; i < S.raw.length; i++){
+    var row = S.raw[i], bk = bucketOf(row);
+    if (bk === 'noise' || bk === 'pending') continue;
+    var code = row[R.CODE];
+    if (!code) continue;
+    var t = ensure(code);
+    if (!t.title) t.title = row[R.TOPIC] || code;
+    if (!t.known){ t.inRoadmap = (bk === 'in'); t.orphan = (bk === 'orphan'); }
+    t.total++;
+    if (isSoft(row)) t.soft++;
+    var d = dateOf(row);
+    if (d){
+      t.byDay[d] = (t.byDay[d]||0) + 1;
+      if (!t.first || d < t.first) t.first = d;
+      if (!t.last  || d > t.last)  t.last  = d;
+      if (inWin(d, w1))  t.d1++;
+      if (inWin(d, w7))  t.d7++;
+      if (inWin(d, w30)) t.d30++;
+      if (inWin(d, wc))  t.cur++;
+    }
+    t.origins[row[R.ORIGIN]] = (t.origins[row[R.ORIGIN]]||0) + 1;
+    if (row[R.THEME]) t.themes[row[R.THEME]] = (t.themes[row[R.THEME]]||0) + 1;
+    if (row[R.KIND])  t.kinds[row[R.KIND]]   = (t.kinds[row[R.KIND]]||0) + 1;
+    if (row[R.OWNER]) t.owners[row[R.OWNER]] = (t.owners[row[R.OWNER]]||0) + 1;
+    t.rows.push(row);
+  }
+
+  S.items = [];
+  for (var k in map) S.items.push(map[k]);
+  S.byCode = map;
+}
+
+function itemBucket(x){ return x.orphan ? 'orphan' : x.inRoadmap ? 'in' : 'out'; }
+function prank(p){ var m = /P(\d)/.exec(String(p||'').toUpperCase()); return m ? +m[1] : 9; }
+function topKey(o){
+  var best = '', n = -1;
+  for (var k in o){ if (k && o[k] > n){ n = o[k]; best = k; } }
+  return best;
+}
+function keyList(o){ var a=[]; for (var k in o) if (k) a.push(k); return a; }
+
+/* =========================================================================
+   5. 全域統計
+   ========================================================================= */
+
+function totals(){
+  var t = { in:0, out:0, pending:0, noise:0, orphan:0, soft:0,
+            curIn:0, curOut:0, curPend:0, cur:0,
+            d1:0, d7:0, d1In:0, d1Out:0, d7In:0, d7Out:0, d7Pend:0,
+            newPain1:0, newPain7:0, speakers:{}, days:{} };
+  var w1 = windowOf(1), w7 = windowOf(7), wc = windowOf(S.period);
+  for (var i = 0; i < S.raw.length; i++){
+    var row = S.raw[i], b = bucketOf(row), d = dateOf(row);
+    t[b]++;
+    if (b !== 'noise' && isSoft(row)) t.soft++;
+    if (row[R.OWNER]) t.speakers[row[R.OWNER]] = true;
+    if (b === 'noise' || !d) continue;
+    if (!t.days[d]) t.days[d] = { in:0, out:0, pending:0, orphan:0 };
+    t.days[d][b]++;
+    if (inWin(d, wc)){ t.cur++; if (b==='in') t.curIn++; else if (b==='out') t.curOut++; else if (b==='pending') t.curPend++; }
+    if (inWin(d, w1)){ t.d1++; if (b==='in') t.d1In++; else if (b==='out') t.d1Out++; }
+    if (inWin(d, w7)){ t.d7++; if (b==='in') t.d7In++; else if (b==='out') t.d7Out++; else if (b==='pending') t.d7Pend++; }
+  }
+  for (var j = 0; j < S.items.length; j++){
+    var it = S.items[j];
+    if (!it.first) continue;
+    if (inWin(it.first, w1)) t.newPain1++;
+    if (inWin(it.first, w7)) t.newPain7++;
+  }
+  return t;
+}
+
+/* =========================================================================
+   6. 畫面：BLUF ＋ KPI
+   ========================================================================= */
+
+function esc(s){
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderTop(T){
+  var w = windowOf(S.period);
+  var unresolvedHits = 0;
+  for (var i = 0; i < S.items.length; i++){
+    var it = S.items[i];
+    if (it.inRoadmap && !it.resolved) unresolvedHits += it.cur;
+  }
+
+  var h;
+  if (T.cur === 0){
+    h = '<em>'+w.label+'</em>沒有新的聲音進來。'+
+        (S.period === 1 ? '<span class="c-pend"> 換成「近 7 日」看看。</span>' : '');
+  } else {
+    h = w.label + '新增 <em>'+T.cur+'</em> 則聲音：'+
+        '<em class="c-in">'+T.curIn+'</em> 則打中 roadmap 上既有的痛點'+
+        (unresolvedHits ? '（其中 <em>'+unresolvedHits+'</em> 則屬於<b>仍未解決</b>的項目）' : '')+
+        '、<em class="c-out">'+T.curOut+'</em> 則是 roadmap 上還沒有的新痛點'+
+        (T.curPend ? '、<em class="c-pend">'+T.curPend+'</em> 則機器人判不出來' : '')+'。';
+  }
+  document.getElementById('blufH').innerHTML = h;
+  document.getElementById('blufS').textContent =
+    '日期基準：' + (S.basis === 'ing' ? '取込日（bot 抓到的日子）' : '発生日（用戶說話的日子）') +
+    '　·　資料截至 ' + S.core.generatedAt + '（JST）' +
+    '　·　累計 ' + S.raw.length.toLocaleString() + ' 則已切分的聲音、' +
+    Object.keys(T.speakers).length + ' 位發話者';
+
+  /* --- KPI --- */
+  var kp = [
+    { k:'in',  lab:'在 roadmap 的總 mention', col:'var(--in)',  val:T.in,
+      foot:'涵蓋 <b>'+countItems(true)+'</b> 個既有痛點　·　'+w.label+' <b>+'+T.curIn+'</b>' },
+    { k:'out', lab:'不在 roadmap 的總 mention', col:'var(--out)', val:T.out,
+      foot:'涵蓋 <b>'+countItems(false)+'</b> 個新痛點候選　·　'+w.label+' <b>+'+T.curOut+'</b>' },
+    { k:'d1',  lab:'昨日新增聲音', col:'var(--ink3)', val:T.d1,
+      foot:'在 roadmap <b>'+T.d1In+'</b>　·　不在 <b>'+T.d1Out+'</b>　·　首次出現的痛點 <b>'+T.newPain1+'</b>' },
+    { k:'d7',  lab:'近 7 日新增聲音', col:'var(--ink3)', val:T.d7,
+      foot:'在 roadmap <b>'+T.d7In+'</b>　·　不在 <b>'+T.d7Out+'</b>　·　首次出現的痛點 <b>'+T.newPain7+'</b>' }
+  ];
+  document.getElementById('kpis').innerHTML = kp.map(function(x){
+    return '<button class="kpi" data-kpi="'+x.k+'">'+
+      '<div class="lab"><span class="swatch" style="background:'+x.col+'"></span>'+x.lab+'</div>'+
+      '<div class="val num">'+x.val.toLocaleString()+'</div>'+
+      '<div class="foot">'+x.foot+'</div></button>';
+  }).join('');
+
+  /* --- 誠實揭露列：判不準／判不出來的量，永遠顯示，不藏 --- */
+  var hon = [];
+  hon.push('<span>資料品質：</span>');
+  if (T.pending) hon.push('<button class="chip alert" data-kpi="pending">未判定 '+T.pending+' 則（下次執行會自動重試）</button>');
+  if (T.soft)    hon.push('<button class="chip alert" data-kpi="soft">歸類沒把握 '+T.soft+' 則（建議複核）</button>');
+  if (T.orphan)  hon.push('<button class="chip alert" data-kpi="orphan">代碼已失效 '+T.orphan+' 則（roadmap 該列被刪或改名）</button>');
+  if (T.noise)   hon.push('<button class="chip" data-kpi="noise">已排除的寒暄雜訊 '+T.noise+' 則</button>');
+  if (!T.pending && !T.soft && !T.orphan) hon.push('<span style="color:var(--good)">全部聲音都已明確歸類</span>');
+  document.getElementById('honest').innerHTML = hon.join('');
+
+  renderFocus();
+}
+
+/* 只數「代碼還有效」的痛點：orphan（roadmap 那列被刪或改名）不能混進 in／out 任何一邊，
+   否則 KPI 的數字會跟它底下「涵蓋幾個痛點」對不起來。 */
+function countItems(inRm){
+  var n = 0;
+  for (var i = 0; i < S.items.length; i++){
+    var x = S.items[i];
+    if (!x.orphan && x.inRoadmap === inRm && x.total > 0) n++;
+  }
+  return n;
+}
+
+/* 三張行動卡：這一期最該追的既有痛點、最強的新痛點、聲量與層級最不匹配的一條 */
+function renderFocus(){
+  var rise = S.items.filter(function(x){ return x.inRoadmap && !x.resolved && x.cur > 0; })
+                    .sort(function(a,b){ return b.cur - a.cur || b.total - a.total; })[0];
+  var fresh = S.items.filter(function(x){ return !x.inRoadmap && x.cur > 0; })
+                     .sort(function(a,b){ return b.cur - a.cur || b.total - a.total; })[0];
+  var mis = S.items.filter(function(x){ return x.inRoadmap && !x.resolved && prank(x.priority) >= 2 && x.total >= 3; })
+                   .sort(function(a,b){ return b.total - a.total; })[0];
+
+  var cards = [
+    { cls:'k-in', lab:'<span class="swatch" style="background:var(--in)"></span>最該向 PM 追進度的既有痛點',
+      it:rise, met:function(x){ return windowOf(S.period).label+' <b>+'+x.cur+'</b>　·　累計 <b>'+x.total+'</b>　·　'+
+        (x.priority||'未定優先度')+'　·　'+(x.status||'狀態未填'); },
+      empty:'這一期沒有既有痛點被再次提起。' },
+    { cls:'k-out', lab:'<span class="swatch" style="background:var(--out)"></span>最強的新痛點（roadmap 沒有）',
+      it:fresh, met:function(x){ return windowOf(S.period).label+' <b>+'+x.cur+'</b>　·　累計 <b>'+x.total+'</b>　·　建議 '+
+        (x.area||'領域未定')+'／'+(x.priority||'P2'); },
+      empty:'這一期沒有新痛點候選。' },
+    { cls:'k-mis', lab:'⚠ 聲量與層級不匹配（累計高、優先度卻低）',
+      it:mis, met:function(x){ return '累計 <b>'+x.total+'</b> 則卻只掛 '+(x.priority||'未定優先度')+
+        (x.rank ? '　·　Rank '+x.rank : '')+'　·　未解決'; },
+      empty:'目前沒有明顯的聲量／層級落差。' }
+  ];
+
+  document.getElementById('focus').innerHTML = cards.map(function(c){
+    if (!c.it) return '<div class="fcard '+c.cls+'" style="cursor:default"><div class="lab">'+c.lab+
+                      '</div><div class="empty">'+c.empty+'</div></div>';
+    return '<button class="fcard '+c.cls+'" data-code="'+esc(c.it.code)+'">'+
+      '<div class="lab">'+c.lab+'</div>'+
+      '<div class="ttl">'+esc(c.it.title || c.it.code)+'</div>'+
+      '<div class="met">'+c.met(c.it)+'</div></button>';
+  }).join('');
+}
+
+/* =========================================================================
+   7. 每日趨勢圖（堆疊柱）
+   ========================================================================= */
+
+var CHART_DAYS = 21;
+
+function topRounded(x, y, w, h, r){
+  r = Math.min(r, h, w/2);
+  if (r <= 0.5) return 'M'+x+','+y+'h'+w+'v'+h+'h'+(-w)+'Z';
+  return 'M'+x+','+(y+h)+'V'+(y+r)+'a'+r+','+r+' 0 0 1 '+r+',-'+r+
+         'h'+(w-2*r)+'a'+r+','+r+' 0 0 1 '+r+','+r+'V'+(y+h)+'Z';
+}
+
+function renderChart(T){
+  var svg = document.getElementById('chart');
+  var W = svg.clientWidth || 1000, H = 132, padB = 20, padT = 16;
+  var days = [];
+  for (var i = CHART_DAYS - 1; i >= 0; i--) days.push(shiftYmd(S.today, -i));
+
+  var max = 1;
+  days.forEach(function(d){
+    var v = T.days[d]; if (!v) return;
+    max = Math.max(max, v.in + v.out + v.pending + v.orphan);
+  });
+
+  var slot = W / days.length, bw = Math.min(24, slot - 6), plot = H - padB - padT;
+  var out = [];
+  out.push('<line x1="0" y1="'+(H-padB)+'" x2="'+W+'" y2="'+(H-padB)+'" stroke="var(--line)" stroke-width="1"/>');
+
+  var maxDay = '', maxVal = 0;
+  days.forEach(function(d){
+    var v = T.days[d] || { in:0, out:0, pending:0, orphan:0 };
+    var tot = v.in + v.out + v.pending + v.orphan;
+    if (tot > maxVal){ maxVal = tot; maxDay = d; }
+  });
+
+  days.forEach(function(d, idx){
+    var v = T.days[d] || { in:0, out:0, pending:0, orphan:0 };
+    var tot = v.in + v.out + v.pending + v.orphan;
+    var x = idx * slot + (slot - bw) / 2;
+    var segs = [ ['in', v.in, 'var(--in)'], ['out', v.out, 'var(--out)'],
+                 ['pending', v.pending + v.orphan, 'var(--pend)'] ].filter(function(s){ return s[1] > 0; });
+
+    out.push('<g class="bar" data-day="'+d+'">');
+    out.push('<rect class="hit" x="'+(idx*slot)+'" y="0" width="'+slot+'" height="'+(H-padB+4)+'" fill="transparent"/>');
+    var yCur = H - padB;
+    segs.forEach(function(s, si){
+      var h = (s[1] / max) * plot;
+      if (h < 2) h = 2;
+      var gap = (si < segs.length - 1) ? 2 : 0;   // 2px 表面色間隙隔開堆疊層
+      var top = si === segs.length - 1;
+      var y = yCur - h;
+      out.push(top ? '<path d="'+topRounded(x, y, bw, h, 4)+'" fill="'+s[2]+'"/>'
+                   : '<rect x="'+x+'" y="'+(y+gap)+'" width="'+bw+'" height="'+Math.max(1,h-gap)+'" fill="'+s[2]+'"/>');
+      yCur = y - gap;
+    });
+    /* 只標最高的一天 —— 每根都標數字會變成噪音 */
+    if (d === maxDay && tot > 0){
+      out.push('<text x="'+(x+bw/2)+'" y="'+(H-padB-(tot/max)*plot-6)+'" text-anchor="middle" '+
+               'fill="var(--ink2)" font-size="11" font-family="var(--sans)">'+tot+'</text>');
+    }
+    if (idx % 3 === 0 || idx === days.length - 1){
+      out.push('<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" fill="var(--ink3)" '+
+               'font-size="10" font-family="var(--sans)">'+mmdd(d)+'</text>');
+    }
+    out.push('</g>');
+  });
+
+  svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+  svg.innerHTML = out.join('');
+
+  var tip = document.getElementById('tip');
+  svg.querySelectorAll('.bar').forEach(function(g){
+    var d = g.getAttribute('data-day');
+    g.addEventListener('mousemove', function(e){
+      var v = T.days[d] || { in:0, out:0, pending:0, orphan:0 };
+      var tot = v.in + v.out + v.pending + v.orphan;
+      tip.innerHTML = '<b>'+d+'</b>　合計 <b>'+tot+'</b> 則'+
+        '<div class="r"><span class="swatch" style="background:var(--in)"></span>在 roadmap <b>'+v.in+'</b></div>'+
+        '<div class="r"><span class="swatch" style="background:var(--out)"></span>不在 roadmap <b>'+v.out+'</b></div>'+
+        '<div class="r"><span class="swatch" style="background:var(--pend)"></span>未判定 <b>'+(v.pending+v.orphan)+'</b></div>';
+      tip.style.opacity = 1;
+      tip.style.left = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 12) + 'px';
+      tip.style.top  = (e.clientY + 16) + 'px';
+    });
+    g.addEventListener('mouseleave', function(){ tip.style.opacity = 0; });
+    g.addEventListener('click', function(){
+      var rows = S.raw.filter(function(r){ return dateOf(r) === d && bucketOf(r) !== 'noise'; });
+      openDrawer(d + ' 的所有聲音', rows, [ '共 ' + rows.length + ' 則' ]);
+    });
+  });
+}
+
+/* =========================================================================
+   8. 分頁內容
+   ========================================================================= */
+
+function sortIcon(tab, k){ return S.sort[tab] && S.sort[tab].k === k
+  ? '<span class="ar">'+(S.sort[tab].d < 0 ? '▼' : '▲')+'</span>' : ''; }
+
+function priCell(p){
+  var r = prank(p);
+  return '<span class="pri p'+(r<=3?r:'x')+'">'+esc(p || '—')+'</span>';
+}
+function statusTag(it){
+  if (!it.inRoadmap) return '<span class="tag out">未列入</span>';
+  if (it.resolved)   return '<span class="tag good">已解決</span>';
+  return '<span class="tag crit">未解決</span>';
+}
+
+/* --- 8a. 本期新增（需求 1）--- */
+function viewNew(){
+  var w = windowOf(S.period);
+  var list = S.items.filter(function(x){ return x.cur > 0; });
+  var s = S.sort["new"];
+  list.sort(function(a,b){
+    var va = a[s.k], vb = b[s.k];
+    if (typeof va === 'string') return (va < vb ? -1 : va > vb ? 1 : 0) * s.d;
+    return (va - vb) * s.d;
+  });
+  document.getElementById('tn-new').textContent = list.length;
+
+  if (!list.length) return '<div class="card"><div class="empty">'+w.label+
+    '沒有任何新增的聲音。<br><span style="font-size:12px">試試把期間切成「近 7 日」或「近 30 日」，'+
+    '或把日期基準切成「取込日」——補抓舊訊息時，発生日會落在很久以前。</span></div></div>';
+
+  var rows = list.map(function(x){
+    var isNew = x.first && inWin(x.first, w);
+    return '<tr data-code="'+esc(x.code)+'">'+
+      '<td>'+bucketTag(itemBucket(x))+(isNew ? ' <span class="tag warn">首次出現</span>' : '')+'</td>'+
+      '<td class="mono">'+esc(x.code)+'</td>'+
+      '<td class="ttl">'+esc(x.title || x.code)+
+        (x.titleEn ? '<span class="en">'+esc(x.titleEn)+'</span>' : '')+'</td>'+
+      '<td>'+(x.inRoadmap ? statusTag(x) : '<span class="tag plain">候選</span>')+'</td>'+
+      '<td>'+priCell(x.priority)+'</td>'+
+      '<td class="dim">'+esc(x.rank || '—')+'</td>'+
+      '<td class="r"><b>'+x.cur+'</b></td>'+
+      '<td class="r dim">'+x.total+'</td>'+
+      '<td class="dim">'+esc(x.last||'—')+'</td>'+
+      '<td class="dim clip">'+esc(topKey(x.origins)||'—')+'</td></tr>';
+  }).join('');
+
+  return '<div class="card"><div class="card-h"><h2>'+w.label+'有新增聲音的痛點（'+list.length+' 個）</h2>'+
+    '<div class="hint">點任一列 → 看構成它的每一則原始聲音</div></div>'+
+    '<div class="scroll"><table class="tbl" data-tab="new"><thead><tr>'+
+    '<th class="no">是否已在 roadmap</th><th data-k="code">代碼'+sortIcon('new','code')+'</th>'+
+    '<th data-k="title">痛點'+sortIcon('new','title')+'</th><th class="no">狀態</th>'+
+    '<th data-k="priority">優先度'+sortIcon('new','priority')+'</th>'+
+    '<th data-k="rank">Rank'+sortIcon('new','rank')+'</th>'+
+    '<th data-k="cur">本期新增'+sortIcon('new','cur')+'</th>'+
+    '<th data-k="total">累計'+sortIcon('new','total')+'</th>'+
+    '<th data-k="last">最後出現'+sortIcon('new','last')+'</th>'+
+    '<th class="no">主要來源</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* --- 8b. 痛點總表（需求 5）--- */
+function viewAll(){
+  var list = S.items.filter(function(x){ return x.total > 0 || x.inRoadmap; });
+  var s = S.sort.all;
+  list.sort(function(a,b){
+    var va = a[s.k], vb = b[s.k];
+    if (s.k === 'priority'){ va = prank(a.priority); vb = prank(b.priority); }
+    if (typeof va === 'string') return (va < vb ? -1 : va > vb ? 1 : 0) * s.d;
+    return ((va||0) - (vb||0)) * s.d;
+  });
+  document.getElementById('tn-all').textContent = list.length;
+
+  var rows = list.map(function(x){
+    return '<tr data-code="'+esc(x.code)+'">'+
+      '<td>'+bucketTag(itemBucket(x))+'</td>'+
+      '<td class="mono">'+esc(x.code)+'</td>'+
+      '<td class="ttl">'+esc(x.title || x.code)+
+        (x.titleEn ? '<span class="en">'+esc(x.titleEn)+'</span>' : '')+'</td>'+
+      '<td class="dim">'+esc(x.area || '—')+'</td>'+
+      '<td>'+priCell(x.priority)+'</td>'+
+      '<td class="dim">'+esc(x.rank || '—')+'</td>'+
+      '<td>'+(x.inRoadmap ? statusTag(x) : '<span class="tag plain">候選</span>')+'</td>'+
+      '<td class="dim clip" style="max-width:190px">'+esc(x.status || '—')+'</td>'+
+      '<td class="r"><b>'+x.total+'</b></td>'+
+      '<td class="r dim">'+x.d7+'</td><td class="r dim">'+x.d30+'</td>'+
+      '<td class="dim">'+esc(x.first||'—')+'</td><td class="dim">'+esc(x.last||'—')+'</td>'+
+      '<td class="dim clip">'+esc(keyList(x.origins).join('、')||'—')+'</td></tr>';
+  }).join('');
+
+  return '<div class="card"><div class="card-h"><h2>所有痛點與 VoC（'+list.length+' 個）</h2>'+
+    '<span class="hint">roadmap 上的 '+countItemsAll(true)+' 個 ＋ 不在 roadmap 的 '+countItemsAll(false)+
+    ' 個候選　·　點欄位標題可排序　·　點任一列看原始聲音</span></div>'+
+    '<div class="scroll"><table class="tbl" data-tab="all"><thead><tr>'+
+    '<th class="no">是否已在 roadmap</th><th data-k="code">代碼'+sortIcon('all','code')+'</th>'+
+    '<th data-k="title">痛點 / VoC'+sortIcon('all','title')+'</th>'+
+    '<th data-k="area">領域'+sortIcon('all','area')+'</th>'+
+    '<th data-k="priority">優先度'+sortIcon('all','priority')+'</th>'+
+    '<th data-k="rank">Rank'+sortIcon('all','rank')+'</th><th class="no">解決狀態</th>'+
+    '<th class="no">Roadmap 狀態</th>'+
+    '<th data-k="total">累計 mention'+sortIcon('all','total')+'</th>'+
+    '<th data-k="d7">近 7 日'+sortIcon('all','d7')+'</th>'+
+    '<th data-k="d30">近 30 日'+sortIcon('all','d30')+'</th>'+
+    '<th data-k="first">初次'+sortIcon('all','first')+'</th>'+
+    '<th data-k="last">最後'+sortIcon('all','last')+'</th>'+
+    '<th class="no">來源</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+function countItemsAll(inRm){
+  var n = 0;
+  for (var i = 0; i < S.items.length; i++)
+    if (S.items[i].inRoadmap === inRm && (S.items[i].total > 0 || S.items[i].inRoadmap)) n++;
+  return n;
+}
+
+/* --- 8c. Roadmap 覆蓋（需求 2 / 3 / 4）--- */
+function viewCov(T){
+  var tot = T.in + T.out + T.pending + T.orphan || 1;
+  var seg = [
+    ['in',  T.in,  'var(--in)',  '在 roadmap'],
+    ['out', T.out, 'var(--out)', '不在 roadmap'],
+    ['unjudged', T.pending + T.orphan, 'var(--pend)', '未判定']
+  ];
+  var bar = seg.map(function(s){
+    var pct = s[1] / tot * 100;
+    return '<div data-kpi="'+s[0]+'" style="width:'+pct.toFixed(2)+'%;background:'+s[2]+'" '+
+           'title="'+s[3]+' '+s[1]+' 則">'+(pct > 7 ? Math.round(pct)+'%' : '')+'</div>';
+  }).join('');
+
+  /* 層級分布 —— 直接回答「已在 roadmap 的話，層級多高」 */
+  var tiers = {};
+  S.items.forEach(function(x){
+    if (!x.inRoadmap) return;
+    var key = x.priority || '未分級';
+    if (!tiers[key]) tiers[key] = { n:0, m:0, unres:0, unresM:0 };
+    tiers[key].n++; tiers[key].m += x.total;
+    if (!x.resolved){ tiers[key].unres++; tiers[key].unresM += x.total; }
+  });
+  var tierKeys = Object.keys(tiers).sort(function(a,b){ return prank(a) - prank(b); });
+  var maxM = 1; tierKeys.forEach(function(k){ maxM = Math.max(maxM, tiers[k].m); });
+  var tierRows = tierKeys.map(function(k){
+    var v = tiers[k];
+    return '<tr data-tier="'+esc(k)+'"><td>'+priCell(k)+'</td>'+
+      '<td class="r">'+v.n+'</td><td class="r">'+v.unres+'</td>'+
+      '<td class="r"><b>'+v.m+'</b><div class="meter"><i style="width:'+
+        (v.m/maxM*100).toFixed(1)+'%;background:var(--in)"></i></div></td>'+
+      '<td class="r">'+v.unresM+'</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="dim">roadmap 讀不到，無法分層。</td></tr>';
+
+  /* 不在 roadmap 的候選，依聲量排序 —— 這就是「該不該加進 VoC」的排隊清單 */
+  var cands = S.items.filter(function(x){ return !x.inRoadmap && !x.orphan && x.total > 0; })
+                     .sort(function(a,b){ return b.total - a.total; });
+  var maxC = cands.length ? cands[0].total : 1;
+  var candRows = cands.slice(0, 14).map(function(x){
+    return '<tr data-code="'+esc(x.code)+'"><td class="mono">'+esc(x.code)+'</td>'+
+      '<td>'+esc(x.title || x.code)+'</td><td class="dim">'+esc(x.area||'—')+'</td>'+
+      '<td class="r"><b>'+x.total+'</b><div class="meter"><i style="width:'+
+        (x.total/maxC*100).toFixed(1)+'%;background:var(--out)"></i></div></td>'+
+      '<td class="r dim">'+x.d30+'</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="dim">目前沒有 roadmap 以外的痛點候選。</td></tr>';
+
+  /* 錯配：聲量進前段、層級卻不高或還沒解決 */
+  var mis = S.items.filter(function(x){ return x.inRoadmap && !x.resolved && x.total >= 3 && prank(x.priority) >= 2; })
+                   .sort(function(a,b){ return b.total - a.total; }).slice(0, 10);
+  var misRows = mis.map(function(x){
+    return '<tr data-code="'+esc(x.code)+'"><td class="mono">'+esc(x.code)+'</td>'+
+      '<td>'+esc(x.title)+'</td><td>'+priCell(x.priority)+'</td>'+
+      '<td class="dim">'+esc(x.rank||'—')+'</td><td class="r"><b>'+x.total+'</b></td>'+
+      '<td class="r dim">'+x.d30+'</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="dim">沒有明顯的聲量／層級落差。</td></tr>';
+
+  return '<div class="card"><div class="card-h"><h2>Roadmap 覆蓋率</h2>'+
+      '<span class="hint">點任一段 → 看該類的所有原始聲音</span></div>'+
+      '<div class="card-b"><div class="cov">'+bar+'</div>'+
+      '<div class="honest" style="margin-top:12px">'+
+        '<span style="color:var(--in)">● 在 roadmap <b class="num">'+T.in+'</b> 則 mention</span>'+
+        '<span style="color:var(--out)">● 不在 roadmap <b class="num">'+T.out+'</b> 則</span>'+
+        '<span style="color:var(--pend)">● 未判定 <b class="num">'+(T.pending+T.orphan)+'</b> 則</span>'+
+      '</div></div></div>'+
+
+    '<div class="grid2">'+
+      '<div class="card" style="margin-top:12px"><div class="card-h"><h2>已在 roadmap 的，層級多高</h2></div>'+
+        '<div class="card-b"><table class="mini"><thead><tr><th>優先度</th><th class="r">痛點數</th>'+
+        '<th class="r">其中未解決</th><th class="r">mention 累計</th><th class="r">未解決的 mention</th>'+
+        '</tr></thead><tbody>'+tierRows+'</tbody></table></div></div>'+
+
+      '<div class="card" style="margin-top:12px"><div class="card-h"><h2>不在 roadmap 的，該加哪些</h2>'+
+        '<span class="hint">依累計聲量排序</span></div>'+
+        '<div class="card-b"><table class="mini"><thead><tr><th>候選 ID</th><th>提案</th><th>建議領域</th>'+
+        '<th class="r">累計</th><th class="r">近 30 日</th></tr></thead><tbody>'+candRows+'</tbody></table></div></div>'+
+    '</div>'+
+
+    '<div class="card"><div class="card-h"><h2>⚠ 聲量與層級不匹配</h2>'+
+      '<span class="hint">累計 3 則以上、仍未解決、但優先度掛在 P2 以下 —— 週會上值得問 PM 的清單</span></div>'+
+      '<div class="card-b"><table class="mini"><thead><tr><th>代碼</th><th>痛點</th><th>優先度</th>'+
+      '<th>Rank</th><th class="r">累計</th><th class="r">近 30 日</th></tr></thead><tbody>'+misRows+
+      '</tbody></table></div></div>';
+}
+
+/* --- 8d. Raw 大表（需求 6）--- */
+function rawFiltered(){
+  var f = S.rawFilter, q = f.q.toLowerCase();
+  return S.raw.filter(function(r){
+    if (f.origin && r[R.ORIGIN] !== f.origin) return false;
+    if (f.theme  && r[R.THEME]  !== f.theme)  return false;
+    if (f.bucket && bucketOf(r) !== f.bucket) return false;
+    if (!q) return true;
+    return (r[R.BODY]+' '+r[R.SUM]+' '+r[R.OWNER]+' '+r[R.CODE]+' '+r[R.TOPIC]+' '+
+            r[R.THEME]+' '+r[R.KIND]+' '+r[R.ORIGIN]).toLowerCase().indexOf(q) >= 0;
+  });
+}
+
+function viewRaw(){
+  var list = rawFiltered();
+  document.getElementById('tn-raw').textContent = S.raw.length;
+  var origins = {}, themes = {};
+  S.raw.forEach(function(r){ if(r[R.ORIGIN]) origins[r[R.ORIGIN]]=1; if(r[R.THEME]) themes[r[R.THEME]]=1; });
+  function opts(o, sel){
+    return Object.keys(o).sort().map(function(k){
+      return '<option value="'+esc(k)+'"'+(sel===k?' selected':'')+'>'+esc(k)+'</option>'; }).join('');
+  }
+
+  var shown = list.slice(0, S.rawShow);
+  var body = shown.map(function(r){
+    var b = bucketOf(r);
+    return '<tr data-id="'+esc(r[R.ID])+'">'+
+      '<td class="mono">'+esc(r[R.OCC]||'—')+'</td>'+
+      '<td class="mono dim">'+esc(r[R.ING]||'—')+'</td>'+
+      '<td>'+esc(r[R.OWNER]||'—')+'</td>'+
+      '<td class="dim">'+esc(r[R.ORIGIN])+(r[R.ODET]?'<br><span style="font-size:11px">'+esc(r[R.ODET])+'</span>':'')+'</td>'+
+      '<td class="dim">'+esc(r[R.THEME]||'—')+'</td>'+
+      '<td class="dim">'+esc(r[R.KIND]||'—')+'</td>'+
+      '<td>'+bucketTag(b)+(isSoft(r)?' <span class="tag warn">要確認</span>':'')+'</td>'+
+      '<td class="mono">'+esc(r[R.CODE]||'—')+'</td>'+
+      '<td class="clip">'+esc(r[R.SUM]||r[R.BODY])+'</td>'+
+      '<td class="r dim">'+esc(r[R.CONF]||'—')+'</td>'+
+      '<td>'+(r[R.LINK] ? '<a href="'+esc(r[R.LINK])+'" target="_blank" rel="noopener" '+
+        'onclick="event.stopPropagation()" style="color:var(--in)">開啟 ↗</a>' : '<span class="dim">—</span>')+'</td>'+
+      '</tr>';
+  }).join('');
+
+  return '<div class="card"><div class="filters">'+
+      '<input type="search" id="rq" placeholder="搜尋原話、發話者、代碼、分類…" value="'+esc(S.rawFilter.q)+'">'+
+      '<select id="rOrigin"><option value="">全部來源</option>'+opts(origins, S.rawFilter.origin)+'</select>'+
+      '<select id="rTheme"><option value="">全部大類別</option>'+opts(themes, S.rawFilter.theme)+'</select>'+
+      '<select id="rBucket"><option value="">全部判定</option>'+
+        ['in','out','pending','orphan','noise'].map(function(k){
+          return '<option value="'+k+'"'+(S.rawFilter.bucket===k?' selected':'')+'>'+BUCKET_LABEL[k]+'</option>';
+        }).join('')+'</select>'+
+      '<button class="iconbtn" id="rCsv">匯出 CSV</button>'+
+      '<span class="count">符合 '+list.length.toLocaleString()+' 筆 / 共 '+S.raw.length.toLocaleString()+' 筆</span>'+
+    '</div>'+
+    '<div class="scroll"><table class="tbl"><thead><tr>'+
+      '<th class="no">発生日</th><th class="no">取込日</th><th class="no">誰說的</th><th class="no">來源</th>'+
+      '<th class="no">大類別</th><th class="no">小類別</th><th class="no">是否已在 roadmap</th>'+
+      '<th class="no">VoC 代碼</th><th class="no">內容</th><th class="no">信賴度</th><th class="no">原始連結</th>'+
+    '</tr></thead><tbody>'+(body || '<tr><td colspan="11" class="empty">沒有符合條件的資料</td></tr>')+
+    '</tbody></table></div>'+
+    (list.length > shown.length ? '<button class="more" id="rMore">再顯示 300 筆（還有 '+
+      (list.length - shown.length).toLocaleString()+' 筆）</button>' : '')+
+    '</div>';
+}
+
+/* =========================================================================
+   9. 抽屜：任何數字 → 構成它的原始聲音（需求 7）
+   ========================================================================= */
+
+var drawerRows = [];
+
+function openDrawer(title, rows, chips, meta){
+  drawerRows = rows;
+  document.getElementById('dTitle').textContent = title;
+  document.getElementById('dMeta').innerHTML = (chips || []).filter(function(c){ return c; })
+    .map(function(c){
+      /* 已經是 <span…> 的直接用，純文字才包成 chip */
+      return /^\s*</.test(c) ? c : '<span class="tag plain">'+esc(c)+'</span>';
+    }).join('') + (meta || '');
+
+  document.getElementById('dActs').innerHTML =
+    '<button class="iconbtn" id="dCopy">複製全部原話（'+rows.length+' 則）</button>'+
+    '<button class="iconbtn" id="dCsv">匯出這批 CSV</button>';
+
+  var sorted = rows.slice().sort(function(a,b){
+    var da = dateOf(a) || '', db = dateOf(b) || '';
+    return da < db ? 1 : da > db ? -1 : 0;
+  });
+
+  document.getElementById('dBody').innerHTML = sorted.length ? sorted.map(function(r){
+    var b = bucketOf(r);
+    return '<div class="ev" data-id="'+esc(r[R.ID])+'">'+
+      '<div class="top"><span class="mono">'+esc(dateOf(r)||'日期不明')+'</span>'+
+        '<span class="who">'+esc(r[R.OWNER]||'發話者不明')+'</span>'+
+        '<span>'+esc(r[R.ORIGIN])+(r[R.ODET]?'／'+esc(r[R.ODET]):'')+'</span>'+
+        (r[R.SPLIT] && r[R.SPLIT] !== '1/1' ? '<span>切分 '+esc(r[R.SPLIT])+'</span>' : '')+
+        bucketTag(b)+(isSoft(r) ? '<span class="tag warn">歸類沒把握</span>' : '')+
+        (r[R.CODE] ? '<span class="tag plain">'+esc(r[R.CODE])+'</span>' : '')+
+      '</div>'+
+      '<div class="txt">'+esc(r[R.BODY] || r[R.SUM])+'</div>'+
+      (r[R.WHY] ? '<div class="why">判定根據：'+esc(r[R.WHY])+
+        (r[R.CONF] !== '' ? '（信賴度 '+esc(r[R.CONF])+'）' : '')+'</div>' : '')+
+      '<div class="acts">'+
+        (r[R.LINK] ? '<a href="'+esc(r[R.LINK])+'" target="_blank" rel="noopener">開啟原始出處 ↗</a>' : '')+
+        '<button data-full="'+esc(r[R.ID])+'">看切分前的完整原文</button>'+
+      '</div><div class="fullslot"></div></div>';
+  }).join('') : '<div class="empty">沒有對應的原始聲音。</div>';
+
+  document.getElementById('drawer').setAttribute('data-on','1');
+  document.getElementById('scrim').setAttribute('data-on','1');
+}
+
+function closeDrawer(){
+  document.getElementById('drawer').removeAttribute('data-on');
+  document.getElementById('scrim').removeAttribute('data-on');
+}
+
+function openCode(code){
+  var it = S.byCode[code];
+  if (!it) return;
+  var chips = [ bucketTag(itemBucket(it)) ];
+  if (it.inRoadmap){
+    chips.push(statusTag(it));
+    chips.push('<span class="tag plain">優先度 '+esc(it.priority || '未定')+'</span>');
+    if (it.rank) chips.push('<span class="tag plain">Rank '+esc(it.rank)+'</span>');
+    if (it.status) chips.push('<span class="tag plain">'+esc(it.status)+'</span>');
+  } else {
+    chips.push('<span class="tag plain">建議 '+esc(it.area || '領域未定')+'／'+esc(it.priority || 'P2')+'</span>');
+  }
+  chips.push('<span class="tag plain">'+esc(it.code)+'</span>');
+  chips.push('<span class="tag plain">累計 '+it.total+' 則</span>');
+  if (it.soft) chips.push('<span class="tag warn">其中 '+it.soft+' 則歸類沒把握</span>');
+
+  var meta = '<div style="margin-top:10px;font-size:12px;color:var(--ink3);line-height:1.7;width:100%">'+
+    '初次 '+esc(it.first||'—')+'　→　最後 '+esc(it.last||'—')+
+    '　·　近 7 日 '+it.d7+' 則　·　近 30 日 '+it.d30+' 則<br>'+
+    '來源：'+esc(keyList(it.origins).join('、')||'—')+
+    (keyList(it.themes).length ? '<br>大類別：'+esc(keyList(it.themes).join('、')) : '')+
+    (it.requests ? '<br>Roadmap 上原記載件數：'+esc(it.requests) : '')+
+    (it.note ? '<br>Roadmap 備註：'+esc(it.note) : '')+
+    '</div>';
+  openDrawer(it.title || it.code, it.rows, chips, meta);
+}
+
+function openBucket(kind){
+  var rows, title;
+  if (kind === 'soft'){
+    rows = S.raw.filter(function(r){ return bucketOf(r) !== 'noise' && isSoft(r); });
+    title = '歸類沒把握的聲音';
+  } else if (kind === 'unjudged'){
+    rows = S.raw.filter(function(r){ var b = bucketOf(r); return b === 'pending' || b === 'orphan'; });
+    title = '未判定與代碼失效的聲音';
+  } else if (kind === 'd1' || kind === 'd7'){
+    var w = windowOf(kind === 'd1' ? 1 : 7);
+    rows = S.raw.filter(function(r){ return bucketOf(r) !== 'noise' && inWin(dateOf(r), w); });
+    title = w.label + '新增的所有聲音';
+  } else {
+    rows = S.raw.filter(function(r){ return bucketOf(r) === kind; });
+    title = BUCKET_LABEL[kind] + ' 的所有聲音';
+  }
+  openDrawer(title, rows, [ '共 ' + rows.length + ' 則' ]);
+}
+
+/* =========================================================================
+   10. CSV
+   ========================================================================= */
+
+function csvCell(v){
+  var s = String(v === null || v === undefined ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+function rowsToCsv(rows){
+  var head = ['発生日','取込日','誰說的','來源','來源詳細','大類別','小類別',
+              '是否已在roadmap','判定','VoC代碼','VoC論点','信賴度','摘要','內容','判定根據','原始連結','切分'];
+  var out = [head.join(',')];
+  rows.forEach(function(r){
+    out.push([ r[R.OCC], r[R.ING], r[R.OWNER], r[R.ORIGIN], r[R.ODET], r[R.THEME], r[R.KIND],
+               BUCKET_LABEL[bucketOf(r)], r[R.VERDICT], r[R.CODE], r[R.TOPIC], r[R.CONF],
+               r[R.SUM], r[R.BODY], r[R.WHY], r[R.LINK], r[R.SPLIT] ].map(csvCell).join(','));
+  });
+  return out.join('\n');
+}
+function showCsv(title, text){
+  document.getElementById('csvTitle').textContent = title;
+  document.getElementById('csvText').value = text;
+  document.getElementById('csvNote').textContent = '';
+  document.getElementById('csvbox').setAttribute('data-on','1');
+}
+
+/* =========================================================================
+   11. 繪製 + 事件
+   ========================================================================= */
+
+function render(){
+  buildItems();
+  var T = totals();
+  renderTop(T);
+  renderChart(T);
+
+  var host = document.getElementById('view');
+  host.innerHTML = S.view === 'new' ? viewNew()
+                 : S.view === 'all' ? viewAll()
+                 : S.view === 'cov' ? viewCov(T)
+                 : viewRaw();
+
+  document.querySelectorAll('#tabs button').forEach(function(b){
+    b.setAttribute('data-on', b.getAttribute('data-v') === S.view ? '1' : '0');
+  });
+  document.querySelectorAll('#basisSeg button').forEach(function(b){
+    b.setAttribute('data-on', b.getAttribute('data-v') === S.basis ? '1' : '0');
+  });
+  document.querySelectorAll('#periodSeg button').forEach(function(b){
+    b.setAttribute('data-on', +b.getAttribute('data-v') === S.period ? '1' : '0');
+  });
+  /* 分頁上的數字要跟目前的期間／基準同步，不能只在該分頁被打開時才更新 */
+  document.getElementById('tn-new').textContent = S.items.filter(function(x){ return x.cur > 0; }).length;
+  document.getElementById('tn-all').textContent = S.items.filter(function(x){ return x.total > 0 || x.inRoadmap; }).length;
+  document.getElementById('tn-raw').textContent = S.raw.length;
+}
+
+document.addEventListener('click', function(e){
+  var t = e.target;
+
+  var seg = t.closest && t.closest('#basisSeg button');
+  if (seg){ S.basis = seg.getAttribute('data-v'); render(); return; }
+  seg = t.closest && t.closest('#periodSeg button');
+  if (seg){ S.period = +seg.getAttribute('data-v'); render(); return; }
+  var tab = t.closest && t.closest('#tabs button');
+  if (tab){ S.view = tab.getAttribute('data-v'); S.rawShow = 300; render(); return; }
+
+  if (t.closest && t.closest('#reload')){ boot(true); return; }
+  if (t.closest && (t.closest('#dClose') || t.id === 'scrim')){ closeDrawer(); return; }
+
+  var kpi = t.closest && t.closest('[data-kpi]');
+  if (kpi){ openBucket(kpi.getAttribute('data-kpi')); return; }
+
+  var codeEl = t.closest && t.closest('[data-code]');
+  if (codeEl){ openCode(codeEl.getAttribute('data-code')); return; }
+
+  var tierEl = t.closest && t.closest('[data-tier]');
+  if (tierEl){
+    var key = tierEl.getAttribute('data-tier');
+    var rows = [];
+    S.items.forEach(function(x){
+      if (x.inRoadmap && (x.priority || '未分級') === key) rows = rows.concat(x.rows);
+    });
+    openDrawer('優先度 ' + key + ' 的所有聲音', rows, [ '共 ' + rows.length + ' 則' ]);
+    return;
+  }
+
+  /* raw 大表：單列 → 只看這一則 */
+  var rawTr = t.closest && t.closest('tbody tr[data-id]');
+  if (rawTr && !t.closest('.ev')){
+    var id = rawTr.getAttribute('data-id');
+    var row = null;
+    for (var i = 0; i < S.raw.length; i++) if (S.raw[i][R.ID] === id){ row = S.raw[i]; break; }
+    if (row) openDrawer(row[R.SUM] || '這一則聲音', [row],
+      [ bucketTag(bucketOf(row)), row[R.CODE] ? '<span class="tag plain">'+esc(row[R.CODE])+'</span>' : '' ]);
+    return;
+  }
+
+  /* 表頭排序 */
+  var th = t.closest && t.closest('th[data-k]');
+  if (th){
+    var tbl = th.closest('table').getAttribute('data-tab');
+    var k = th.getAttribute('data-k');
+    var cur = S.sort[tbl];
+    S.sort[tbl] = (cur && cur.k === k) ? { k:k, d:-cur.d } : { k:k, d:-1 };
+    render();
+    return;
+  }
+
+  if (t.id === 'rMore'){ S.rawShow += 300; render(); return; }
+  if (t.id === 'rCsv'){ showCsv('Raw 大表（符合目前篩選的 ' + rawFiltered().length + ' 筆）', rowsToCsv(rawFiltered())); return; }
+  if (t.id === 'dCsv'){ showCsv('這批聲音（' + drawerRows.length + ' 筆）', rowsToCsv(drawerRows)); return; }
+  if (t.id === 'csvClose'){ document.getElementById('csvbox').removeAttribute('data-on'); return; }
+  if (t.id === 'csvCopy'){
+    var ta = document.getElementById('csvText');
+    ta.select(); ta.setSelectionRange(0, ta.value.length);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(err){ ok = false; }
+    document.getElementById('csvNote').textContent = ok ? '已複製到剪貼簿' : '複製被瀏覽器擋下，請手動 Ctrl/Cmd+C';
+    return;
+  }
+
+  if (t.id === 'dCopy'){
+    var txt = drawerRows.map(function(r){
+      return '[' + (dateOf(r)||'') + '] ' + (r[R.OWNER]||'') + '（' + r[R.ORIGIN] + '）\n' +
+             (r[R.BODY] || r[R.SUM]) + (r[R.LINK] ? '\n' + r[R.LINK] : '');
+    }).join('\n\n');
+    showCsv('全部原話（' + drawerRows.length + ' 則，可直接貼給 PM）', txt);
+    return;
+  }
+
+  /* 抽屜內：展開切分前的完整原文 */
+  var full = t.closest && t.closest('[data-full]');
+  if (full){
+    var slot = full.closest('.ev').querySelector('.fullslot');
+    if (slot.innerHTML){ slot.innerHTML = ''; return; }
+    slot.innerHTML = '<div class="full">讀取中…</div>';
+    call('apiDetail', full.getAttribute('data-full')).then(function(d){
+      slot.innerHTML = '<div class="full">' +
+        (d.ok ? esc(d.original || d.body || '（沒有保留原文）') : '讀不到：' + esc(d.error)) + '</div>';
+    })['catch'](function(err){
+      slot.innerHTML = '<div class="full">讀取失敗：' + esc(err.message) + '</div>';
+    });
+    return;
+  }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id === 'rq'){
+    S.rawFilter.q = e.target.value; S.rawShow = 300;
+    var pos = e.target.selectionStart;
+    render();
+    var box = document.getElementById('rq');
+    if (box){ box.focus(); box.setSelectionRange(pos, pos); }
+  }
+});
+document.addEventListener('change', function(e){
+  var m = { rOrigin:'origin', rTheme:'theme', rBucket:'bucket' };
+  if (m[e.target.id]){ S.rawFilter[m[e.target.id]] = e.target.value; S.rawShow = 300; render(); }
+});
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ closeDrawer();
+  document.getElementById('csvbox').removeAttribute('data-on'); } });
+window.addEventListener('resize', function(){ if (S.core) renderChart(totals()); });
+
+/* =========================================================================
+   12. 開場
+   ========================================================================= */
+
+function bootMsg(t, s, pct){
+  document.getElementById('bootT').textContent = t;
+  if (s !== undefined) document.getElementById('bootS').textContent = s;
+  if (pct !== undefined) document.getElementById('bootBar').style.width = pct + '%';
+}
+
+function fail(msg){
+  document.getElementById('boot').innerHTML =
+    '<div style="max-width:620px;text-align:center;padding:24px">'+
+    '<div style="font-size:15px;color:var(--crit);margin-bottom:12px;font-weight:600">介面載不起來</div>'+
+    '<div style="font-size:13px;color:var(--ink2);line-height:1.8;white-space:pre-wrap">'+esc(msg)+'</div>'+
+    '<div style="font-size:12px;color:var(--ink3);margin-top:18px;line-height:1.8">'+
+    '先到 Apps Script 執行一次 <b>testDashboard</b>，再打開 VoC_Bot_Log 看它寫了什麼。</div></div>';
+}
+
+function boot(again){
+  document.getElementById('boot').style.display = 'flex';
+  bootMsg('連線中…', '正在讀取 roadmap 與痛點清單', 6);
+
+  call('apiCore').then(function(core){
+    if (!core.ok) throw new Error(core.problems.join('\n'));
+    S.core = core;
+    S.today = String(core.generatedAt || '').slice(0, 10);
+    document.getElementById('stamp').textContent = '資料截至 ' + core.generatedAt + ' JST';
+
+    var probs = core.problems.slice();
+    if (core.degraded) probs.push('bot 沒有設定 ANTHROPIC_API_KEY，判定走的是規則式關鍵字比對。' +
+      '日文聲音對英文痛點清單的命中率偏低，被標成「規則式(精度低)」的列請當成參考值。');
+    document.getElementById('problems').innerHTML = probs.length
+      ? '<div class="warnbar"><b>要注意的事（' + probs.length + '）</b>' +
+        probs.map(function(p){ return '· ' + esc(p); }).join('<br>') + '</div>' : '';
+    if (!HAS_GAS) document.getElementById('problems').insertAdjacentHTML('afterbegin',
+      '<div class="demo">⚠ 這是離線預覽版，畫面上全部是虛構的示範資料，不是真實 VoC。' +
+      '正式版請用 Apps Script 部署的網址開啟。</div>');
+
+    S.raw = [];
+    var pages = Math.max(1, Math.ceil((core.rawCount || 0) / (core.pageSize || 1200)));
+    function loadPage(i){
+      if (core.rawCount === 0) return Promise.resolve();
+      bootMsg('讀取原始聲音…', '第 ' + (i + 1) + ' / ' + pages + ' 批', 10 + (i / pages) * 85);
+      return call('apiRaw', i * core.pageSize).then(function(p){
+        if (!p.ok) throw new Error(p.error);
+        S.raw = S.raw.concat(p.rows);
+        if (!p.done && p.rows.length > 0) return loadPage(i + 1);
+      });
+    }
+    return loadPage(0);
+  }).then(function(){
+    bootMsg('整理中…', '', 100);
+    render();
+    document.getElementById('boot').style.display = 'none';
+  })['catch'](function(err){
+    fail(err && err.message ? err.message : String(err));
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
