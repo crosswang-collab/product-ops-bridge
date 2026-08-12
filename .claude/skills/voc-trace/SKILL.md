@@ -4,7 +4,7 @@ description: >
   VOC 溯源 graph — 回答「這個 feature/痛點的 VOC 來源是什麼？用戶原話在哪？」類問題
   （通常來自 PM）。當 Cross 貼上 PM 的提問、或提到「voc 來源」「用戶原話」「出處」
   「為什麼 roadmap 上有這條」「痛點依據」時觸發。輸出必須是逐字引文 + 完整出處鏈，
-  並存檔到 voc-trace/ANSWER-*.md。
+  存成 ANSWER 檔（有 repo 時進 voc-trace/ 並 commit，無 repo 時見「執行環境」段）。
 ---
 
 # voc-trace — PM 問題 VOC 溯源 graph
@@ -14,6 +14,20 @@ description: >
 PM 常問：「這條 roadmap item 的 VOC 依據是什麼？我找不到用戶原話。」
 這個 graph 把「找原話」變成固定流程：**每一個 claim 都要有逐字引文 + 可點開的出處**，
 沒有出處的句子不准出現在答案裡。
+
+## 執行環境（開工第一件事：先判斷自己在哪）
+
+本 skill 是**帳號層 skill**，會在三種環境被載入，能力不同。**先判定環境，再決定 ANSWER 存哪、哪些源可用。**
+
+| 環境 | 怎麼判定 | ANSWER 存哪 | 差異 |
+|---|---|---|---|
+| **A. `product-ops-bridge` repo 內**（Claude Code） | 有檔案工具，且 `git remote -v` 含 `product-ops-bridge` | `voc-trace/ANSWER-<日期>-<code>.md`，**並 commit**（完整契約第 5 條） | 全能力。註冊表 #14 的 repo 內嵌 DATA 可用 |
+| **B. 其他 repo / 本機**（Claude Code） | 有檔案工具，但 remote 不是 product-ops-bridge | **不要寫進別人的 repo**。寫到 scratchpad 或 Cross 指定的路徑，並在交付時明說「未 commit，需搬回 product-ops-bridge」 | 註冊表 #14 不可用（那是 repo 內嵌快照）→ 少一層佐證，須在答案中註明 |
+| **C. claude.ai / Desktop**（無 repo） | 沒有 Read/Bash 這類檔案工具 | 沒有檔案系統可存 → **輸出完整 ANSWER 全文到對話**，開頭標「⚠️ 未存檔，需 Cross 貼回 repo `voc-trace/`」 | 註冊表 #14 不可用。Drive／Jira／Confluence／Calendar 連接器仍可用，主線流程（Step 1–5）完整可跑 |
+
+**契約第 5 條在 B/C 環境降級為「輸出全文 + 明示未存檔」，其餘 1–4、6 條一律不降級。**
+引文逐字驗證（契約 1）在任何環境都是硬要求 —— 沒有檔案系統不是腦補引文的理由，
+Drive 連接器的 `fullText contains` 就是驗證管道。
 
 ## 為什麼 PM 通常找不到（三個獨立原因，開工前先讀）
 
@@ -79,7 +93,7 @@ flowchart TD
 | 11 | 機器 | STT VOC 候補（ayana.y@）| `11ivRruXPFwpz7OOx9Y5pcXoUoNb-1CRNDSISJ3N7L4o` 等 | 主播語音逐字挖出的候補，精度需人工複核 |
 | 12 | 二次 | Confluence《My event research reports》| page `2925395973`（space `17livedesign`）| n=1,388 問卷量化報告；**只有百分比，沒有逐字**，圖表讀不到 |
 | 13 | 票 | Jira APPIDEAS（project id 10172, JPD）| `searchJiraIssuesUsingJql` 可用 | 票上多半沒掛 VOC；PM 從票往下追會斷 |
-| 14 | 佐證 | 本 repo dashboard 內嵌 DATA（291 筆）| `JP_Needs_Heatmap_JP.html` 的 `const DATA=[...]` | 258 筆有 `dja` 日文逐字、129 筆同時有具名+日期。**凍結快照，非即時** |
+| 14 | 佐證 | dashboard 內嵌 DATA（291 筆）**僅環境 A 可用** | `product-ops-bridge` repo 的 `JP_Needs_Heatmap_JP.html`，`const DATA=[...]` | 258 筆有 `dja` 日文逐字、129 筆同時有具名+日期。**凍結快照，非即時**。環境 B/C 撈不到 → 答案須註明少這層佐證 |
 | 15 | 索引 | Google Calendar 主日曆 | 「VOC Roadmap Tracking」隔週一 12:00 TPE 等 | 會議是 **Google Meet**，過去場次的 event 上直接掛 Recording + Notes by Gemini + notes doc |
 
 新資料源出現時：加一列（這張表就是 graph 的 state 之一）。
@@ -98,10 +112,16 @@ flowchart TD
 **§C Google Form 本體讀不到。** 表單物件是死路；逐筆回答在同 parent 的
 `<表單名> (Responses)` 兄弟 Sheet。用 `parentId` 或表單名 + `(Responses)` 找。
 
-**§D Slack `#UserFeedback` (C06PRMJ6HRD) 撈不到 —— 這是組織問題不是技術問題。**
-Slack 連線的身分是 mikai-inc workspace（`U0A5JJ3LHDF`），不是 17media workspace；
-`slack_read_channel` 回硬錯誤 `channel_not_found`，channel 搜尋 0 筆。實測確認，不要重試。
-**替代**：註冊表 #8 的 Drive 彙整檔；或請 17media workspace 管理員授權 17LIVE-scoped 連線。
+**§D Slack `#UserFeedback` (C06PRMJ6HRD) 撈不到 —— 這是「連錯 workspace」不是「權限不足」。**
+Slack 連線的身分實測為 `U0A5JJ3LHDF` / `crosswang@mikai.co.jp` / Organization `mikai inc.`，
+**且該身分在 mikai workspace 是 Admin + Owner** —— 所以問題不是 Cross 權限不夠，
+而是連接器授權到了另一個 workspace；17LIVE 的 channel 天生不在可視範圍內。
+`slack_read_channel` 回硬錯誤 `channel_not_found`，`slack_search_channels`（含 private）0 筆。
+2026-08-12 再次實測確認，**不要重試、不要換 channel ID 試**。
+**替代**：註冊表 #8 的 Drive 彙整檔（`#jp-user_feedback まとめ`）。
+**根治**：見 `voc-trace/ACCESS-REQUEST-slack-userfeedback.md`（Path A 自助換授權 → Path B 才需要 admin）。
+**影響範圍**：以 Slack permalink 為出處的引文**無法逐字驗證** → 依契約第 4 條，
+這類引文只能寫「出處為 Slack，目前管道不可驗」，**不得當成已驗證引文交付**。
 **副作用**：voc-bot 若在跑，Slack 那段會被跳過、判定降級成「規則式(精度低)」。
 
 **§E 引文出處要指到「層」**，不要只寫檔名。同一句話會同時存在於 L3 原始、L2 彙整、
@@ -120,14 +140,16 @@ L2 evidence 三個地方；答案要說清楚**哪一層是原生的、哪一層
 4. 找不到原話時，答案必須明說「在已註冊資料源中找不到原話」，列出搜過的源與關鍵詞，
    並附 negative control 結果（§F）。**禁止腦補引文。**
 5. 答案存檔為 `voc-trace/ANSWER-<YYYY-MM-DD>-<code>.md` 並 commit（跨執行 state：
-   已答過的問題不重做，下次引用舊檔再增量）。
+   已答過的問題不重做，下次引用舊檔再增量）。**環境 B/C 依「執行環境」段降級，
+   降級時必須在交付訊息第一行明示未存檔** —— 沉默的未存檔等於下次從零重做。
 6. **同一份 ANSWER 被修正時，必須留「修正記錄」段**，寫清楚 v1 錯在哪、成因是什麼。
    Cross 可能已經根據 v1 回過 PM。
 
 ## Loop 判定（loop-contract Step 0 結論，寫死在此避免每次重議）
 
 - Q1「每個輸出 Cross 都會親自讀過才用嗎？」→ **是**（回 PM 前必讀）→ **停在 prompt 層，不建無人 loop**。
-- 無人化的部分另有 `voc-bot/`（GAS 每日 08:00 JST）。voc-trace 消費它的產出，不重複建排程。
+- 無人化的部分另有 `product-ops-bridge` repo 的 `voc-bot/`（GAS 每日 08:00 JST）。
+  voc-trace 消費它的產出，不重複建排程。
   ⚠️ voc-bot 是否真的在跑，需看目標表是否有 `VoC_*` 分頁在長；**Code.gs 裡的 Slack token 是 placeholder，
   且 §D 的身分問題未解 → 即使部署了，Slack 那段也是跳過的。**
 
