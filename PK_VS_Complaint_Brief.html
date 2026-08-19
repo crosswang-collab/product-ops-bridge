@@ -1,0 +1,362 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>新人主播的 VS 洗版問題</title>
+<style>
+:root{--bg:#0d1119;--s1:#161c28;--s2:#1d2533;--bd:#2a3344;--tx:#e9edf6;--mut:#8b95ab;--dim:#5d6678;
+--acc:#5fd3e6;--red:#e0483f;--redl:#ff9b94;--amb:#d99a5b;--grn:#5fc98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+font:14px/1.6 system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans TC",sans-serif;
+-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 70px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;border-bottom:1px solid var(--bd);padding-bottom:13px}
+h1{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0}
+.ver{font-size:11px;font-weight:700;color:var(--bg);background:var(--acc);padding:2px 7px;border-radius:4px;letter-spacing:.04em}
+.sub{color:var(--mut);font-size:12.5px;margin-left:auto}
+@media(max-width:720px){.sub{margin-left:0;width:100%}}
+
+.bluf{margin:16px 0 6px;font-size:14px;line-height:1.75;color:#cfd6e6;
+background:linear-gradient(90deg,rgba(95,211,230,.10),transparent);
+border-left:3px solid var(--acc);padding:14px 16px;border-radius:0 8px 8px 0}
+.bluf b{color:#fff}
+.bluf .hot{color:var(--redl);font-weight:700}
+
+.kpis{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 26px}
+.kpi{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:10px 14px;min-width:132px;flex:1}
+.kpi .v{font-size:23px;font-weight:800;letter-spacing:-.02em}
+.kpi .l{font-size:11px;color:var(--mut);margin-top:2px;line-height:1.4}
+.kpi.warn{border-color:rgba(224,72,63,.45)}.kpi.warn .v{color:var(--redl)}
+
+h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+margin:34px 0 11px;font-weight:800;border-top:1px solid var(--bd);padding-top:16px}
+h2:first-of-type{border-top:0;padding-top:0}
+h3{font-size:14.5px;margin:20px 0 8px;font-weight:700}
+
+.tbl-wrap{border:1px solid var(--bd);border-radius:11px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+thead th{background:var(--s2);text-align:left;padding:9px 12px;font-size:11px;letter-spacing:.04em;
+color:var(--mut);font-weight:700;white-space:nowrap;border-bottom:1px solid var(--bd)}
+tbody td{padding:10px 12px;border-bottom:1px solid #1b2230;vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#141a26}
+.ja{color:#e9edf6;font-size:13px}
+.zh{color:var(--mut);font-size:12px;margin-top:3px}
+.t{white-space:nowrap;color:var(--acc);font-weight:700;font-size:12px}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.tag.ok{background:rgba(95,201,138,.16);color:var(--grn)}
+.tag.warn{background:rgba(217,154,91,.16);color:var(--amb)}
+.tag.no{background:rgba(224,72,63,.16);color:var(--redl)}
+.tag.n{background:var(--s2);color:#bcc6da;border:1px solid var(--bd)}
+
+.gap{background:var(--s1);border:1px solid var(--bd);border-left:3px solid var(--red);
+border-radius:0 10px 10px 0;padding:15px 17px;margin-bottom:12px}
+.gap.amber{border-left-color:var(--amb)}
+.gap .gh{font-size:14.5px;font-weight:800;margin-bottom:9px;color:#fff}
+.gap .gh .n{color:var(--redl);margin-right:7px}
+.gap.amber .gh .n{color:var(--amb)}
+.gap ul{margin:0;padding-left:19px}
+.gap li{margin-bottom:6px;color:#cfd6e6;font-size:13px}
+.gap li:last-child{margin-bottom:0}
+.quo{display:block;background:#10151f;border:1px solid var(--bd);border-radius:6px;
+padding:7px 10px;margin:5px 0;font-size:12.5px;color:#dfe5f1}
+.quo .src{color:var(--dim);font-size:11px;display:block;margin-top:3px}
+.ask{margin-top:10px;padding:9px 12px;background:rgba(95,211,230,.08);
+border:1px dashed rgba(95,211,230,.4);border-radius:7px;font-size:13px;color:#dfe5f1}
+.ask b{color:var(--acc)}
+
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:9px;background:#10151f;border-radius:5px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:5px}
+.bar i.lo{background:var(--dim)}
+.bar i.risk{background:var(--red)}
+.pct{width:52px;text-align:right;font-weight:700;font-size:12.5px}
+
+ol.act{padding-left:0;list-style:none;counter-reset:a;margin:0}
+ol.act li{counter-increment:a;position:relative;padding:12px 14px 12px 46px;background:var(--s1);
+border:1px solid var(--bd);border-radius:10px;margin-bottom:9px;font-size:13.5px;color:#dfe5f1}
+ol.act li::before{content:counter(a);position:absolute;left:14px;top:12px;width:20px;height:20px;
+background:var(--acc);color:var(--bg);border-radius:50%;font-size:12px;font-weight:800;
+display:flex;align-items:center;justify-content:center}
+ol.act li b{color:#fff}
+
+.note{color:var(--mut);font-size:12.5px;line-height:1.8;background:var(--s1);
+border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.note b{color:#dfe5f1}
+a{color:var(--acc)}
+.foot{color:var(--dim);font-size:11.5px;margin-top:26px;line-height:1.8;
+border-top:1px solid var(--bd);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>PK / VS 功能改善要望</h1>
+  <span class="ver">讀後簡報</span>
+  <span class="sub">來源：日本團隊 deck（13 頁）· mayu@17.media · 建立 2026-06-09 · 最後更新 2026-08-13</span>
+</header>
+
+<div class="bluf">
+<b>先講結論。</b>這不是用戶客訴，是<b>日本團隊自己提的內部改善要望</b>，證據來自他們去看新人主播的配信錄影。
+核心事實：<b>新人主播第一次開播就被 VS 對戰邀請洗版</b> —— 接受會被等級遠高的對手輾壓，拒絕則馬上又被邀請，
+兩條路都導向同一個結果：<b>主播自己把 VS 功能關掉，或乾脆不播了</b>。<br>
+日本只要兩個小改動（教學確認畫面 + 15 分鐘冷卻），並主動把 matching 演算法排除在本次範圍外 —— 提案本身克制、成本低。
+<span class="hot">但②號冷卻的規格只擋「同一個人」，而 deck 自己在 As-Is 診斷的病灶是「擋不住其他人發來的新邀請」。規格比診斷窄，可能修不到病灶。</span>
+這是你回覆前唯一必須釐清的事，而且一句話就能問完。
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="v num">2</div><div class="l">日本本次提出的要求數<br>（第 3 項自己排除）</div></div>
+  <div class="kpi warn"><div class="v num">43.7%</div><div class="l">Lv1 主播的 VS 回訪率<br>全體平均 55.9%</div></div>
+  <div class="kpi"><div class="v num">417</div><div class="l">首次 VS 樣本人數<br>2026 年 1–4 月</div></div>
+  <div class="kpi warn"><div class="v num">3</div><div class="l">我判定的提案缺口<br>1 個必須擋、2 個要註記</div></div>
+</div>
+
+<h2>一、先正名：這份文件到底是什麼</h2>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th style="width:32%">容易誤會的</th><th>實際上是</th></tr></thead>
+<tbody>
+<tr><td>用戶客訴 / 客服工單</td><td>日本團隊的<b>社內提案</b>（機能改善要望）。標題頁自己標記為「VOC」，但它是二手整理過的提案，不是原始工單。</td></tr>
+<tr><td>用戶抱怨 PK 太難玩</td><td>抱怨的是<b>「第一次開播就被邀請、而且擋不掉」</b>。痛點在時機與頻率，不在玩法。</td></tr>
+<tr><td>問卷 / 數據推論</td><td>來源是<b>新人主播配信的監控調查</b> —— 他們實際去看錄影、聽主播當下講了什麼。<br>deck 原文：「システム上の数値だけでは見えてこない」（光看系統數字看不出來的東西）。</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>二、用戶到底在說什麼（逐字，未改寫）</h2>
+
+<h3>案例 A —— 新人第一次開播，接受了邀請</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th style="width:15%">時間點</th><th>主播原話（日文原聲）</th></tr></thead>
+<tbody>
+<tr><td class="t">4:35<div class="zh">第 1 次通知</div></td>
+  <td><div class="ja">「分かんない 知らない人からバーサスのなんか来た」</div>
+      <div class="zh">不知道…有個陌生人傳來一個叫 versus 的東西</div></td></tr>
+<tr><td class="t">5:35<div class="zh">第 2 次通知</div></td>
+  <td><div class="ja">「あ、また来た承諾してみるか?分かんない」</div>
+      <div class="zh">啊，又來了。要接受看看嗎？不知道</div></td></tr>
+<tr><td class="t">5:40<div class="zh">VS 開始</div></td>
+  <td><div class="ja">「承諾してみるか?分かんないしこんばんはこんばんはー」</div>
+      <div class="zh">要接受看看嗎？不知道啦…晚安晚安～</div></td></tr>
+<tr><td class="t">19:30<div class="zh">VS 結束後</div></td>
+  <td><div class="ja">「あれ?わかんない わかんない 誰か助けて」</div>
+      <div class="zh">咦？不懂 不懂 誰來救我</div></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>案例 B —— 拒絕之後</h3>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th style="width:15%">時間點</th><th>主播原話（日文原聲）</th></tr></thead>
+<tbody>
+<tr><td class="t">41:15<div class="zh">第 1 次通知</div></td>
+  <td><div class="ja">「対戦の招待めっちゃくるんやけど1回断ったのに」</div>
+      <div class="zh">對戰邀請一直來耶，我明明已經拒絕過一次了</div></td></tr>
+<tr><td class="t">41:20<div class="zh">第 2 次通知</div></td>
+  <td><div class="ja">「…ちょっと初配信で対戦はハードル高すぎ」</div>
+      <div class="zh">…初次開播就要對戰，門檻太高了吧</div></td></tr>
+</tbody>
+</table>
+</div>
+<p class="note" style="margin-top:10px">
+<b>注意這兩個時間戳：41:15 → 41:20，相隔 5 秒。</b>
+deck 另一處補充，觀測到的復發間隔還有「1 分 20 秒後」「4 分後」。
+這組數字後面會用到 —— 它同時支持「要做冷卻」，也質疑「15 分鐘」這個數值。
+</p>
+
+<h2>三、兩條失敗路徑，一個相同結局</h2>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th style="width:14%">路徑</th><th style="width:43%">主播經歷什麼</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td><span class="tag n">① 接受</span></td>
+  <td>跟等級與資歷「圧倒的に上」的格上對手直接配對，配信中與配信後陷入混亂。<br>
+      deck 原文：「バトルのこと全然知らなかった」（我根本不知道什麼是對戰）</td>
+  <td>「しばらくVSは辞めておこう」<div class="zh">VS 先暫停一陣子吧 → <b>自己關掉功能</b></div></td></tr>
+<tr><td><span class="tag n">② 拒絕</span></td>
+  <td>擔心「拒絕在對方畫面會長怎樣」「會不會失禮惹麻煩」；<br>
+      鼓起勇氣拒絕後，馬上又收到邀請。<br>
+      deck 原文：「怖い怖い怖い」「何回も来るんだけど」</td>
+  <td>強烈拒斥感與恐懼<div class="zh">→ <b>自己關掉功能，或直接離開</b></div></td></tr>
+<tr><td><span class="tag no">③ 隱藏</span></td>
+  <td><b>沒有粉絲的前輩主播，把新人當成「話し相手」（撐場面的聊天對象）單方面利用。</b><br>
+      deck 把這寫在背景，但後面兩個要求都沒有對應到它。</td>
+  <td><span class="tag no">無人處理</span><div class="zh">見下方缺口 3</div></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>四、日本要什麼</h2>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th style="width:6%">#</th><th style="width:20%">要求</th><th>內容</th><th style="width:11%">成本</th><th style="width:15%">我的判定</th></tr></thead>
+<tbody>
+<tr><td><b>①</b></td><td>UI/UX 教學畫面</td>
+  <td>第一次「接受」VS 之前，插入一個說明畫面。四項具體修改：<br>
+      • 加上<b>對手等級</b>，讓新人想像得出對方是誰<br>
+      • 說明<b>VS 是什麼</b>、有什麼好處<br>
+      • 明講<b>「拒絕不會讓對方不舒服」</b><br>
+      • 按鈕文案改成柔性的「<b>今回はやめる</b>」（這次先不要，之後還能玩）</td>
+  <td><span class="tag ok">小</span><div class="zh">純前端 + 文案</div></td>
+  <td><span class="tag ok">✅ 直接准</span><div class="zh">直打「不意打ち」問題</div></td></tr>
+<tr><td><b>②</b></td><td>拒絕後冷卻</td>
+  <td>主播按下「拒絕」後的一段時間（15 分鐘），系統暫時擋掉<b>同一人</b>發來的 VS 邀請通知。</td>
+  <td><span class="tag ok">小</span><div class="zh">後端規則</div></td>
+  <td><span class="tag warn">⚠️ 概念准</span><div class="zh">規格要補資料才定案</div></td></tr>
+<tr><td>—</td><td>Matching 演算法</td>
+  <td>依等級 / 配信實績配對相近的對手。</td>
+  <td><span class="tag warn">大</span></td>
+  <td><span class="tag n">🚫 本次排除</span><div class="zh">日本自己排除，會另案提</div></td></tr>
+</tbody>
+</table>
+</div>
+<p class="note" style="margin-top:10px">
+<b>值得肯定的一點：</b>日本在 Appendix 認真評估過「乾脆把新人的 VS 鎖到 Lv10」這個方案，然後<b>自己否決了</b>，
+理由是等級成長速度個人差太大（快的人幾天到 Lv10，一般人要好幾個月），一律鎖會讓大多數人好幾個月碰不到 VS。
+這是誠實的取捨分析，不是硬推自家方案。
+</p>
+
+<h2>五、⚠️ 提案的三個缺口（這是你回覆時的籌碼）</h2>
+
+<div class="gap">
+<div class="gh"><span class="n">缺口 1</span>冷卻的規格，比它自己的診斷窄</div>
+<ul>
+<li>deck 在 <b>As-Is</b> 診斷的病灶是這樣寫的：
+  <span class="quo">「他ユーザーからの新たなオファーを制限する仕組みがなく、数分おきに通知が届き続ける」
+  <span class="src">沒有機制限制<b>其他使用者</b>發來的新邀請，導致每隔幾分鐘就持續收到通知 —— deck P.7 As-Is</span></span></li>
+<li>但 <b>機能要件②</b> 寫的解法是：
+  <span class="quo">「一定時間（例：15分間）、<b>同一人物</b>からのVSオファー通知をシステム側で一時的にブロックする」
+  <span class="src">擋掉<b>同一個人</b>的邀請 —— deck P.8 / P.10</span></span></li>
+<li>證據那一側也偏向「很多人」而非「同一人」：主播說的是「<b>知らない人から</b>」（陌生人傳來）、「<b>めっちゃくる</b>」（一直來一大堆）。</li>
+<li><b>deck 從頭到尾沒有證明重複邀請來自同一個人。</b>如果實際上是不同人各發一次，②號上線後主播的體感不會改變 —— 通知照樣每隔幾分鐘進來。</li>
+</ul>
+<div class="ask"><b>要問的一句話：</b>那份錄影／對話 sheet 裡，連續進來的邀請，sender 是不是同一個 openID？
+拆出來看就知道。若不是 → 規格要改成<b>全域冷卻</b>（拒絕後 N 分鐘內，該主播不接收任何新 VS 邀請），而不是 per-person。</div>
+</div>
+
+<div class="gap amber">
+<div class="gh"><span class="n">缺口 2</span>「15 分鐘」是拍的，不是算的</div>
+<ul>
+<li>deck 給的理由全文是：
+  <span class="quo">「1時間配信したとして15分ブロックすれば4分の1の配信が守られたことになるので適正と考える」
+  <span class="src">假設播 1 小時，擋 15 分鐘等於守住 1/4 的配信，所以認為適當 —— deck P.10</span></span></li>
+<li>這句話只是 15÷60＝1/4 的算術，<b>它沒有說明為什麼「1/4」是對的保護量</b>，也沒有連結到任何用戶行為數據。</li>
+<li>而 deck 自己觀測到的復發間隔是 <b>1 分 20 秒</b>、<b>4 分</b>、以及案例 B 的 <b>5 秒</b> —— <b>5 分鐘的冷卻就已經蓋掉全部觀測到的案例</b>。</li>
+<li>影響有限：15 分鐘不會造成傷害，不必為此擋下提案。但別讓它以「有數據支撐的最適值」的身分被寫進規格文件。</li>
+</ul>
+</div>
+
+<div class="gap">
+<div class="gh"><span class="n">缺口 3</span>「話し相手」濫用完全沒被處理</div>
+<ul>
+<li>deck 背景段落寫得很清楚：
+  <span class="quo">「ファンがついていない先輩ライバーが場を持たせるための『話し相手』として、新人ライバーを一方的に利用する場面も確認されています」
+  <span class="src">沒有粉絲的前輩主播，為了撐場面，把新人主播當成「聊天對象」單方面利用 —— deck P.3</span></span></li>
+<li>①教學畫面擋不住它（新人看完說明還是會被找上）；②冷卻也擋不住它（那是<b>慣性行為</b>，不是一次性誤觸，換個時間、換個新人繼續）。</li>
+<li><b>這是平台治理問題，不是 UX 問題。</b>兩個 UI 層的補丁不會讓它消失。</li>
+</ul>
+<div class="ask"><b>建議：</b>獨立開一條，不要塞進這次的 scope。先問日本：這個行為的規模有多大？是少數幾個人重複做，還是普遍現象？
+如果是前者，處理起來比改功能便宜得多。</div>
+</div>
+
+<h2>六、數據：等級 × VS 回訪率（2026 年 1–4 月）</h2>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th style="width:9%">等級</th><th style="width:11%">首次實施</th><th style="width:11%">第 2 次</th><th>回訪率</th><th style="width:14%">樣本可信度</th></tr></thead>
+<tbody>
+<tr><td><b>Lv1</b></td><td class="num">71</td><td class="num">31</td>
+ <td><div class="bar-row"><div class="bar"><i class="risk" style="width:43.7%"></i></div><span class="pct num">43.7%</span></div></td>
+ <td><span class="tag ok">足夠</span></td></tr>
+<tr><td><b>Lv2</b></td><td class="num">96</td><td class="num">50</td>
+ <td><div class="bar-row"><div class="bar"><i class="risk" style="width:52.1%"></i></div><span class="pct num">52.1%</span></div></td>
+ <td><span class="tag ok">足夠</span></td></tr>
+<tr><td><b>Lv3</b></td><td class="num">69</td><td class="num">41</td>
+ <td><div class="bar-row"><div class="bar"><i class="risk" style="width:59.4%"></i></div><span class="pct num">59.4%</span></div></td>
+ <td><span class="tag ok">足夠</span></td></tr>
+<tr><td><b>Lv4</b></td><td class="num">42</td><td class="num">28</td>
+ <td><div class="bar-row"><div class="bar"><i style="width:66.7%"></i></div><span class="pct num">66.7%</span></div></td>
+ <td><span class="tag ok">足夠</span></td></tr>
+<tr><td><b>Lv5</b></td><td class="num">27</td><td class="num">12</td>
+ <td><div class="bar-row"><div class="bar"><i style="width:44.4%"></i></div><span class="pct num">44.4%</span></div></td>
+ <td><span class="tag ok">足夠</span></td></tr>
+<tr><td>Lv6</td><td class="num">20</td><td class="num">13</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:65.0%"></i></div><span class="pct num">65.0%</span></div></td>
+ <td><span class="tag warn">低樣本</span></td></tr>
+<tr><td>Lv7</td><td class="num">15</td><td class="num">11</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:73.3%"></i></div><span class="pct num">73.3%</span></div></td>
+ <td><span class="tag warn">低樣本</span></td></tr>
+<tr><td>Lv8</td><td class="num">16</td><td class="num">9</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:56.2%"></i></div><span class="pct num">56.2%</span></div></td>
+ <td><span class="tag warn">低樣本</span></td></tr>
+<tr><td>Lv9</td><td class="num">21</td><td class="num">16</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:76.2%"></i></div><span class="pct num">76.2%</span></div></td>
+ <td><span class="tag warn">低樣本</span></td></tr>
+<tr><td>Lv10</td><td class="num">7</td><td class="num">4</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:57.1%"></i></div><span class="pct num">57.1%</span></div></td>
+ <td><span class="tag no">不可用</span></td></tr>
+<tr><td>Lv11</td><td class="num">11</td><td class="num">7</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:63.6%"></i></div><span class="pct num">63.6%</span></div></td>
+ <td><span class="tag no">不可用</span></td></tr>
+<tr><td>Lv12</td><td class="num">6</td><td class="num">3</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:50.0%"></i></div><span class="pct num">50.0%</span></div></td>
+ <td><span class="tag no">不可用</span></td></tr>
+<tr><td>Lv13</td><td class="num">6</td><td class="num">4</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:66.7%"></i></div><span class="pct num">66.7%</span></div></td>
+ <td><span class="tag no">不可用</span></td></tr>
+<tr><td>Lv14</td><td class="num">3</td><td class="num">2</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:66.7%"></i></div><span class="pct num">66.7%</span></div></td>
+ <td><span class="tag no">不可用</span></td></tr>
+<tr><td>Lv15</td><td class="num">7</td><td class="num">2</td>
+ <td><div class="bar-row"><div class="bar"><i class="lo" style="width:28.6%"></i></div><span class="pct num">28.6%</span></div></td>
+ <td><span class="tag no">不可用</span></td></tr>
+<tr style="background:var(--s2)"><td><b>合計</b></td><td class="num"><b>417</b></td><td class="num"><b>233</b></td>
+ <td><div class="bar-row"><div class="bar"><i style="width:55.9%"></i></div><span class="pct num"><b>55.9%</b></span></div></td>
+ <td></td></tr>
+</tbody>
+</table>
+</div>
+<p class="note" style="margin-top:12px">
+<b>怎麼讀這張表：</b>只有 <b>Lv1–Lv5</b> 的樣本量撐得住結論（27 人以上），Lv6 以上全部低於 25 人，Lv14 只有 3 個人。
+好消息是 —— <b>樣本量夠的那五級，正好就是這次提案要處理的區間</b>，而 Lv1 的 43.7% 明顯低於全體 55.9%。提案打的位置是對的。<br>
+<b>不要拿來說故事的：</b>Lv15 的 28.6%（7 人裡 2 人）是離群值，Lv7–9 的「70% 台」也只是 15–21 人的浮動。
+deck 自己也承認這點（原文：「母数が少なく…根拠が薄い」），這點誠實，值得記一筆。<br>
+<b>要小心引用的數字：</b>Appendix 有一句「約半數（50% 前後）が2度とVSを使わなくなる」被當成事實陳述，
+但唯一支撐是回訪率（Lv1 43.7% → 56.3% 沒有第二次）。<b>「4 個月內沒有第二次」≠「這輩子不再用」</b> —— 這是推估，不是量測。
+</p>
+
+<h2>七、建議回覆日本的四件事</h2>
+<ol class="act">
+<li><b>①號教學畫面：直接准，不用等。</b>成本低、直打「不意打ち」（措手不及）這個核心問題，四項 UI 修改都合理，沒有反對理由。</li>
+<li><b>②號冷卻：概念准，但要一張表才定案。</b>請日本從既有的錄影／對話 sheet 拆出：連續進來的邀請 sender 是否為同一 openID。<br>
+    → 是同一人：現規格可行，照做。<br>
+    → 是不同人：規格改為<b>全域冷卻</b>（拒絕後 N 分鐘內不接收任何新邀請）。</li>
+<li><b>要求補一個成功指標。</b>提案目前沒有任何驗收標準。建議直接綁在他們自己的數據上：<b>Lv1–3 回訪率從 43.7 / 52.1 / 59.4% 提升到多少，多久內驗收。</b>沒有這條，上線後無法判斷有沒有用。</li>
+<li><b>「話し相手」濫用另開一條。</b>不要塞進這次 scope。先問規模：是少數人重複做，還是普遍現象？如果是前者，用治理手段處理比改功能便宜得多。</li>
+</ol>
+
+<h2>八、出處鏈</h2>
+<div class="note">
+<b>主文件：</b>【社內提案用：機能改善要望】新人ライバーにおけるVSチュートリアル機能 · 13 頁 ·
+<a href="https://docs.google.com/presentation/d/1owxPbojJhWGw6PZ1YQhqupRPQzK6G_qJyrroLTqjpIQ/edit" target="_blank" rel="noopener">Google Slides</a><br>
+擁有者 mayu@17.media · 建立 2026-06-09 · 最後更新 2026-08-13 · 標題頁標記「2026/06/09_VOC」<br><br>
+<b>deck 內引用的原始資料（我未開啟，僅列出）：</b><br>
+• 動畫／對話內容（案例 A、B 的來源）：<a href="https://docs.google.com/spreadsheets/d/1JqiPY-R9SFdTyFqoglsryQCUTIf7TxZhLY2qh4REDGk/edit" target="_blank" rel="noopener">sheet 1JqiPY…</a> ← <b>缺口 1 要查的就是這份</b><br>
+• 背景資料：<a href="https://docs.google.com/spreadsheets/d/1s9U0J3BkzLEcBztVKElClPUp6TKqe-3O9lH4XJX_SQ4/edit" target="_blank" rel="noopener">sheet 1s9U0J…</a><br>
+• 背景資料：<a href="https://docs.google.com/spreadsheets/d/18abA9FQpUKdBgUrqtlV5NFg3mp_sOUuN4pHNJJCMQII/edit" target="_blank" rel="noopener">sheet 18abA9…</a><br>
+• 等級回訪率數據標註來源：「PK分析用」<br><br>
+<b>一個小備註：</b>檔名叫「VS<b>チュートリアル</b>機能」，標題頁卻寫「VS機能<b>マッチングロジック</b>の最適化」，
+而 matching 演算法本次明確排除。標題承諾了提案沒做的事 —— 若這份 deck 往外流傳，會造成期待落差，值得請他們改一下標題。
+</div>
+
+<p class="foot">
+Product-Ops Bridge · 內部資料 · 本頁由日本 deck 全文（含 Appendix）整理，繁中為介面語言，主播原話保留日文原聲未改寫。<br>
+表格中「我的判定」「缺口」「建議回覆」為分析意見，非 deck 原文；deck 原文一律以引號區塊標示並註明頁碼。
+</p>
+
+</div>
+</body></html>
