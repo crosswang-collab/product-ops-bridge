@@ -31,6 +31,61 @@ header{position:sticky;top:0;z-index:50;background:rgba(246,247,249,.92);backdro
 .seg button{border:0;background:transparent;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
 .seg button.on{background:var(--ink);color:#fff}
 .updated{font-size:12px;color:var(--ink3);font-family:var(--mono)}
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:4px;margin:18px 0 0;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:transparent;padding:10px 16px;font-size:14px;font-weight:700;
+  color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  font-family:inherit;white-space:nowrap}
+.tabs button:hover{color:var(--ink2)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs button .tc{display:inline-block;margin-left:7px;font-size:11.5px;font-weight:700;color:var(--ink3);
+  background:var(--gray-bg);border-radius:20px;padding:1px 8px;font-variant-numeric:tabular-nums}
+.tabs button.on .tc{background:var(--ink);color:#fff}
+/* ---------- roadmap tab ---------- */
+.rm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 6px}
+.rm-stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.rm-stat .n{font-size:26px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums}
+.rm-stat .l{font-size:11.5px;color:var(--ink2);margin-top:2px}
+.rm-stat.alert .n{color:var(--red)}
+.rm-stat.good .n{color:var(--green)}
+.rm-note{font-size:12.5px;color:var(--ink2);margin:14px 2px 0;line-height:1.6}
+.rm-sec{margin-top:26px}
+.rm-tbl{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:10px}
+.rm-tbl th{text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);
+  font-weight:800;padding:9px 14px;background:var(--paper);border-bottom:1px solid var(--line);white-space:nowrap}
+.rm-tbl td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+.rm-tbl tr:last-child td{border-bottom:0}
+.rm-tbl tbody tr:hover{background:var(--paper)}
+.rm-tbl a.k{color:var(--ink);text-decoration:none;font-weight:700;font-size:12.5px;white-space:nowrap;
+  font-family:var(--mono)}
+.rm-tbl a.k:hover{text-decoration:underline}
+.rm-tbl td.it{font-weight:600;min-width:200px}
+.rm-tbl td.dt{font-size:13.5px;min-width:125px}
+.rm-tbl tr.hl td.dt{color:var(--green);font-weight:800}
+.rm-tbl td.ow{color:var(--ink2);font-size:13px;white-space:nowrap}
+.rm-tbl td.rk{color:var(--ink3);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono)}
+.rm-pill{display:inline-block;font-size:11.5px;font-weight:700;border-radius:20px;padding:2px 10px;white-space:nowrap}
+.rm-pill.done{color:#1d6b4c;background:var(--green-bg)}
+.rm-pill.dev{color:#1a4f7a;background:#e6f0f8}
+.rm-pill.design{color:#8a5d12;background:var(--amber-bg)}
+.rm-pill.park{color:#5a6472;background:var(--gray-bg)}
+.rm-pri{display:inline-block;font-size:11px;font-weight:800;border-radius:5px;padding:1px 7px;font-family:var(--mono)}
+.rm-pri.P0{color:#a5252a;background:var(--red-bg)}
+.rm-pri.P1{color:#8a5d12;background:var(--amber-bg)}
+.rm-pri.P2{color:#1a4f7a;background:#e6f0f8}
+.rm-pri.P3{color:#5a6472;background:var(--gray-bg)}
+.rm-band{background:var(--red-bg);border:1px solid #f5c9c9;border-radius:9px;padding:11px 14px;
+  font-size:13px;color:#a5252a;margin-top:10px;line-height:1.55}
+.rm-notes{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 20px;margin-top:10px}
+.rm-notes li{font-size:13.5px;color:var(--ink2);margin:11px 0 11px 4px;line-height:1.6}
+.rm-notes li b{color:var(--ink)}
+.rm-empty{font-size:13.5px;color:var(--ink3);padding:18px 2px}
+@media (max-width:820px){
+  .rm-stats{grid-template-columns:repeat(2,1fr)}
+  .rm-tbl{display:block;overflow-x:auto;white-space:nowrap}
+  .rm-tbl td.it{white-space:normal}
+}
 /* ---------- search ---------- */
 .searchbar{margin:18px 0 0;display:flex;gap:10px;align-items:center}
 .searchbar input{flex:1;font-size:15px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);outline:none}
@@ -151,10 +206,33 @@ footer{margin-top:36px;font-size:11.5px;color:var(--ink3);line-height:1.7}
 </div></header>
 
 <div class="wrap">
+  <div class="tabs" role="tablist">
+    <button id="tabOv" role="tab" onclick="setTab('overview')"></button>
+    <button id="tabRm" role="tab" onclick="setTab('roadmap')"></button>
+  </div>
+
   <div class="searchbar">
     <input id="q" type="search" autocomplete="off">
     <button class="clr" id="qClr" onclick="clearSearch()"></button>
   </div>
+
+  <section id="s-roadmap" style="display:none">
+    <div class="rm-stats" id="rmStats"></div>
+    <div class="rm-note" id="rmNote"></div>
+    <div id="rmGroups"></div>
+    <div class="rm-sec">
+      <div class="sec-h"><h2 id="rmUnT"></h2><span class="cnt" id="rmUnC"></span></div>
+      <div class="rm-band" id="rmUnDesc"></div>
+      <table class="rm-tbl">
+        <thead><tr><th id="rmThRank"></th><th id="rmThPri"></th><th id="rmThItem"></th></tr></thead>
+        <tbody id="rmUnBody"></tbody>
+      </table>
+    </div>
+    <div class="rm-sec">
+      <div class="sec-h"><h2 id="rmNoteT"></h2></div>
+      <div class="rm-notes"><ul id="rmNoteBody"></ul></div>
+    </div>
+  </section>
 
   <section id="s-search" style="display:none">
     <div class="s-count" id="sCount"></div>
@@ -237,6 +315,7 @@ footer{margin-top:36px;font-size:11.5px;color:var(--ink3);line-height:1.7}
 ========================================================= */
 
 var DATA = __PAYLOAD_JSON__;
+var ROADMAP = __ROADMAP_JSON__;
 
 var STAGE_KEYS = ['stg0','stg1','stg2','stg3','stg4'];
 var HEALTH_ORDER = {red:0, amber:1, green:2, gray:3};
@@ -263,7 +342,15 @@ var I18N = {
       fCount:'顯示 {n} / {t} 個功能',
       fEmptyMsg:'篩選後沒有符合的功能。換個條件試試,或按「清除篩選」看全部。',
       sortHealth:'健康度優先(預設)',sortUpdated:'最近更新優先',sortKey:'依票號排序',
-      pUpd:'最後更新'},
+      pUpd:'最後更新',
+      tabOv:'開發現況',tabRm:'JP Needs 進度',
+      rmTotal:'需求總數',rmTicketed:'已開票',rmDated:'已排定上線日',rmUntracked:'尚未開票',
+      rmNote:'這一頁是 JP Needs 清單(52 件)對照 Jira 的結果，依「上線時間」分組。試算表與 Jira 不一致時一律以 Jira 為準。',
+      rmKey:'票號',rmItem:'項目',rmDate:'上線日',rmStatus:'狀態',rmOwner:'負責人',
+      rmRank:'JP 排序',rmPri:'優先度',
+      rmUnT:'尚未開票的需求',
+      rmUnDesc:'以下需求已在 JP Needs 清單中，但尚未建立 Jira 票，因此不在上方的開發時程內。',
+      rmNoteT:'資料附註',rmNone:'找不到符合的項目。'},
   en:{sub:'Plain-language progress board for non-engineers — data from JIRA',updated:'Snapshot',
       search:'Search: ticket number (e.g. 1927) or keyword (zh/en/ja all work)',clear:'Clear',
       sFound:'Found {a} active features and {p} parked ideas',sNone:'No match. Try another keyword — Chinese, English, Japanese or a ticket number.',
@@ -284,7 +371,15 @@ var I18N = {
       fCount:'Showing {n} of {t} features',
       fEmptyMsg:'No features match this filter. Try a different one, or press "Clear filters" to see everything.',
       sortHealth:'Health first (default)',sortUpdated:'Most recently updated',sortKey:'By ticket number',
-      pUpd:'Last updated'},
+      pUpd:'Last updated',
+      tabOv:'Development status',tabRm:'JP Needs roadmap',
+      rmTotal:'Total requests',rmTicketed:'Ticketed',rmDated:'With release date',rmUntracked:'Not yet ticketed',
+      rmNote:'This tab reconciles the 52-item JP Needs list against Jira, grouped by release timing. Where the spreadsheet and Jira disagree, Jira wins.',
+      rmKey:'Ticket',rmItem:'Item',rmDate:'Release date',rmStatus:'Status',rmOwner:'Owner',
+      rmRank:'JP rank',rmPri:'Priority',
+      rmUnT:'Requests not yet ticketed',
+      rmUnDesc:'These requests are on the JP Needs list but have no Jira ticket yet, so they do not appear in the schedule above.',
+      rmNoteT:'Data notes',rmNone:'No matching items.'},
   ja:{sub:'非エンジニア向けのやさしい進捗ボード — データはJIRAから',updated:'スナップショット',
       search:'検索:チケット番号(例 1927)またはキーワード(中/英/日 対応)',clear:'クリア',
       sFound:'進行中 {a} 件・保留アイデア {p} 件が見つかりました',sNone:'該当なし。別のキーワード(中国語・英語・日本語・チケット番号)でお試しください。',
@@ -305,11 +400,19 @@ var I18N = {
       fCount:'{t}件中{n}件を表示',
       fEmptyMsg:'この条件に一致する機能はありません。条件を変えるか「フィルターを解除」を押してください。',
       sortHealth:'健康度順(既定)',sortUpdated:'更新が新しい順',sortKey:'チケット番号順',
-      pUpd:'最終更新'}
+      pUpd:'最終更新',
+      tabOv:'開発状況',tabRm:'JP Needs ロードマップ',
+      rmTotal:'要望総数',rmTicketed:'起票済み',rmDated:'リリース日確定',rmUntracked:'未起票',
+      rmNote:'このタブは JP Needs リスト(52件)を Jira と突き合わせ、リリース時期別にまとめたものです。スプレッドシートと相違がある場合は Jira を正とします。',
+      rmKey:'チケット',rmItem:'項目',rmDate:'リリース日',rmStatus:'ステータス',rmOwner:'担当',
+      rmRank:'JP順位',rmPri:'優先度',
+      rmUnT:'未起票の要望',
+      rmUnDesc:'以下は JP Needs リストに含まれていますが、Jira チケットが未作成のため、上記のスケジュールには含まれていません。',
+      rmNoteT:'補足事項',rmNone:'該当する項目がありません。'}
 };
 
 /* ---------------- state ---------------- */
-var state = { lang:'zh', q:'', sort:'health', filters:{health:null, stage:null} };
+var state = { lang:'zh', q:'', sort:'health', tab:'overview', filters:{health:null, stage:null} };
 
 /* ---------------- utils ---------------- */
 function $(id){ return document.getElementById(id); }
@@ -381,6 +484,87 @@ function renderFilterBar(all){
 
 /* ---------------- render ---------------- */
 function setLang(l){ state.lang=l; render(); }
+function setTab(t){ state.tab=t; render(); }
+
+/* ---------------- roadmap tab ---------------- */
+function rmPill(gid){
+  return gid==='released' ? 'done'
+       : (gid==='august'||gid==='sept1'||gid==='late') ? 'dev'
+       : gid==='design' ? 'design' : 'park';
+}
+function rmHay(it,g){
+  return [it.key||'', it.owner||'',
+          (it.title&&(it.title[state.lang]||it.title.zh))||'',
+          (it.status&&(it.status[state.lang]||it.status.zh))||'',
+          (it.date&&(it.date[state.lang]||it.date.zh))||'',
+          (g&&g.label&&(g.label[state.lang]||g.label.zh))||'',
+          it.zh||'', it.en||'', it.ja||''].join(' ').toLowerCase();
+}
+function renderRoadmap(){
+  var R=ROADMAP, q=state.q.trim().toLowerCase();
+  var st=R.stats||{};
+  $('rmStats').innerHTML=[
+    ['',st.total_requests,T('rmTotal')],
+    ['',st.ticketed,T('rmTicketed')],
+    ['good',st.with_release_date,T('rmDated')],
+    ['alert',st.untracked,T('rmUntracked')]
+  ].map(function(r){
+    return '<div class="rm-stat '+r[0]+'"><div class="n">'+esc(r[1])+'</div><div class="l">'+esc(r[2])+'</div></div>';
+  }).join('');
+  $('rmNote').textContent=T('rmNote');
+
+  var out='';
+  (R.groups||[]).forEach(function(g){
+    var rows=(g.items||[]).filter(function(it){ return !q || rmHay(it,g).indexOf(q)>=0; });
+    if(!rows.length) return;
+    out+='<div class="rm-sec"><div class="sec-h"><h2>'+esc(g.icon+' '+pick(g.label))+'</h2>'
+       + '<span class="cnt">'+rows.length+'</span></div>'
+       + '<table class="rm-tbl"><thead><tr><th>'+esc(T('rmKey'))+'</th><th>'+esc(T('rmItem'))
+       + '</th><th>'+esc(T('rmDate'))+'</th><th>'+esc(T('rmStatus'))+'</th><th>'+esc(T('rmOwner'))
+       + '</th></tr></thead><tbody>';
+    rows.forEach(function(it){
+      out+='<tr'+(it.highlight?' class="hl"':'')+'>'
+        + '<td><a class="k" href="'+esc(R.meta.jira_base+it.key)+'" target="_blank" rel="noopener">'+esc(it.key)+'</a></td>'
+        + '<td class="it">'+esc(pick(it.title))+'</td>'
+        + '<td class="dt">'+esc(pick(it.date))+'</td>'
+        + '<td><span class="rm-pill '+rmPill(g.id)+'">'+esc(pick(it.status))+'</span></td>'
+        + '<td class="ow">'+esc(it.owner||'—')+'</td></tr>';
+    });
+    out+='</tbody></table></div>';
+  });
+  $('rmGroups').innerHTML=out||'<div class="rm-empty">'+esc(T('rmNone'))+'</div>';
+
+  $('rmUnT').textContent=T('rmUnT');
+  $('rmUnDesc').textContent=T('rmUnDesc');
+  $('rmThRank').textContent=T('rmRank');
+  $('rmThPri').textContent=T('rmPri');
+  $('rmThItem').textContent=T('rmItem');
+  var un=(R.untracked||[]).filter(function(it){ return !q || rmHay(it,null).indexOf(q)>=0; });
+  $('rmUnC').textContent=un.length;
+  $('rmUnBody').innerHTML=un.length
+    ? un.map(function(it){
+        return '<tr><td class="rk">#'+esc(it.rank)+'</td>'
+             + '<td><span class="rm-pri '+esc(it.p)+'">'+esc(it.p)+'</span></td>'
+             + '<td class="it">'+esc(it[state.lang]||it.zh)+'</td></tr>'; }).join('')
+    : '<tr><td colspan="3" class="rm-empty">'+esc(T('rmNone'))+'</td></tr>';
+
+  $('rmNoteT').textContent=T('rmNoteT');
+  $('rmNoteBody').innerHTML=(R.notes||[]).map(function(n){
+    return '<li>'+(n[state.lang]||n.zh)+'</li>'; }).join('');
+}
+
+/* Decide which of the three views is visible, for the current tab + query. */
+function applyView(){
+  var q=state.q.trim().toLowerCase(), rm=(state.tab==='roadmap');
+  $('s-roadmap').style.display = rm ? '' : 'none';
+  $('s-search').style.display  = (!rm && q) ? '' : 'none';
+  $('main').style.display      = (!rm && !q) ? '' : 'none';
+  $('qClr').style.display      = q ? '' : 'none';
+  /* the footer describes the overview's ticket scope, so it would contradict the roadmap counts */
+  $('foot').style.display      = rm ? 'none' : '';
+  if(rm) renderRoadmap();
+  else if(q) renderSearchResults();
+}
 
 function render(){
   var d=DATA, L=state.lang;
@@ -389,6 +573,11 @@ function render(){
   var filtered=allTickets.filter(ticketMatchesFilters).sort(function(a,b){return sortTickets(a,b,state.sort);});
   var parked=d.parked||[];
   $('lz').className=(L==='zh')?'on':''; $('le').className=(L==='en')?'on':''; $('lj').className=(L==='ja')?'on':'';
+  var rmCount=(ROADMAP.stats&&ROADMAP.stats.total_requests)||0;
+  $('tabOv').innerHTML=esc(T('tabOv'))+'<span class="tc">'+(allTickets.length)+'</span>';
+  $('tabRm').innerHTML=esc(T('tabRm'))+'<span class="tc">'+rmCount+'</span>';
+  $('tabOv').className=(state.tab==='overview')?'on':'';
+  $('tabRm').className=(state.tab==='roadmap')?'on':'';
   $('subT').textContent=T('sub');
   $('upd').textContent=T('updated')+' '+String(d.generatedAt).slice(0,16).replace('T',' ');
   $('q').placeholder=T('search');
@@ -469,9 +658,8 @@ function render(){
   /* footer */
   $('foot').innerHTML=esc(F('foot1',{a:tickets.length,p:parked.length,j:d.junkDropped||0}))+'<br>'+esc(F('foot2',{}));
 
-  renderSearch();
+  applyView();
 }
-
 function cardHTML(t){
   return '<div class="card"><div class="top"><span class="k">'+esc(t.key)+'</span>'
     +'<span class="pill '+healthPill(t.health)+'">'+esc(T(t.health||'gray'))+' · '+esc(T(STAGE_KEYS[Math.min(Math.max(t.stage||0,0),4)]))+'</span></div>'
@@ -540,13 +728,10 @@ function pHay(p){
   if(p.rawSummary) parts.push(p.rawSummary);
   return parts.join(' ').toLowerCase();
 }
-function renderSearch(){
+function renderSearch(){ applyView(); }
+function renderSearchResults(){
   var q=state.q.trim().toLowerCase();
-  var on=!!q;
-  $('s-search').style.display=on?'':'none';
-  $('main').style.display=on?'none':'';
-  $('qClr').style.display=on?'':'none';
-  if(!on) return;
+  if(!q) return;
   var at=(DATA.tickets||[]).filter(function(t){ return tHay(t).indexOf(q)>=0; }).sort(sortTickets);
   var pk=(DATA.parked||[]).filter(function(p){ return pHay(p).indexOf(q)>=0; });
   $('sCount').textContent=(at.length||pk.length)?F('sFound',{a:at.length,p:pk.length}):T('sNone');
@@ -558,7 +743,7 @@ function renderSearch(){
 function clearSearch(){ state.q=''; $('q').value=''; renderSearch(); }
 
 /* ---------------- boot ---------------- */
-$('q').addEventListener('input', function(e){ state.q=e.target.value; renderSearch(); });
+$('q').addEventListener('input', function(e){ state.q=e.target.value; applyView(); });
 render();
 </script>
 </body>
