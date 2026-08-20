@@ -5,6 +5,8 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
+<title>VoC Console</title>
+<meta name="robots" content="noindex,nofollow">
 <style>
 :root{
   /* 經 dataviz validator 驗證過的深色配色（surface #1a1a19，全項 PASS） */
@@ -38,6 +40,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .seg{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px}
 .seg button{padding:5px 11px;font-size:12.5px;color:var(--ink3);border-radius:6px;white-space:nowrap}
 .seg button:hover{color:var(--ink2)}
+.seg .pn{font-weight:650;font-variant-numeric:tabular-nums;color:var(--ink2);margin-left:1px}
+.seg button[data-on="1"] .pn{color:var(--ink)}
 .seg button[data-on="1"]{background:var(--surface3);color:var(--ink);font-weight:600}
 .seg-label{font-size:11px;color:var(--ink3);margin-right:-8px;letter-spacing:.04em}
 .iconbtn{padding:6px 12px;font-size:12.5px;color:var(--ink2);border:1px solid var(--border);
@@ -45,14 +49,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .iconbtn:hover{background:var(--surface3);color:var(--ink)}
 
 /* ---------- BLUF ---------- */
-.bluf{padding:30px 0 4px}
-.bluf .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+.bluf{padding:22px 0 2px}
+.bluf .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:9px}
 .bluf h1{font-size:26px;line-height:1.42;font-weight:600;letter-spacing:-.01em;max-width:1080px}
 .bluf h1 em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums}
 .bluf h1 .c-in{color:var(--in)} .bluf h1 .c-out{color:var(--out)} .bluf h1 .c-pend{color:var(--pend)}
-.bluf .sub{margin-top:11px;font-size:13px;color:var(--ink3)}
+.bluf .sub{margin-top:9px;font-size:13px;color:var(--ink3)}
 
-.focus{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.focus{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
 .fcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--line);
        border-radius:11px;padding:15px 17px;cursor:pointer;transition:background .12s,border-color .12s;text-align:left}
 .fcard:hover{background:var(--surface2)}
@@ -67,17 +71,20 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fcard .empty{font-size:13px;color:var(--ink3)}
 
 /* ---------- KPI ---------- */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:16px 18px;
+.kseg{margin-top:12px;display:flex;align-items:baseline;gap:9px}
+.kseg .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.kseg .h{font-size:11.5px;color:var(--ink3)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:9px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 18px;
      cursor:pointer;text-align:left;transition:background .12s}
 .kpi:hover{background:var(--surface2)}
 .kpi .lab{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:7px}
-.kpi .val{font-size:34px;font-weight:650;letter-spacing:-.02em;margin-top:7px;line-height:1}
-.kpi .foot{margin-top:9px;font-size:11.5px;color:var(--ink3)}
+.kpi .val{font-size:31px;font-weight:650;letter-spacing:-.02em;margin-top:6px;line-height:1}
+.kpi .foot{margin-top:7px;font-size:11.5px;color:var(--ink3)}
 .kpi .foot b{color:var(--ink2);font-variant-numeric:tabular-nums}
 .swatch{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none}
 
-.honest{margin-top:10px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+.honest{margin-top:7px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
         font-size:11.5px;color:var(--ink3)}
 .honest .chip{border:1px solid var(--border);border-radius:999px;padding:3px 10px;background:var(--surface);
               cursor:pointer}
@@ -105,7 +112,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .tip .r{display:flex;align-items:center;gap:7px;margin-top:4px;color:var(--ink2)}
 
 /* ---------- 分頁 ---------- */
-.tabs{display:flex;gap:2px;margin-top:26px;border-bottom:1px solid var(--border)}
+.tabs{display:flex;gap:2px;margin-top:12px;border-bottom:1px solid var(--border)}
 .tabs button{padding:10px 16px;font-size:13.5px;color:var(--ink3);border-bottom:2px solid transparent;
              margin-bottom:-1px;display:flex;align-items:center;gap:8px}
 .tabs button:hover{color:var(--ink2)}
@@ -212,6 +219,17 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .boot .track{width:230px;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
 .boot .track i{display:block;height:100%;background:var(--in);width:0;transition:width .3s}
 .boot .sub{font-size:11.5px;color:var(--ink3)}
+.health{margin-top:13px;display:flex;align-items:center;gap:10px;font-size:12.5px;
+        padding:9px 13px;border-radius:9px;border:1px solid var(--border);
+        background:var(--surface);color:var(--ink3)}
+.health b{color:var(--ink2);font-variant-numeric:tabular-nums}
+.health .led{width:8px;height:8px;border-radius:50%;flex:none}
+.health[data-sev="ok"] .led{background:var(--good)}
+.health[data-sev="warn"]{border-color:rgba(250,178,25,.34);background:rgba(250,178,25,.07);color:var(--warn)}
+.health[data-sev="warn"] .led{background:var(--warn)}
+.health[data-sev="crit"]{border-color:rgba(208,59,59,.45);background:rgba(208,59,59,.10);color:var(--crit)}
+.health[data-sev="crit"] .led{background:var(--crit)}
+.health[data-sev="crit"] b,.health[data-sev="warn"] b{color:inherit}
 .warnbar{background:rgba(250,178,25,.10);border:1px solid rgba(250,178,25,.32);color:var(--warn);
          border-radius:10px;padding:11px 15px;font-size:12.5px;margin-top:14px;line-height:1.6}
 .warnbar b{display:block;margin-bottom:3px}
@@ -255,10 +273,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     </div>
     <span class="seg-label">期間</span>
     <div class="seg" id="periodSeg">
-      <button data-v="1">昨日</button>
-      <button data-v="7">近 7 日</button>
-      <button data-v="30">近 30 日</button>
-      <button data-v="0">全期</button>
+      <button data-v="1">昨日 <b class="pn" data-pn="1">–</b></button>
+      <button data-v="7">近 7 日 <b class="pn" data-pn="7">–</b></button>
+      <button data-v="30">近 30 日 <b class="pn" data-pn="30">–</b></button>
+      <button data-v="0">全期 <b class="pn" data-pn="0">–</b></button>
     </div>
     <button class="iconbtn" id="reload">重新整理</button>
   </div>
@@ -271,12 +289,26 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     <div class="sub" id="blufS"></div>
   </section>
 
+  <div id="health"></div>
   <div id="problems"></div>
 
   <div class="focus" id="focus"></div>
 
+  <!-- 累計數字自成一區並標明「不受期間影響」：期間選擇器只管 BLUF 與上面的期間按鈕，
+       這三格永遠是全部歷史的總數。不標的話同一屏會有三個時間窗互相冒充。 -->
+  <div class="kseg"><span class="t">累計</span><span class="h">全部歷史，不受上方期間影響</span></div>
   <div class="kpis" id="kpis"></div>
   <div class="honest" id="honest"></div>
+
+  <!-- 分頁與表格擺在圖表之前：需求 1 問的是「新增了哪些」，那是一份清單，
+       必須在第一屏就看得到列，不能被趨勢圖擠到折線以下。 -->
+  <nav class="tabs" id="tabs">
+    <button data-v="new">本期新增<span class="n" id="tn-new">0</span></button>
+    <button data-v="all">痛點總表<span class="n" id="tn-all">0</span></button>
+    <button data-v="cov">Roadmap 覆蓋<span class="n" id="tn-cov">0</span></button>
+    <button data-v="raw">Raw 大表<span class="n" id="tn-raw">0</span></button>
+  </nav>
+  <div id="view"></div>
 
   <div class="card">
     <div class="card-h">
@@ -290,14 +322,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     </div>
     <div class="card-b"><svg id="chart"></svg></div>
   </div>
-
-  <nav class="tabs" id="tabs">
-    <button data-v="new">本期新增<span class="n" id="tn-new">0</span></button>
-    <button data-v="all">痛點總表<span class="n" id="tn-all">0</span></button>
-    <button data-v="cov">Roadmap 覆蓋</button>
-    <button data-v="raw">Raw 大表<span class="n" id="tn-raw">0</span></button>
-  </nav>
-  <div id="view"></div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -549,22 +573,35 @@ function renderTop(T){
         (T.curPend ? '、<em class="c-pend">'+T.curPend+'</em> 則機器人判不出來' : '')+'。';
   }
   document.getElementById('blufH').innerHTML = h;
+  /* 這裡以前寫「資料截至 <generatedAt>」是錯的：generatedAt 是你打開網頁的時間，
+     不是資料的時間。bot 斷三週，畫面照樣寫「資料截至今天」。資料的時間只有一個來源：
+     bot 最後一次成功寫入，也就是 core.lastRun.at，放在下面的健康列。 */
   document.getElementById('blufS').textContent =
     '日期基準：' + (S.basis === 'ing' ? '取込日（bot 抓到的日子）' : '発生日（用戶說話的日子）') +
-    '　·　資料截至 ' + S.core.generatedAt + '（JST）' +
     '　·　累計 ' + S.raw.length.toLocaleString() + ' 則已切分的聲音、' +
     Object.keys(T.speakers).length + ' 位發話者';
 
-  /* --- KPI --- */
+  /* --- KPI：三格，全部是「累計」---------------------------------------
+     刻意不在這裡放期間數字。BLUF 那一句已經把「本期 N 則、其中 X 打中、Y 是新的」
+     講完了，KPI 再放一次的話同一屏會出現三個 50、三個 33，讀的人分不出來
+     那是同一個數字還是三個不同的量測。期間數字的唯一去處是上方期間按鈕上的角標。 */
+  var unresItems = 0, unresHits = 0, p0 = 0;
+  for (var q = 0; q < S.items.length; q++){
+    var iq = S.items[q];
+    if (iq.orphan || !iq.inRoadmap || iq.resolved) continue;
+    unresItems++; unresHits += iq.total;
+    if (prank(iq.priority) === 0) p0++;
+  }
+  var topOut = S.items.filter(function(x){ return !x.orphan && !x.inRoadmap; })
+                      .sort(function(a,b){ return b.total - a.total; })[0];
   var kp = [
     { k:'in',  lab:'在 roadmap 的總 mention', col:'var(--in)',  val:T.in,
-      foot:'涵蓋 <b>'+countItems(true)+'</b> 個既有痛點　·　'+w.label+' <b>+'+T.curIn+'</b>' },
+      foot:'涵蓋 <b>'+countItems(true)+'</b> 個既有痛點' },
     { k:'out', lab:'不在 roadmap 的總 mention', col:'var(--out)', val:T.out,
-      foot:'涵蓋 <b>'+countItems(false)+'</b> 個新痛點候選　·　'+w.label+' <b>+'+T.curOut+'</b>' },
-    { k:'d1',  lab:'昨日新增聲音', col:'var(--ink3)', val:T.d1,
-      foot:'在 roadmap <b>'+T.d1In+'</b>　·　不在 <b>'+T.d1Out+'</b>　·　首次出現的痛點 <b>'+T.newPain1+'</b>' },
-    { k:'d7',  lab:'近 7 日新增聲音', col:'var(--ink3)', val:T.d7,
-      foot:'在 roadmap <b>'+T.d7In+'</b>　·　不在 <b>'+T.d7Out+'</b>　·　首次出現的痛點 <b>'+T.newPain7+'</b>' }
+      foot:'涵蓋 <b>'+countItems(false)+'</b> 個新痛點候選'+
+           (topOut ? '　·　最高聲量 <b>'+topOut.total+'</b> 則' : '') },
+    { k:'unres', lab:'仍未解決痛點的累計 mention', col:'var(--crit)', val:unresHits,
+      foot:'涵蓋 <b>'+unresItems+'</b> 個未解決痛點'+(p0 ? '　·　其中 P0 <b>'+p0+'</b> 個' : '') }
   ];
   document.getElementById('kpis').innerHTML = kp.map(function(x){
     return '<button class="kpi" data-kpi="'+x.k+'">'+
@@ -583,7 +620,55 @@ function renderTop(T){
   if (!T.pending && !T.soft && !T.orphan) hon.push('<span style="color:var(--good)">全部聲音都已明確歸類</span>');
   document.getElementById('honest').innerHTML = hon.join('');
 
+  renderHealth();
   renderFocus();
+}
+
+/* -----------------------------------------------------------------------
+   健康列 —— bot 是每天 08:10 自己醒來的無人化排程，掛掉的時候沒有人會被通知。
+   它只會安靜地往 VoC_Bot_Log 寫一列 ABORT，畫面上的數字則停在最後一次成功那天，
+   看起來完全正常。所以「資料是幾號的」「連續失敗幾次」必須是常駐資訊，
+   而且失敗時要比任何數字都顯眼 —— 這一屏唯一會變紅的地方就是這裡。
+   連續 3 次以上失敗＝三振，直接寫「先修資料源，不要用這頁的數字」。
+   ----------------------------------------------------------------------- */
+function renderHealth(){
+  var el = document.getElementById('health');
+  var lr = (S.core && S.core.lastRun) || { known:false };
+  var sev = 'ok', txt;
+
+  if (!lr.known){
+    sev = 'warn';
+    txt = '<b>資料是哪一天的：讀不出來</b>　·　VoC_Bot_Log 沒有執行紀錄。' +
+          '在 Apps Script 執行一次 <b>testDashboard</b> 看它寫了什麼。';
+  } else if (lr.result === 'NEVER'){
+    sev = 'crit';
+    txt = '<b>bot 從來沒有成功執行過</b>（最近 400 列紀錄裡沒有一次成功）　·　' +
+          '先在 Apps Script 執行一次 <b>runDailyDigest</b>，這頁的數字目前不代表任何東西。';
+  } else if (lr.aborts >= 3){
+    sev = 'crit';
+    txt = '<b>bot 已連續失敗 ' + lr.aborts + ' 次</b>　·　資料只到 <b>' + esc(lr.at) + '</b>' +
+          (lr.ageDays >= 0 ? '（' + lr.ageDays + ' 天前）' : '') +
+          '　·　連三次以上代表是資料源壞了不是暫時性抖動 —— <b>先去看 VoC_Bot_Log 修好，' +
+          '在那之前不要拿這頁的數字對外講</b>。';
+  } else if (lr.aborts > 0){
+    sev = 'warn';
+    txt = '<b>bot 最後 ' + lr.aborts + ' 次執行失敗</b>　·　資料只到 <b>' + esc(lr.at) + '</b>' +
+          (lr.ageDays >= 0 ? '（' + lr.ageDays + ' 天前）' : '') +
+          '　·　「昨日新增」會偏低，去 VoC_Bot_Log 看 ABORT 那列的原因。';
+  } else if (lr.ageDays > 1){
+    sev = 'warn';
+    txt = '<b>資料截至 ' + esc(lr.at) + '（' + lr.ageDays + ' 天前）</b>　·　' +
+          'bot 沒有回報失敗，但也已經 ' + lr.ageDays + ' 天沒成功執行 —— 排程可能被停用了。' +
+          '「昨日新增」這個數字現在不可信。';
+  } else {
+    txt = '資料截至 <b>' + esc(lr.at) + '</b>' +
+          (lr.ageDays === 0 ? '（今天）' : '（昨天）') +
+          '　·　bot 上次執行正常' + (lr.result === 'DONE_WITH_WARNINGS' ? '（有警告，見下方）' : '') +
+          '　·　畫面讀取於 ' + esc(S.core.generatedAt) + ' JST';
+  }
+  el.className = 'health';
+  el.setAttribute('data-sev', sev);
+  el.innerHTML = '<span class="led"></span><span>' + txt + '</span>';
 }
 
 /* 只數「代碼還有效」的痛點：orphan（roadmap 那列被刪或改名）不能混進 in／out 任何一邊，
@@ -1074,6 +1159,14 @@ function openBucket(kind){
   } else if (kind === 'unjudged'){
     rows = S.raw.filter(function(r){ var b = bucketOf(r); return b === 'pending' || b === 'orphan'; });
     title = '未判定與代碼失效的聲音';
+  } else if (kind === 'unres'){
+    var unresCodes = {};
+    for (var u = 0; u < S.items.length; u++){
+      var iu = S.items[u];
+      if (!iu.orphan && iu.inRoadmap && !iu.resolved) unresCodes[iu.code] = true;
+    }
+    rows = S.raw.filter(function(r){ return unresCodes[r[R.CODE]]; });
+    title = '仍未解決痛點的所有聲音';
   } else if (kind === 'd1' || kind === 'd7'){
     var w = windowOf(kind === 'd1' ? 1 : 7);
     rows = S.raw.filter(function(r){ return bucketOf(r) !== 'noise' && inWin(dateOf(r), w); });
@@ -1139,7 +1232,24 @@ function render(){
   /* 分頁上的數字要跟目前的期間／基準同步，不能只在該分頁被打開時才更新 */
   document.getElementById('tn-new').textContent = S.items.filter(function(x){ return x.cur > 0; }).length;
   document.getElementById('tn-all').textContent = S.items.filter(function(x){ return x.total > 0 || x.inRoadmap; }).length;
+  document.getElementById('tn-cov').textContent = S.items.filter(function(x){ return !x.orphan && !x.inRoadmap && x.total > 0; }).length;
   document.getElementById('tn-raw').textContent = S.raw.length;
+
+  /* 四個期間的件數直接刻在按鈕上：一行看完昨日／7 日／30 日／全期，
+     而且看得出「切換期間會改變哪個數字」。這樣就不需要用兩張 KPI 大卡
+     各佔一格去重述 BLUF 已經講過的同一組數字。 */
+  var pc = { 1:0, 7:0, 30:0, 0:0 };
+  var pw = { 1:windowOf(1), 7:windowOf(7), 30:windowOf(30), 0:windowOf(0) };
+  for (var i = 0; i < S.raw.length; i++){
+    var r = S.raw[i];
+    if (bucketOf(r) === 'noise') continue;
+    var d = dateOf(r);
+    if (!d) continue;
+    for (var k in pw) if (inWin(d, pw[k])) pc[k]++;
+  }
+  document.querySelectorAll('#periodSeg .pn').forEach(function(b){
+    b.textContent = pc[b.getAttribute('data-pn')].toLocaleString();
+  });
 }
 
 document.addEventListener('click', function(e){
@@ -1276,7 +1386,8 @@ function boot(again){
     if (!core.ok) throw new Error(core.problems.join('\n'));
     S.core = core;
     S.today = String(core.generatedAt || '').slice(0, 10);
-    document.getElementById('stamp').textContent = '資料截至 ' + core.generatedAt + ' JST';
+    /* topbar 只講讀取時間。「資料截至」是 lastRun 的事，由健康列負責，不在這裡混講。 */
+    document.getElementById('stamp').textContent = '讀取於 ' + core.generatedAt + ' JST';
 
     var probs = core.problems.slice();
     if (core.degraded) probs.push('bot 沒有設定 ANTHROPIC_API_KEY，判定走的是規則式關鍵字比對。' +
