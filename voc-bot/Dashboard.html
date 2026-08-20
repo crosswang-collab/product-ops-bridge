@@ -84,7 +84,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .kpi .foot b{color:var(--ink2);font-variant-numeric:tabular-nums}
 .swatch{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none}
 
-.honest{margin-top:7px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+.honest{margin-top:9px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
         font-size:11.5px;color:var(--ink3)}
 .honest .chip{border:1px solid var(--border);border-radius:999px;padding:3px 10px;background:var(--surface);
               cursor:pointer}
@@ -290,6 +290,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   </section>
 
   <div id="health"></div>
+  <div class="honest" id="honest"></div>
   <div id="problems"></div>
 
   <div class="focus" id="focus"></div>
@@ -298,7 +299,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
        這三格永遠是全部歷史的總數。不標的話同一屏會有三個時間窗互相冒充。 -->
   <div class="kseg"><span class="t">累計</span><span class="h">全部歷史，不受上方期間影響</span></div>
   <div class="kpis" id="kpis"></div>
-  <div class="honest" id="honest"></div>
 
   <!-- 分頁與表格擺在圖表之前：需求 1 問的是「新增了哪些」，那是一份清單，
        必須在第一屏就看得到列，不能被趨勢圖擠到折線以下。 -->
