@@ -231,6 +231,11 @@ core = {
     "candidates": [{"code": c, "title": jp, "titleEn": en, "area": a, "priority": p}
                    for (c, jp, en, a, p) in CANDIDATES],
     "rawCount": len(ROWS), "pageSize": PAGE, "hardMax": 30000,
+    # 健康列的資料。正式版由 Dashboard.gs 的 dashLastRun_() 從 VoC_Bot_Log 讀出來。
+    # 預覽版給一個「今天早上剛跑成功」的正常狀態，這樣看得到綠燈長什麼樣；
+    # 想看紅燈把 aborts 改成 3、ageDays 改成 21 重新產生即可。
+    "lastRun": {"at": GENERATED_AT, "result": "DONE", "ageDays": 0,
+                "aborts": 0, "detail": "", "known": True},
     # 預覽版最上方已經有一條橘色警告條，這裡不再重複同一句話
     "problems": [],
     "verdicts": {"match": V_MATCH, "review": V_REVIEW, "rule": V_RULE,

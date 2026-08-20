@@ -65,6 +65,22 @@ var ANTHROPIC_BRIEF_MODEL = 'claude-opus-5';
 /** 每天幾點跑（0-23，依 Apps Script 專案時區，RUNBOOK 會設成 Asia/Tokyo） */
 var DAILY_HOUR = 8;
 
+/**
+ * bot 掛掉時寄信給誰。**留空字串 = 完全不寄**（只有 VoC Console 的健康列會顯示）。
+ *
+ * 為什麼需要這個：bot 是每天 08:10 自己醒來的無人化排程，失敗時只會往 VoC_Bot_Log
+ * 寫一列 ABORT，沒有人會知道。Console 的健康列會變紅，但那要你主動打開才看得到。
+ *
+ * 只在「狀態改變」時寄，不是每天寄：
+ *   · 第一次失敗（上一次還是成功的）→ 寄
+ *   · 連續第 3 次失敗（＝資料源真的壞了，不是暫時性抖動）→ 寄
+ *   · 修好之後第一次成功 → 寄一封「已恢復」
+ * 所以一次故障最多 3 封信，不會連續三週每天吵你。
+ *
+ * 收件人寫死成腳本擁有者自己的信箱：這是「寄給自己」，不是對外發送。
+ */
+var ALERT_EMAIL = 'crosswang@17.media';
+
 /** 第一次執行時 Slack 往回抓幾天。之後只抓上次跑完之後的新訊息。 */
 var FIRST_RUN_LOOKBACK_DAYS = 30;
 
@@ -314,6 +330,7 @@ function runDailyDigest() {
   if (!roadmap || roadmap.items.length === 0) {
     logRow_(ss, 'RUN', 'ABORT',
       'VoC Roadmap 讀不到（或沒有任何痛點），無法判斷新舊，本次中止。' + problems.join(' | '));
+    notifyRunState_(ss, 'ABORT', 'VoC Roadmap 讀不到：' + problems.join(' | '));
     SpreadsheetApp.flush();
     return;
   }
@@ -344,6 +361,7 @@ function runDailyDigest() {
 
   if (messages.length === 0 && problems.length >= SOURCE_SHEETS.length + 1) {
     logRow_(ss, 'RUN', 'ABORT', '所有資料源都失敗，本次不寫入。' + problems.join(' | '));
+    notifyRunState_(ss, 'ABORT', '所有資料源都失敗：' + problems.join(' | '));
     SpreadsheetApp.flush();
     return;
   }
@@ -384,11 +402,93 @@ function runDailyDigest() {
   }
 
   var secs = Math.round((new Date().getTime() - started.getTime()) / 1000);
-  logRow_(ss, 'RUN', problems.length ? 'DONE_WITH_WARNINGS' : 'DONE',
-    '訊息 ' + messages.length + ' 則／新增切分 ' + ingest.segments + ' 筆／既有痛點 ' +
+  var runResult = problems.length ? 'DONE_WITH_WARNINGS' : 'DONE';
+  var runDetail = '訊息 ' + messages.length + ' 則／新增切分 ' + ingest.segments + ' 筆／既有痛點 ' +
     stats.pp.length + ' 個／新候補 ' + stats.cand.length + ' 個／耗時 ' + secs + ' 秒' +
-    (problems.length ? '。警告：' + problems.join(' | ') : ''));
+    (problems.length ? '。警告：' + problems.join(' | ') : '');
+  logRow_(ss, 'RUN', runResult, runDetail);
+  notifyRunState_(ss, runResult, runDetail);
   SpreadsheetApp.flush();
+}
+
+/**
+ * 只在「跑的結果從上次改變了」的時候寄一封信。這支是 loop-contract FAIL 格裡
+ * 「連續 3 輪同一條 FAIL → 升級給 Cross」的實作 —— 紅色的介面元件只是顯示，
+ * 主動寄出來的信才叫升級。
+ *
+ * 判斷方式：從 VoC_Bot_Log 倒著讀 RUN 那幾列（這次的已經寫進去了），
+ * 數「從最新往上，連續有幾個 ABORT」。
+ *   aborts === 1 → 剛壞（上一次還好的）        → 寄
+ *   aborts === 3 → 三振（連三次，資料源真的壞了）→ 寄
+ *   這次成功、但上一次是 ABORT                  → 寄「已恢復」
+ *   其他（連續第 2、4、5… 次失敗；本來就一直好） → 不寄
+ *
+ * 寄信失敗（超出 Gmail 每日配額等）不可以炸掉主流程 —— 資料已經寫完了，
+ * 通知失敗只記一列 log。
+ */
+function notifyRunState_(ss, thisResult, thisDetail) {
+  if (!ALERT_EMAIL) return;                       // 留空＝關閉通知
+
+  var runs;
+  try {
+    SpreadsheetApp.flush();                       // 確保剛剛那列讀得到
+    var sh = ss.getSheetByName(TAB_LOG);
+    if (!sh) return;
+    var last = sh.getLastRow();
+    if (last < 2) return;
+    var n = Math.min(last - 1, 400);
+    var vals = sh.getRange(last - n + 1, 1, n, LOG_HEADERS.length).getValues();
+    runs = [];
+    for (var i = 0; i < vals.length; i++) {
+      var kind = String(vals[i][1]), res = String(vals[i][2]);
+      if (kind === 'RUN' && res !== 'START') runs.push(res);
+    }
+  } catch (e) {
+    logRow_(ss, 'ALERT', 'ERROR', '讀不到執行紀錄，無法判斷要不要通知：' + e.message);
+    return;
+  }
+  if (runs.length === 0) return;
+
+  // 從最新往上數連續 ABORT
+  var aborts = 0;
+  for (var j = runs.length - 1; j >= 0; j--) {
+    if (runs[j] === 'ABORT') aborts++; else break;
+  }
+  var prev = runs.length >= 2 ? runs[runs.length - 2] : '';
+
+  var subject = '', body = '';
+  if (thisResult === 'ABORT' && aborts === 1) {
+    subject = '[VoC bot] 今天沒跑起來';
+    body = 'VoC Daily Bot 今天早上失敗了，這次沒有寫入任何資料。\n\n' +
+           '原因：' + thisDetail + '\n\n' +
+           '影響：VoC Console 上的「昨日新增」會是 0，那不代表用戶沒抱怨，是 bot 沒抓到。\n' +
+           '現在還不用緊張 —— 如果是暫時性的（Slack 或 Claude API 抖一下），明天早上會自己恢復。\n' +
+           '連續失敗到第 3 次我會再寄一封。';
+  } else if (thisResult === 'ABORT' && aborts === 3) {
+    subject = '[VoC bot] 連續失敗 3 次，要你處理了';
+    body = 'VoC Daily Bot 已經連續 3 天失敗。連三次代表不是暫時性抖動，是資料源真的壞了。\n\n' +
+           '最近一次的原因：' + thisDetail + '\n\n' +
+           '要做什麼：\n' +
+           '1. 打開試算表的 VoC_Bot_Log 分頁，看最後幾列 ABORT 寫了什麼\n' +
+           '2. 最常見的兩個原因：SLACK_TOKEN 過期了、或你對 VoC Roadmap 那張表的檢視權被收回\n' +
+           '3. 修好之後在 Apps Script 手動跑一次 runDailyDigest\n\n' +
+           '在修好之前，VoC Console 的健康列會是紅的 —— 不要拿那頁上的數字對外講。';
+  } else if (thisResult !== 'ABORT' && prev === 'ABORT') {
+    subject = '[VoC bot] 已恢復';
+    body = 'VoC Daily Bot 今天早上跑成功了，資料是新的，Console 的數字可以用了。\n\n' +
+           '這次的結果：' + thisDetail;
+  } else {
+    return;                                        // 狀態沒改變，不吵
+  }
+
+  try {
+    MailApp.sendEmail(ALERT_EMAIL, subject, body);
+    logRow_(ss, 'ALERT', 'OK', '已寄出通知「' + subject + '」給 ' + ALERT_EMAIL);
+  } catch (e) {
+    // 寄不出去不影響資料，但要留痕：Console 的健康列仍然會顯示紅燈
+    logRow_(ss, 'ALERT', 'ERROR', '通知寄不出去（' + e.message + '）。' +
+      '資料本身沒問題，但你只能靠 Console 的健康列看到這次失敗。');
+  }
 }
 
 /** 【驗證用】檢查 Roadmap、Slack、每份表單、目標表寫入權限。結果寫進 VoC_Bot_Log。 */

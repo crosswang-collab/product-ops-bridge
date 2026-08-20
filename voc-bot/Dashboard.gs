@@ -5,7 +5,7 @@
  * 但「一堆日文欄位攤在試算表裡」沒有閱讀動線。這支檔案不產生任何新資料，
  * 只是把既有分頁重新組織成一個 90 秒就能讀完的介面。
  *
- * 部署見 voc-bot/RUNBOOK-console.md（4 步）。
+ * 部署見 voc-bot/RUNBOOK-console.md（5 步）。
  *
  * === 這支檔案只讀不寫 ===
  * 讀：VIP Feedback Sharing Sheet 的 VoC_Raw_Log / VoC_New_Candidates
@@ -71,6 +71,10 @@ function apiCore() {
     rawCount: 0,
     pageSize: DASH_PAGE,
     hardMax: DASH_RAW_HARD_MAX,
+    /* generatedAt 是「你打開網頁的時間」，不是「資料的時間」。
+       資料的時間在 lastRun.at —— bot 最後一次成功寫入的時刻。兩者可能差好幾週，
+       所以介面上這兩個絕對不能混講。 */
+    lastRun: { at: '', result: '', ageDays: -1, aborts: 0, detail: '', known: false },
     problems: [],
     verdicts: {
       match: V_MATCH, review: V_MATCH_REVIEW, rule: V_RULE,
@@ -126,6 +130,16 @@ function apiCore() {
   } catch (e) {
     out.problems.push('讀不到 ' + TAB_NEW + '：' + e.message +
                       '　→ 新痛點候選的標題會缺，件數仍會照算。');
+  }
+
+  try {
+    out.lastRun = dashLastRun_(ss);
+    if (!out.lastRun.known) {
+      out.problems.push('讀不到 ' + TAB_LOG + ' 的執行紀錄　→ 畫面無法判斷 bot 上次成功是什麼時候，' +
+                        '「資料截至」會顯示為未知。');
+    }
+  } catch (e) {
+    out.problems.push('讀不到 ' + TAB_LOG + '：' + e.message + '　→ 無法判斷 bot 的健康狀態。');
   }
 
   try {
@@ -303,6 +317,15 @@ function testDashboard() {
     for (var p = 0; p < core.problems.length; p++) {
       logRow_(ss, 'CONSOLE', 'WARN', core.problems[p]);
     }
+    if (core.lastRun.result === 'NEVER') {
+      logRow_(ss, 'CONSOLE', 'WARN',
+        '在 ' + TAB_LOG + ' 最後 400 列裡找不到任何成功的 RUN 紀錄 → 介面會顯示「bot 尚未成功執行過」。');
+    } else if (core.lastRun.known) {
+      logRow_(ss, 'CONSOLE', core.lastRun.aborts >= 3 ? 'FAIL' : (core.lastRun.ageDays > 1 ? 'WARN' : 'OK'),
+        'bot 最後成功執行：' + core.lastRun.at + '（' + core.lastRun.ageDays + ' 天前）／' +
+        '之後連續 ABORT ' + core.lastRun.aborts + ' 次' +
+        (core.lastRun.aborts >= 3 ? '　→ 已連續失敗 3 次以上，先去修資料源再看數字。' : ''));
+    }
     if (core.degraded) {
       logRow_(ss, 'CONSOLE', 'WARN',
         'ANTHROPIC_API_KEY 未設定 → 判定是規則式的，介面會把這些列標成「規則式(精度低)」。');
@@ -348,6 +371,54 @@ function testDashboard() {
 // ===========================================================================
 // 小工具（一律 dash 前綴，避免跟 Code.gs 撞名）
 // ===========================================================================
+
+/**
+ * 從 VoC_Bot_Log 倒著找 bot 的執行紀錄，回答兩個問題：
+ *   1. 最後一次「成功寫入」是什麼時候（DONE / DONE_WITH_WARNINGS）
+ *   2. 從那次之後，連續有幾次 ABORT（＝資料源掛掉、本次沒寫入）
+ *
+ * 為什麼需要這支：bot 是每天 08:10 自己醒來的無人化排程，掛掉的時候沒有人會被通知，
+ * 它只會安靜地往 VoC_Bot_Log 寫一列 ABORT。如果介面不把這件事講出來，
+ * 畫面上會顯示一組「看起來很正常但其實是三週前」的數字。
+ *
+ * 只讀最後 400 列（一天約 10～30 列，夠涵蓋兩週以上）。
+ */
+function dashLastRun_(ss) {
+  var res = { at: '', result: '', ageDays: -1, aborts: 0, detail: '', known: false };
+
+  var sh = ss.getSheetByName(TAB_LOG);
+  if (!sh) return res;
+  var last = sh.getLastRow();
+  if (last < 2) return res;
+
+  var n = Math.min(last - 1, 400);
+  var vals = sh.getRange(last - n + 1, 1, n, LOG_HEADERS.length).getValues();
+
+  for (var i = vals.length - 1; i >= 0; i--) {
+    if (String(vals[i][1]) !== 'RUN') continue;
+    var result = String(vals[i][2] || '');
+    if (result === 'START') continue;                 // START 不代表結果
+    if (result === 'ABORT') { res.aborts++; continue; }  // 還沒遇到成功，繼續往上找
+    // 遇到 DONE / DONE_WITH_WARNINGS ＝ 最後一次成功
+    res.known = true;
+    res.result = result;
+    res.detail = String(vals[i][3] || '').substring(0, 300);
+    var raw = vals[i][0];
+    var d = (raw instanceof Date) ? raw : new Date(String(raw).replace(/-/g, '/'));
+    if (!isNaN(d.getTime())) {
+      res.at = Utilities.formatDate(d, TZ, 'yyyy/MM/dd HH:mm');
+      res.ageDays = Math.floor((new Date().getTime() - d.getTime()) / 86400000);
+    } else {
+      res.at = String(raw);
+    }
+    return res;
+  }
+
+  // 掃完 400 列都沒有成功紀錄：可能從沒跑成功過，也可能成功紀錄已經被擠出視窗
+  res.known = true;
+  res.result = 'NEVER';
+  return res;
+}
 
 function dashTrunc_(v, max) {
   var s = collapse_(v);
