@@ -6,8 +6,8 @@
 畫面上的資料全部是這支腳本生出來的虛構資料，發話者叫「デモ配信者A」這種名字，
 介面最上方也會有一條橘色警告條寫明「這是離線預覽版」。
 
-介面本身只有一份（Dashboard.html）。這支腳本不改任何 UI，只是在前面塞一段
-window.__VOC_DEMO__，讓 Dashboard.html 的 call() 走內嵌資料而不是 google.script.run。
+介面本身只有一份（DashboardUI.html）。這支腳本不改任何 UI，只是在前面塞一段
+window.__VOC_DEMO__，讓 DashboardUI.html 的 call() 走內嵌資料而不是 google.script.run。
 所以 UI 改了就重跑一次：
 
     python3 voc-bot/build-preview.py
@@ -244,7 +244,7 @@ core = {
 
 demo_js = """
 <script>
-/* === 離線預覽用的虛構資料。正式部署時不會有這一段 —— Dashboard.html 會改走
+/* === 離線預覽用的虛構資料。正式部署時不會有這一段 —— DashboardUI.html 會改走
    google.script.run 讀真正的 VoC_Raw_Log。此檔由 voc-bot/build-preview.py 產生。 === */
 window.__VOC_DEMO__ = (function(){
   var CORE = %s;
@@ -272,10 +272,10 @@ window.__VOC_DEMO__ = (function(){
        json.dumps(ROWS, ensure_ascii=False),
        PAGE)
 
-html = (HERE / "Dashboard.html").read_text(encoding="utf-8")
+html = (HERE / "DashboardUI.html").read_text(encoding="utf-8")
 marker = '<script>\n"use strict";'
 if marker not in html:
-    raise SystemExit("找不到主 script 起點，Dashboard.html 結構變了，請更新 build-preview.py")
+    raise SystemExit("找不到主 script 起點，DashboardUI.html 結構變了，請更新 build-preview.py")
 out = html.replace(marker, demo_js.strip() + "\n\n" + marker, 1)
 out = out.replace("<title>", "<title>", 1)
 
