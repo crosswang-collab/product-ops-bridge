@@ -50,10 +50,15 @@ https://script.google.com → 開啟你之前建的 **`VoC Daily Bot`**。
 
 1. 選 **指令碼** → 命名 `Dashboard`（系統會自動變成 `Dashboard.gs`）
    → 把 GitHub 上 `voc-bot/Dashboard.gs` 的內容整份貼進去
-2. 再按 **＋** → 選 **HTML** → 命名 `Dashboard`（會變成 `Dashboard.html`）
-   → 把 GitHub 上 `voc-bot/Dashboard.html` 的內容整份貼進去
+2. 再按 **＋** → 選 **HTML** → 命名 **`DashboardUI`**（會變成 `DashboardUI.html`）
+   → 把 GitHub 上 `voc-bot/DashboardUI.html` 的內容整份貼進去
 
-> 檔名一定要叫 `Dashboard`（大小寫相同）。`Dashboard.gs` 是用這個名字去找 HTML 的。
+> **兩個名字不一樣，這是刻意的。** Apps Script 不允許同一個專案裡有兩個同名檔案，
+> 即使一個是指令碼、一個是 HTML —— 你把 HTML 也命名成 `Dashboard` 會被擋下來說名稱重複。
+> 所以指令碼叫 `Dashboard`、HTML 叫 `DashboardUI`。
+>
+> 大小寫要完全一致。`Dashboard.gs` 第 55 行的 `createHtmlOutputFromFile('DashboardUI')`
+> 就是用這個名字去找 HTML 的 —— 兩邊必須對得上，改一邊就要改另一邊。
 
 存檔。
 
@@ -96,7 +101,7 @@ https://script.google.com → 開啟你之前建的 **`VoC Daily Bot`**。
 
 ## 改了 code 之後怎麼更新
 
-改完 `Dashboard.html` 或 `Dashboard.gs` 存檔後 —— **要再部署一次才會生效**：
+改完 `DashboardUI.html` 或 `Dashboard.gs` 存檔後 —— **要再部署一次才會生效**：
 **部署 → 管理部署作業 → 鉛筆圖示 → 版本選「新版本」→ 部署**。網址不變。
 
 （只改 `Code.gs` 給排程用的話不需要重新部署，排程吃的永遠是最新存檔。）
@@ -156,6 +161,8 @@ https://script.google.com → 開啟你之前建的 **`VoC Daily Bot`**。
 | 打開是空的、數字都 0 | bot 還沒跑過，先執行 `runDailyDigest` |
 | 「是否已在 roadmap」全都顯示未知 | Roadmap 表讀不到，看 `VoC_Bot_Log` 的 WARN |
 | 改了 code 但畫面沒變 | 忘了「管理部署作業 → 新版本」 |
+| 建 HTML 檔時說「名稱重複」建不起來 | HTML 要命名 `DashboardUI`，不是 `Dashboard` —— 後者已經被 `Dashboard.gs` 佔用了 |
+| 打開網頁說找不到 `DashboardUI` | Apps Script 裡的 HTML 檔名跟 `Dashboard.gs` 第 55 行的字串對不上，大小寫也要一樣 |
 | 載入很慢 | 看畫面上的載入進度：raw 列數多就會慢，這是一次性成本，載完之後切換期間／分頁都是瞬間的 |
 
 ---
@@ -163,7 +170,7 @@ https://script.google.com → 開啟你之前建的 **`VoC Daily Bot`**。
 ## 離線預覽版（不用部署就能看介面）
 
 `voc-bot/preview/index.html` 是同一份介面配上**虛構的示範資料**，直接用瀏覽器打開就能看動線。
-畫面最上方有橘色警告條標明是預覽版。改過 `Dashboard.html` 之後重新產生：
+畫面最上方有橘色警告條標明是預覽版。改過 `DashboardUI.html` 之後重新產生：
 
 ```bash
 python3 voc-bot/build-preview.py

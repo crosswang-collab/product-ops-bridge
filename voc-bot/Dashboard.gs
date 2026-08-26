@@ -45,8 +45,14 @@ var DASH_WHY_MAX = 240;
 // 網頁進入點
 // ===========================================================================
 
+/**
+ * HTML 檔叫 DashboardUI 而不是 Dashboard —— 這是刻意的，不要「順手改回一致」。
+ * Apps Script 編輯器不讓同一個專案裡出現兩個同名檔案，即使一個是指令碼、
+ * 一個是 HTML。這支檔案已經叫 Dashboard.gs，所以 HTML 只能換個名字。
+ * 改了這裡的字串，Apps Script 裡的 HTML 檔名就要跟著改，兩邊必須一致。
+ */
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('Dashboard')
+  return HtmlService.createHtmlOutputFromFile('DashboardUI')
     .setTitle(DASH_TITLE)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -168,7 +174,7 @@ function apiCore() {
  * 刻意回「陣列的陣列」而不是物件陣列：同樣的資料，JSON 體積少四成左右，
  * 在 3000 列以上差別很有感。欄位對照見下面 DASH_WIRE 註解。
  *
- * DASH_WIRE（前端 R.* 常數與這裡一一對應，改這裡就要改 Dashboard.html）：
+ * DASH_WIRE（前端 R.* 常數與這裡一一對應，改這裡就要改 DashboardUI.html）：
  *   0 id        ハッシュ（唯一鍵，drill-down 用）
  *   1 ing       取込日（bot 抓到的日子，yyyy/MM/dd）
  *   2 occ       発生日（用戶實際說話的日子，yyyy/MM/dd）
