@@ -1,0 +1,135 @@
+# 每天把 Jira roadmap 抓成事實層 JSON，commit 回 main，Vercel 自動 redeploy。
+#
+# 這支 workflow 只做事實，不呼叫任何 LLM。判讀層另外接。
+#
+# 要能跑，必須先在 repo Settings → Secrets and variables → Actions 加兩個 secret：
+#   JIRA_EMAIL  你的 17.media 信箱
+#   JIRA_TOKEN  Atlassian API token（https://id.atlassian.com/manage-profile/security/api-tokens）
+# 少任何一個 → extract.py 直接拒跑並讓 workflow 失敗（不會寫出半份檔案）。
+#
+# 失敗時 GitHub 會寄信給 repo watcher。沒有額外的通知機制 —— 刻意的，
+# 因為「安靜地失敗」是這類排程最大的風險，讓它吵一次比每天假裝成功好。
+
+name: roadmap-daily
+
+on:
+  schedule:
+    # 00:00 UTC = 09:00 JST。GitHub 的排程有幾分鐘漂移，不影響（我們比對的是日期不是時刻）。
+    - cron: '0 0 * * *'
+  # 允許手動觸發，第一次上線與 debug 用
+  workflow_dispatch:
+
+# 同時只跑一個。前一輪還沒跑完就不要疊上去 —— 兩個 job 同時 commit 同一個檔會撞。
+concurrency:
+  group: roadmap-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # 需要把 facts JSON commit 回 main
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10   # 對齊 loop contract 的 BUDGET：單輪 ≤ 10 分鐘
+
+    steps:
+      - name: 取出 repo
+        uses: actions/checkout@v4
+        with:
+          # 需要完整歷史才能正確 commit（fetch-depth: 1 也可以，但 push 時偶爾會撞）
+          fetch-depth: 0
+
+      - name: 準備 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+        # extract.py 只用標準庫，不需要 pip install
+
+      - name: 確認 secret 有設
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+        run: |
+          if [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_TOKEN" ]; then
+            echo "::error::缺少 JIRA_EMAIL 或 JIRA_TOKEN secret。"
+            echo "::error::去 repo Settings → Secrets and variables → Actions 補上，然後重跑。"
+            exit 1
+          fi
+          echo "secret 都在。"
+
+      - name: 抓取並正規化
+        id: extract
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+        run: |
+          set -o pipefail
+          cd roadmap-bot
+          # exit code 約定：0 = 對帳通過 / 1 = 對帳有差異（正常，卡片會動）/ 2 = blocker
+          set +e
+          python3 extract.py --live --out out/ 2>&1 | tee /tmp/extract.log
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+          case "$code" in
+            0) echo "::notice::對帳通過。" ;;
+            1) echo "::warning::對帳有差異 —— 卡片有移動時這是正常的，看對帳報告確認。" ;;
+            2) echo "::error::有 blocker（通常是 Jira 新增了 STAGE_MAP 沒有的 status）。需要人改 extract.py 的 STAGE_MAP。" ;;
+            *) echo "::error::extract.py 以未預期的 exit code $code 結束。" ;;
+          esac
+
+          # exit 2 = 資料有結構性問題，必須讓 workflow 紅燈
+          # exit 1 = 對帳差異，仍然要 commit（資料是好的，只是跟上週報告不同）
+          if [ "$code" -ge 2 ]; then exit "$code"; fi
+
+      - name: Commit（只在資料真的有變時）
+        run: |
+          git config user.name  "roadmap-bot"
+          git config user.email "roadmap-bot@users.noreply.github.com"
+
+          git add roadmap-bot/out/
+
+          if git diff --cached --quiet; then
+            echo "::notice::資料沒有變化，不產生空 commit。"
+            exit 0
+          fi
+
+          AS_OF=$(python3 -c "import json;print(json.load(open('roadmap-bot/out/latest.json'))['as_of_date'])")
+          N=$(python3 -c "import json;print(json.load(open('roadmap-bot/out/latest.json'))['counts']['active'])")
+
+          git commit \
+            -m "data(roadmap): ${AS_OF} 事實層快照（active ${N} 張）" \
+            -m "由 .github/workflows/roadmap-daily.yml 自動產生。" \
+            -m "extract.py exit code: ${{ steps.extract.outputs.exit_code }}"
+
+          # 推回 main。撞到別人的 push 就 rebase 再試（資料 commit 沒有衝突風險）
+          for i in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "::notice::已推上 main，Vercel 會自動 redeploy。"
+              exit 0
+            fi
+            echo "push 失敗（第 $i 次），拉取後重試…"
+            git pull --rebase origin main || exit 1
+            sleep $((2 ** i))
+          done
+          echo "::error::重試三次仍推不上去。"
+          exit 1
+
+      - name: 把對帳報告放進 job summary
+        if: always()
+        run: |
+          REPORT=$(ls -1 roadmap-bot/out/reconcile-*.md 2>/dev/null | sort | tail -1)
+          if [ -n "$REPORT" ]; then
+            cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## 沒有產生對帳報告"
+              echo ""
+              echo "extract.py 在寫出報告前就結束了。log："
+              echo ""
+              echo '```'
+              tail -40 /tmp/extract.log 2>/dev/null || echo "（沒有 log）"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

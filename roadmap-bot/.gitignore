@@ -1,2 +1,7 @@
-# 原始 Jira dump 含 291 筆卡片內文與 assignee 個資，不進版控
+# 原始 Jira dump 含卡片內文與 assignee 個資，不進版控
 raw-*.json
+
+# 本機驗證 dashboard 用的（Chromium headless），不是專案依賴
+node_modules/
+package.json
+package-lock.json
