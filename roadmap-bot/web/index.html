@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Roadmap 決策隊列</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ctext y=%2714%27 font-size=%2714%27%3E%F0%9F%97%BA%3C/text%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#0b0e14; --s1:#141a24; --s2:#10151f; --bd:#232c3a;
@@ -78,7 +79,7 @@ a{color:var(--acc)}
 
 <script>
 // 這一頁刻意只做一件事：回答「今天有沒有需要 Cross 決策的事」。
-// 所有數字來自 ../out/latest.json（事實層，機器產生，可回溯到 Jira 卡號）。
+// 所有數字來自 /roadmap-bot/out/latest.json（事實層，機器產生，可回溯到 Jira 卡號）。
 // 這一頁不做判讀 —— 門檻是寫死的規則，不是 LLM 意見。
 
 const BANDS = {           // 與 extract.py 的 WIP_BANDS / UPSTREAM_BANDS 對齊
@@ -249,13 +250,16 @@ function render(d) {
   document.getElementById('app').innerHTML = H.join('');
 }
 
-fetch('../out/latest.json', {cache:'no-store'})
+// 絕對路徑，不是相對路徑 —— vercel.json 設了 trailingSlash:false，
+// /roadmap-bot/web/ 會被導向 /roadmap-bot/web，此時 '../out/…' 會解析成
+// /out/latest.json（錯的位置）。絕對路徑在三種 URL 形式下都正確。
+fetch('/roadmap-bot/out/latest.json', {cache:'no-store'})
   .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
   .then(render)
   .catch(e => {
     document.getElementById('app').innerHTML = `<div class="err">
       <b>讀不到事實層資料。</b><br>
-      <code>../out/latest.json</code> 取得失敗：${esc(e.message)}<br><br>
+      <code>/roadmap-bot/out/latest.json</code> 取得失敗：${esc(e.message)}<br><br>
       可能原因：每日排程從未成功跑過（檔案還不存在），或 Vercel 部署沒帶到 <code>roadmap-bot/out/</code>。
       去 GitHub Actions 看 <code>roadmap-daily</code> 的執行紀錄。
     </div>`;
