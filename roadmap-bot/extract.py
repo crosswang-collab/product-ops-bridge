@@ -549,13 +549,13 @@ def reconcile(cards, agg, excluded, unmapped):
 
     n = len(cards)
     want_n = EXPECT["active_cards"]
-    lines.append(f"| active 卡數 | {n} | 期望 {want_n}（{EXPECT['as_of']}） | {verdict(n, want_n)} |")
+    lines.append(f"| active 卡數 | {n} | {want_n} | {verdict(n, want_n)} |")
     if n != want_n:
         ok = False
 
     for st, want in EXPECT["stages"].items():
         got = agg["stages"].get(st, 0)
-        lines.append(f"| stage {st} | {got} | 期望 {want} | {verdict(got, want)} |")
+        lines.append(f"| stage {st} | {got} | {want} | {verdict(got, want)} |")
         if got != want:
             ok = False
 
@@ -563,30 +563,30 @@ def reconcile(cards, agg, excluded, unmapped):
     for d, want in EXPECT["capacity"].items():
         a = agg["domains_by_capacity"].get(d)
         if not a:
-            lines.append(f"| 產能 {d} | 沒有這個池子 | 期望 {want['cards']} 張 | ★需處理★ |")
+            lines.append(f"| 產能 {d} | 沒有這個池子 | {want['cards']} 張 | ★需處理★ |")
             ok = False
             continue
-        lines.append(f"| 產能 {d} 張數 | {a['cards']} | 期望 {want['cards']} | "
+        lines.append(f"| 產能 {d} 張數 | {a['cards']} | {want['cards']} | "
                      f"{verdict(a['cards'], want['cards'])} |")
-        lines.append(f"| 產能 {d} 點數 | {a['points']} | 期望 {want['points']} | "
+        lines.append(f"| 產能 {d} 點數 | {a['points']} | {want['points']} | "
                      f"{verdict(a['points'], want['points'])} |")
         if a["cards"] != want["cards"] or a["points"] != want["points"]:
             ok = False
 
     got_part = agg["team_participation_count"]
     want_part = EXPECT["team_participation_count"]
-    lines.append(f"| Teams 參與計數 | {got_part} | 期望 {want_part} | {verdict(got_part, want_part)} |")
+    lines.append(f"| Teams 參與計數 | {got_part} | {want_part} | {verdict(got_part, want_part)} |")
     if got_part != want_part:
         ok = False
 
     for day, want in EXPECT["release_concentration"].items():
         got = next((r["count"] for r in agg["release_concentration"] if r["date"] == day), 0)
-        lines.append(f"| {day} 同日發布 | {got} | 期望 {want} | {verdict(got, want)} |")
+        lines.append(f"| {day} 同日發布 | {got} | {want} | {verdict(got, want)} |")
         if got != want:
             ok = False
 
     lines.append(f"| 被排除（{'/'.join(sorted(EXCLUDED_STATUSES))}） | {len(excluded)} | — | 參考 |")
-    lines.append(f"| status 未分類 | {len(unmapped)} | 期望 0 | "
+    lines.append(f"| status 未分類 | {len(unmapped)} | 0 | "
                  f"{'一致' if not unmapped else '★需處理★'} |")
     return lines, ok and not unmapped
 
@@ -664,14 +664,23 @@ def main():
     warns = [d for d in dq if d["severity"] == "warn"]
 
     md = [f"# Roadmap 抓取對帳報告 — {stamp}", "",
+          "> 這份是**抓取品質的自我檢查**，不是給人做決策用的。決策看 dashboard。",
+          "> 它唯一要回答的問題是：「今天抓到的數字，跟上一份 PMT 週報對得上嗎？」",
+          "> **對不上是常態**——卡片每天在動，數字當然會變。",
+          "> 只有在你看不出差異原因、或出現 blocker 時才需要找人。", "",
           f"- 來源：{source}", f"- 原始 {len(raw)} 張 → active **{len(cards)}** 張"
           f"（排除 {len(excluded)}、未分類 {len(unmapped)}）",
           f"- baseline 鎖定於 {BASELINE_LOCKED_AT}，"
           f"{'**已過期，數字不可用**' if facts['baseline']['expired'] else f'{BASELINE_EXPIRES_AT} 重算'}",
-          "", "## 對帳（vs PMT 週報）", "",
-          "| 項目 | 本次抓到 | 期望 | 結果 |", "| --- | --- | --- | --- |"]
+          "", f"## 與上一份 PMT 週報（{EXPECT['as_of']}）的逐項比對", "",
+          "| 項目 | 本次抓到 | 上一份週報 | 差異 |", "| --- | --- | --- | --- |"]
     md += rec_lines
-    md += ["", f"**對帳結論：{'PASS' if rec_ok else 'FAIL —— 見上表差異，需人工確認'}**", "",
+    # 措辭刻意避開 PASS/FAIL：對非工程師讀者，一份天天寫「FAIL」的報告會被訓練成無視。
+    # 這裡描述的是「有沒有差異」，而差異本身通常不是問題。
+    md += ["", ("**與上一份週報完全一致。**" if rec_ok else
+                "**與上一份週報有差異。** 這通常代表卡片移動了（做完、換 stage、改發布日），"
+                "不代表抓取出錯。逐項差異見上表；資料真的有問題時會出現在下面的「資料品質」段，"
+                "而不是這裡。"), "",
            "## Stage 分布", "", "| Stage | 張數 |", "| --- | --- |"]
     md += [f"| {k} | {v} |" for k, v in sorted(agg["stages"].items())]
     md += ["", "## 產能（Teams 歸戶 — 對應 PMT 📈 Capacity）", "",
@@ -717,8 +726,8 @@ def main():
 
     print(f"[OK] active {len(cards)} 張 → {facts_path}")
     print(f"[OK] 對帳報告 → {rec_path}")
-    print(f"[{'OK' if rec_ok else '注意'}] 對帳 {'PASS' if rec_ok else 'FAIL'}"
-          f"／blocker {len(blockers)}／warn {len(warns)}")
+    print(f"[{'OK' if rec_ok else 'INFO'}] 與上一份週報"
+          f"{'一致' if rec_ok else '有差異（卡片移動時屬正常）'}"f"／blocker {len(blockers)}／warn {len(warns)}")
 
     if unmapped:
         print("[BLOCKER] 有 status 沒對應到 stage，STAGE_MAP 要補：")
