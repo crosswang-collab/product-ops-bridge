@@ -5,3 +5,6 @@ raw-*.json
 node_modules/
 package.json
 package-lock.json
+
+# Python 位元組碼
+__pycache__/

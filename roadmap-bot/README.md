@@ -77,9 +77,22 @@ Exit code：`0` = 對帳通過／`1` = 對帳有差異（需人工看）／`2` =
 
 加完後可以用 Actions 頁面的 **Run workflow** 手動跑一次驗證，不用等到隔天。
 
-Exit code 的處理：`0`／`1` 都會 commit（1 = 對帳與上週報告有差異，卡片會動，這是正常的）；
-`2` 會讓 workflow 紅燈且不 commit（通常是 Jira 新增了 `STAGE_MAP` 沒有的 status，需要人改 code）。
+Exit code 的處理：
+
+| code | 意義 | workflow |
+|---|---|---|
+| `0` | 對帳與上一份週報一致 | 綠燈，commit |
+| `1` | 對帳有差異（卡片會動，正常） | 綠燈，commit |
+| `2` | 資料有結構性問題，沒寫出東西 | 紅燈，不 commit |
+| `3` | 程式崩潰 | 紅燈，不 commit |
+
+`2` 最常見的原因是 Jira 新增了 `STAGE_MAP` 沒有的 status，需要人改 code。
 對帳報告會貼在每次執行的 job summary 裡。
+
+抓取完成後還有一道獨立守門：檢查 `out/latest.json` 的 `as_of_date` 真的等於今天，
+不是就紅燈。exit code 是程式**自己說**它成功了，這一步是去看檔案**真的**變了 ——
+2026-08-31 就發生過程式崩潰、workflow 綠燈、什麼都沒寫的情況，這道守門是為了讓
+「回報成功但沒產出」不可能再安靜地過關。
 
 ## 介面（`roadmap-bot/web/index.html`）
 

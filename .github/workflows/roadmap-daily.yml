@@ -65,7 +65,10 @@ jobs:
         run: |
           set -o pipefail
           cd roadmap-bot
-          # exit code 約定：0 = 對帳通過 / 1 = 對帳有差異（正常，卡片會動）/ 2 = blocker
+          # exit code 約定（跟 extract.py 檔尾的註解對齊）：
+          #   0 = 對帳一致 / 1 = 對帳有差異（正常，卡片會動）
+          #   2 = 資料有結構性問題 / 3 = 程式崩潰
+          # 注意 pipefail：$? 取的是 python3 的 code，不是 tee 的。
           set +e
           python3 extract.py --live --out out/ 2>&1 | tee /tmp/extract.log
           code=$?
@@ -76,12 +79,34 @@ jobs:
             0) echo "::notice::對帳通過。" ;;
             1) echo "::warning::對帳有差異 —— 卡片有移動時這是正常的，看對帳報告確認。" ;;
             2) echo "::error::有 blocker（通常是 Jira 新增了 STAGE_MAP 沒有的 status）。需要人改 extract.py 的 STAGE_MAP。" ;;
+            3) echo "::error::extract.py 崩潰了。這一輪沒有可信資料，看下面的 traceback。" ;;
             *) echo "::error::extract.py 以未預期的 exit code $code 結束。" ;;
           esac
 
-          # exit 2 = 資料有結構性問題，必須讓 workflow 紅燈
-          # exit 1 = 對帳差異，仍然要 commit（資料是好的，只是跟上週報告不同）
+          # exit ≥2 = 資料有結構性問題或程式崩潰，必須讓 workflow 紅燈
+          # exit 1  = 對帳差異，仍然要 commit（資料是好的，只是跟上週報告不同）
           if [ "$code" -ge 2 ]; then exit "$code"; fi
+
+      - name: 確認真的寫出了今天的資料
+        # 這一步的存在理由：2026-08-31 那次，extract.py 崩潰、workflow 綠燈、
+        # 什麼都沒寫，而且沒有人發現。exit code 是程式「自己說」它成功了；
+        # 這一步是去看檔案「真的」變成今天。兩者不一致就紅燈。
+        run: |
+          TODAY=$(date -u +%F)
+          LATEST=roadmap-bot/out/latest.json
+
+          if [ ! -f "$LATEST" ]; then
+            echo "::error::extract.py 回報成功，但 $LATEST 不存在。"
+            exit 1
+          fi
+
+          AS_OF=$(python3 -c "import json,sys;print(json.load(open('$LATEST'))['as_of_date'])")
+          if [ "$AS_OF" != "$TODAY" ]; then
+            echo "::error::$LATEST 的 as_of_date 是 $AS_OF，不是今天（$TODAY）。"
+            echo "::error::代表這一輪其實沒有寫出新資料 —— 舊檔案被當成成功了。"
+            exit 1
+          fi
+          echo "latest.json 是今天（$TODAY）的資料。"
 
       - name: Commit（只在資料真的有變時）
         run: |
