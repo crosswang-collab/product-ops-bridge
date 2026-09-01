@@ -40,6 +40,19 @@ roadmap-bot / extract.py — 把 Jira roadmap 卡片正規化成一份事實層 
     只有在欄位為空時才自己算 —— 自己算的值會標記 estimated=true。
   · Jira 的 status 名稱若被改名，STAGE_MAP 會漏接。漏接不會靜默：
     未知 status 會進對帳報告的「未分類」區並讓 exit code = 2。
+
+═══════════════════════════════════════════════════════════════════
+exit code（排程靠這個判斷成敗，改動前先看 roadmap-daily.yml）
+═══════════════════════════════════════════════════════════════════
+
+    0  對帳與上一份週報一致                    → 綠燈，commit
+    1  對帳有差異（卡片會動，正常）            → 綠燈，commit
+    2  資料有結構性問題，沒寫出東西            → 紅燈
+    3  程式崩潰                                → 紅燈
+
+  1 與 2/3 的分界就是「資料能不能用」。所以任何走不下去的錯誤都要
+  raise HardStop（→ 2），絕不能用會 exit 1 的方式結束 —— 那會讓
+  排程把當機當成正常差異。2026-08-31 真的發生過一次。
 """
 
 import argparse
@@ -49,8 +62,19 @@ import json
 import os
 import sys
 import time
+import traceback
 import urllib.error
 import urllib.request
+
+
+class HardStop(Exception):
+    """走不下去、這一輪不會寫出任何檔案的錯誤。
+
+    一律以 exit code 2 結束，讓排程紅燈。
+    不要改用 Python 內建的 SystemExit(字串) —— 那會 exit 1，而 1 在這支
+    程式裡是「對帳有差異，但資料是好的」的意思，等於把當機偽裝成正常。
+    """
+
 
 # ═══════════════════════════════════════════════════════════════════
 # CONFIG — 只有這一區要改
@@ -269,6 +293,22 @@ def _band(value, bands):
     return bands[-1][1]
 
 
+def _num(value, sign=False):
+    """把數字印成人看的樣子。
+
+    Jira 的數字欄位（effort points）回來的是 float —— 24 會變成 24.0。
+    整數就印整數，真的有小數才印小數，報告裡不要出現 24.0 這種東西。
+    sign=True 會強制加正負號（對帳的差值用）。
+    """
+    if value is None:
+        return "—"
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    if isinstance(value, int):
+        return f"{value:+d}" if sign else f"{value}"
+    return f"{value:+g}" if sign else f"{value:g}"
+
+
 # ═══════════════════════════════════════════════════════════════════
 # 抓資料
 # ═══════════════════════════════════════════════════════════════════
@@ -317,7 +357,7 @@ def _post_json(url, body, cred):
                     time.sleep(HTTP_BACKOFF_SEC[attempt])
                     continue
             else:
-                raise SystemExit(
+                raise HardStop(
                     f"[永久性錯誤] Jira 回 HTTP {e.code}，不重試。\n"
                     f"  400 → JQL 或欄位 ID 有問題（filter 16245 還在嗎？）\n"
                     f"  401/403 → token 過期或沒有這個 filter 的檢視權\n"
@@ -329,13 +369,19 @@ def _post_json(url, body, cred):
             if attempt < HTTP_RETRIES - 1:
                 time.sleep(HTTP_BACKOFF_SEC[attempt])
                 continue
-    raise SystemExit(f"[暫時性錯誤] 重試 {HTTP_RETRIES} 次仍失敗，這次不寫出任何檔案。\n  {last_err}")
+    raise HardStop(f"[暫時性錯誤] 重試 {HTTP_RETRIES} 次仍失敗，這次不寫出任何檔案。\n  {last_err}")
 
 
 def fetch_from_file(path):
     """吃 MCP / 手動匯出的 JSON。容忍三種外層形狀。"""
-    with open(path, encoding="utf-8") as f:
-        blob = json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            blob = json.load(f)
+    except OSError as e:
+        raise HardStop(f"[永久性錯誤] 讀不到 {path}：{e}") from e
+    except json.JSONDecodeError as e:
+        raise HardStop(f"[永久性錯誤] {path} 不是合法的 JSON："
+                       f"第 {e.lineno} 行 —— {e.msg}") from e
     if isinstance(blob, dict):
         if "issues" in blob and isinstance(blob["issues"], dict):
             return blob["issues"].get("nodes", [])      # MCP 包法
@@ -343,7 +389,7 @@ def fetch_from_file(path):
             return blob["issues"]                        # Jira REST 原生
     if isinstance(blob, list):
         return blob                                      # 已經是卡片陣列
-    raise SystemExit(f"[永久性錯誤] 認不出 {path} 的結構，沒有找到卡片陣列。")
+    raise HardStop(f"[永久性錯誤] 認不出 {path} 的結構，沒有找到卡片陣列。")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -545,7 +591,8 @@ def reconcile(cards, agg, excluded, unmapped):
     def verdict(got, want):
         if got == want:
             return "一致"
-        return f"差 {got - want:+d}"
+        # 走 _num()，因為 points 是 float（Jira 回 24.0）—— 直接用 :+d 會炸。
+        return f"差 {_num(got - want, sign=True)}"
 
     n = len(cards)
     want_n = EXPECT["active_cards"]
@@ -568,7 +615,7 @@ def reconcile(cards, agg, excluded, unmapped):
             continue
         lines.append(f"| 產能 {d} 張數 | {a['cards']} | {want['cards']} | "
                      f"{verdict(a['cards'], want['cards'])} |")
-        lines.append(f"| 產能 {d} 點數 | {a['points']} | {want['points']} | "
+        lines.append(f"| 產能 {d} 點數 | {_num(a['points'])} | {want['points']} | "
                      f"{verdict(a['points'], want['points'])} |")
         if a["cards"] != want["cards"] or a["points"] != want["points"]:
             ok = False
@@ -612,8 +659,8 @@ def main():
     if args.live:
         email, token = os.environ.get("JIRA_EMAIL"), os.environ.get("JIRA_TOKEN")
         if not email or not token:
-            raise SystemExit("[永久性錯誤] --live 需要環境變數 JIRA_EMAIL 與 JIRA_TOKEN，"
-                             "兩者缺一就不跑（不會寫出半份檔案）。")
+            raise HardStop("[永久性錯誤] --live 需要環境變數 JIRA_EMAIL 與 JIRA_TOKEN，"
+                           "兩者缺一就不跑（不會寫出半份檔案）。")
         raw = fetch_live(email, token)
         raw_release = fetch_live(email, token, RELEASE_JQL)
         source = f"Jira REST live pull（{JQL} ＋ {RELEASE_JQL}）"
@@ -624,8 +671,8 @@ def main():
             f" ＋ {args.release_file}" if args.release_file else "（未提供發布母體）")
 
     if not raw:
-        raise SystemExit("[永久性錯誤] 一張卡都沒抓到。不寫出空檔案 —— "
-                         "空檔案會讓 dashboard 顯示成「roadmap 清空了」，比壞掉更危險。")
+        raise HardStop("[永久性錯誤] 一張卡都沒抓到。不寫出空檔案 —— "
+                       "空檔案會讓 dashboard 顯示成「roadmap 清空了」，比壞掉更危險。")
 
     cards, excluded, unmapped = normalize(raw, today)
     release_cards = None
@@ -689,7 +736,7 @@ def main():
            "| Domain | 卡 | pts | 在途(月) | 判定 | 上游卡 | 上游(月) | 判定 | 基準薄弱 |",
            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for d, a in sorted(agg["domains_by_capacity"].items()):
-        md.append(f"| {d} | {a['cards']} | {a['points']} | {a['wip_months'] or '—'} | "
+        md.append(f"| {d} | {a['cards']} | {_num(a['points'])} | {a['wip_months'] or '—'} | "
                   f"{a['wip_verdict'] or '無基準'} | {a['upstream_cards']} | "
                   f"{a['upstream_months'] or '—'} | {a['upstream_verdict'] or '無基準'} | "
                   f"{'是' if a['baseline_thin'] else ''} |")
@@ -738,4 +785,28 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # exit code 約定（workflow 依賴這個）：
+    #   0 = 對帳一致
+    #   1 = 對帳有差異（卡片會動，正常）→ 仍然 commit
+    #   2 = 資料有結構性問題（例如 status 沒對應到 stage）→ workflow 紅燈
+    #   3 = 程式自己炸了 → workflow 紅燈
+    #
+    # 3 存在的理由：Python 未捕捉的例外預設 exit 1，而 1 在這裡被定義成
+    # 「正常差異」。2026-08-31 就真的發生過 —— verdict() 對 float 炸掉，
+    # workflow 卻是綠燈、什麼都沒寫。崩潰絕不可以長得像成功。
+    try:
+        sys.exit(main())
+    except SystemExit:
+        raise
+    except HardStop as e:
+        print(f"\n{e}", file=sys.stderr)
+        sys.exit(2)
+    except KeyboardInterrupt:
+        print("\n[中斷] 使用者中止，沒有寫出資料。", file=sys.stderr)
+        sys.exit(3)
+    except Exception:
+        traceback.print_exc()
+        print("\n[CRASH] extract.py 未預期地中斷，沒有產出可信的資料。"
+              "\n        以 exit code 3 結束，讓排程紅燈 —— 不要把崩潰當成「沒有變化」。",
+              file=sys.stderr)
+        sys.exit(3)
