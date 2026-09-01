@@ -4,247 +4,494 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Roadmap 決策隊列</title>
+<title>Roadmap 今天要決定的事</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ctext y=%2714%27 font-size=%2714%27%3E%F0%9F%97%BA%3C/text%3E%3C/svg%3E">
 <style>
+/* ═══════════════════════════════════════════════════════════════
+   設計前提（改動前先讀）
+
+   讀者是 COO，不是工程師。他早上開會前掃一眼，要的是一個二元判斷：
+   今天要不要打斷某個團隊。所以：
+
+   1. 第一眼看到的必須是結論，不是資料基準或品保狀態。
+   2. 頁面上不出現內部黑話。在途存量→手上的工作量、pts→（不出現，
+      一律換算成月）、Teams 歸戶→（移進說明）、RAG→（用中文狀態）。
+   3. 每一張決策卡都要有「你要決定的是」，不能只丟問題就停。
+   4. 卡片一律印名字，不能只印卡號 —— 要人決定哪張能挪期，卻要他
+      自己去開 9 個 Jira 分頁，是設計失敗。
+   5. 被點名過載的團隊 lead 會質疑數字。所以每個數字都要能點回 Jira，
+      基準薄弱時要主動說「這個數字別當真」。
+   ═══════════════════════════════════════════════════════════════ */
 :root{
-  --bg:#0b0e14; --s1:#141a24; --s2:#10151f; --bd:#232c3a;
+  --bg:#0b0e14; --s1:#141a24; --s2:#10151f; --s3:#1b2331; --bd:#232c3a;
   --tx:#e6ebf4; --mut:#8b96a8; --dim:#5a6577;
-  --red:#ff6b6b; --amb:#ffb454; --grn:#5fd39a; --acc:#5fd3e6;
+  /* 狀態色。#ffc233 取代舊的 #ffb454 —— 對紅綠色盲(protan)與綠色的
+     可分辨度 ΔE 從 8.0 提升到 10.4（dataviz validator，surface #141a24）。
+     負荷條實際相鄰的兩色是 --acc 與 --red：ΔE 16.4(deutan)/30.4(normal)，通過。
+     狀態色一律搭配文字判定，不單靠顏色傳達意義。 */
+  --red:#ff6b6b; --amb:#ffc233; --grn:#5fd39a; --acc:#5fd3e6;
 }
 *{box-sizing:border-box}
 body{
-  margin:0;min-height:100vh;padding:28px 20px 60px;
+  margin:0;min-height:100vh;padding:26px 18px 60px;
   background:radial-gradient(1200px 600px at 50% -10%,#121826,#0b0e14);
   color:var(--tx);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans TC",sans-serif;
-  line-height:1.55;
+  line-height:1.6;
 }
-.wrap{max-width:900px;margin:0 auto}
+.wrap{max-width:880px;margin:0 auto}
 
-/* ── 資料基準列 ───────────────────────────────── */
-.basis{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;
-  font-size:12px;color:var(--mut);margin-bottom:22px}
-.basis b{color:var(--tx);font-weight:600}
-.stale{background:rgba(255,107,107,.12);border:1px solid var(--red);
-  border-radius:10px;padding:12px 16px;margin-bottom:20px;color:var(--red);font-size:13.5px}
+/* ── ① 判決句：整頁最大的字，第一眼就是結論 ───────── */
+.verdict{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.verdict.ok{color:var(--grn)}
+.verdict.bad{color:var(--red)}
+.asof{font-size:12.5px;color:var(--dim);margin-bottom:30px}
+.asof b{color:var(--mut);font-weight:600}
+@media(max-width:520px){.verdict{font-size:23px}}
 
-/* ── 決策隊列（第一屏，唯一重點）─────────────── */
-h1{font-size:13px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim);margin:0 0 14px;font-weight:700}
-.q{display:flex;flex-direction:column;gap:12px;margin-bottom:38px}
-.item{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--amb);
-  border-radius:12px;padding:16px 18px}
-.item.red{border-left-color:var(--red)}
-.item .h{font-size:16px;font-weight:700;margin-bottom:5px}
-.item .w{font-size:13.5px;color:var(--mut)}
-.item .w code{background:var(--s2);padding:1px 5px;border-radius:4px;
-  font-size:12.5px;color:var(--tx)}
-.clear{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--grn);
-  border-radius:12px;padding:20px 18px}
-.clear .h{font-size:17px;font-weight:700;color:var(--grn);margin-bottom:4px}
-.clear .w{font-size:13.5px;color:var(--mut)}
+.banner{border-radius:12px;padding:14px 16px;margin:0 0 22px;font-size:13.5px}
+.banner.red{background:rgba(255,107,107,.10);border:1px solid var(--red);color:#ffd0d0}
+.banner.red b{color:var(--red)}
 
-/* ── 摺疊區 ───────────────────────────────────── */
-details{background:var(--s1);border:1px solid var(--bd);border-radius:12px;
-  margin-bottom:12px;overflow:hidden}
-summary{cursor:pointer;padding:13px 18px;font-size:14px;font-weight:600;
-  list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+/* ── ② 決策卡 ─────────────────────────────────────── */
+.sec{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 12px;font-weight:700}
+.cards{display:flex;flex-direction:column;gap:14px;margin-bottom:40px}
+.card{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--amb);
+  border-radius:13px;padding:17px 19px}
+.card.now{border-left-color:var(--red)}
+.card.soon{border-left-color:var(--amb)}
+.card.fyi{border-left-color:var(--dim)}
+.card h3{font-size:17.5px;font-weight:700;margin:0 0 7px;line-height:1.35}
+.mean{font-size:14px;color:var(--mut);margin:0 0 14px}
+.mean .caveat{color:var(--amb)}
+
+/* 決策卡裡的卡片清單：名字為主，卡號退居輔助 */
+.rows{display:flex;flex-direction:column;gap:1px;background:var(--bd);
+  border-radius:9px;overflow:hidden;margin-bottom:14px}
+.row{background:var(--s2);padding:9px 12px;display:flex;gap:10px;
+  align-items:baseline;flex-wrap:wrap;font-size:13.5px}
+.row .nm{flex:1 1 220px;min-width:0}
+.row .id{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.row .team{font-size:12px;color:var(--mut);white-space:nowrap}
+.row .st{font-size:12px;white-space:nowrap}
+.row .st.w{color:var(--amb)}
+.row .st.r{color:var(--red)}
+.row a{color:inherit;text-decoration:none;border-bottom:1px solid var(--bd)}
+.row a:hover{border-bottom-color:var(--acc);color:var(--acc)}
+
+/* 「你要決定的是」—— 每張卡的收尾，缺這行就是只丟問題不給出口 */
+.todo{font-size:13.5px;background:var(--s3);border-radius:9px;padding:11px 13px;
+  color:var(--tx)}
+.todo b{color:var(--acc);font-weight:600;font-size:11.5px;letter-spacing:.1em;
+  display:block;margin-bottom:3px;text-transform:uppercase}
+
+.allclear{background:var(--s1);border:1px solid var(--bd);border-left:4px solid var(--grn);
+  border-radius:13px;padding:20px}
+.allclear .w{font-size:13.5px;color:var(--mut);margin-top:5px}
+
+/* ── ③ 團隊負荷圖 ─────────────────────────────────── */
+.load{background:var(--s1);border:1px solid var(--bd);border-radius:13px;
+  padding:19px;margin-bottom:14px}
+.load h2{font-size:16px;font-weight:700;margin:0 0 3px}
+.load .sub{font-size:12.5px;color:var(--mut);margin:0 0 18px}
+.bars{display:flex;flex-direction:column;gap:15px}
+/* 數值放在長條「外面」，不疊在填色上。
+   疊在上面時，超載的紅字會落在紅色填色上 —— 紅字紅底，等於沒寫。 */
+.bar{display:grid;grid-template-columns:100px 1fr 150px;gap:12px;align-items:center}
+@media(max-width:560px){
+  .bar{grid-template-columns:1fr auto;gap:5px 10px}
+  .bar .nm{grid-column:1}
+  .bar .val{grid-column:2;justify-content:flex-end}
+  .bar .track{grid-column:1/-1}
+}
+.bar .nm{font-size:13px;font-weight:600}
+.bar .track{position:relative;height:26px;background:var(--s2);
+  border-radius:5px;overflow:hidden}
+/* 正常區間帶：1.5–2.5 個月。位置本身就是判定依據，不必讀數字。 */
+.bar .ok{position:absolute;top:0;bottom:0;background:rgba(95,211,154,.11);
+  border-left:1px dashed rgba(95,211,154,.4);border-right:1px dashed rgba(95,211,154,.4)}
+.bar .fill{position:absolute;top:0;bottom:0;left:0;border-radius:0 5px 5px 0;
+  background:var(--acc)}
+.bar .fill.over{background:var(--red)}
+/* 正常範圍的上限線，疊在填色之上 */
+.bar .limit{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;
+  background:var(--grn);opacity:.85}
+.bar .val{display:flex;gap:7px;align-items:baseline;flex-wrap:wrap;
+  font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--tx)}
+.bar .val b{font-weight:600}
+.bar .val .verdict-txt{color:var(--mut);font-weight:400}
+.bar .val .verdict-txt.over{color:var(--red);font-weight:600}
+.bar .val.na{color:var(--dim)}
+.bar .none{position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg,transparent,transparent 5px,
+    rgba(90,101,119,.13) 5px,rgba(90,101,119,.13) 10px)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);
+  margin-top:16px;padding-top:13px;border-top:1px solid var(--bd)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;
+  margin-right:5px;vertical-align:middle;font-style:normal}
+
+/* 決策卡內的「其他 N 個」摺疊 */
+details.more{margin-bottom:14px;background:none;border:none;border-radius:0}
+details.more>summary{padding:6px 2px;font-size:12.5px;font-weight:500;color:var(--mut)}
+details.more>summary::after{content:"▾";font-size:10px}
+details.more[open]>summary::after{content:"▴"}
+details.more>summary:hover{color:var(--acc)}
+details.more .rows{margin-bottom:0}
+
+/* ── ④ 摺疊細節 ───────────────────────────────────── */
+details{background:var(--s1);border:1px solid var(--bd);border-radius:13px;
+  margin-bottom:11px;overflow:hidden}
+summary{cursor:pointer;padding:14px 19px;font-size:14.5px;font-weight:600;
+  list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:14px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"▾";color:var(--dim);font-size:12px}
+summary::after{content:"▾";color:var(--dim);font-size:11px;align-self:center}
 details[open] summary::after{content:"▴"}
-summary .tag{font-size:11.5px;color:var(--mut);font-weight:400}
-.body{padding:0 18px 18px;font-size:13px}
+summary .tag{font-size:12px;color:var(--mut);font-weight:400;text-align:right}
+.body{padding:0 19px 19px;font-size:13px}
+.body>p:first-child{margin-top:0;color:var(--mut);font-size:12.5px}
 
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
-th{color:var(--dim);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.05em}
 td.n{text-align:right;font-variant-numeric:tabular-nums}
 .scroll{overflow-x:auto}
 a{color:var(--acc)}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
-.dot.red{background:var(--red)}.dot.amb{background:var(--amb)}.dot.grn{background:var(--grn)}
-.dot.off{background:var(--dim)}
-.thin{color:var(--amb);font-size:11px}
+.w-txt{color:var(--amb)}
+.r-txt{color:var(--red)}
+.thin{color:var(--amb);font-size:11.5px}
+
 .foot{margin-top:34px;padding-top:16px;border-top:1px solid var(--bd);
-  font-size:11.5px;color:var(--dim);line-height:1.8}
-.err{background:rgba(255,107,107,.12);border:1px solid var(--red);border-radius:12px;
-  padding:18px;color:var(--red);font-size:14px}
+  font-size:11.5px;color:var(--dim);line-height:1.85}
+.foot code{background:var(--s2);padding:1px 5px;border-radius:4px}
+.err{background:rgba(255,107,107,.10);border:1px solid var(--red);border-radius:13px;
+  padding:19px;color:#ffd0d0;font-size:14px}
+.err b{color:var(--red)}
 </style>
 </head>
 <body>
-<div class="wrap" id="app">
-  <div class="basis">載入中…</div>
-</div>
+<div class="wrap" id="app"><div class="asof">載入中…</div></div>
 
 <script>
-// 這一頁刻意只做一件事：回答「今天有沒有需要 Cross 決策的事」。
-// 所有數字來自 /roadmap-bot/out/latest.json（事實層，機器產生，可回溯到 Jira 卡號）。
-// 這一頁不做判讀 —— 門檻是寫死的規則，不是 LLM 意見。
+// 資料全部來自 /roadmap-bot/out/latest.json（機器產生的事實層，每天自動更新）。
+// 這一頁不做任何 LLM 判讀 —— 下面的門檻是寫死的規則，不是意見。
 
-const BANDS = {           // 與 extract.py 的 WIP_BANDS / UPSTREAM_BANDS 對齊
-  wip:      {overload:'red', warning:'amb', healthy:'grn', below:'amb'},
-  upstream: {starving:'red', medium:'amb', ample:'grn'}
-};
-const SAME_DAY_ALERT = 5; // 同日發布 ≥ 5 張就進決策隊列
+const SAME_DAY_ALERT = 5;            // 同一天發佈幾張以上要提醒
+const OK_BAND = [1.5, 2.5];          // 「正常」的手上工作量區間（月），對齊 extract.py 的 WIP_BANDS
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const idOf  = k => esc(String(k || '').replace('APPIDEAS-', ''));
+const round = n => Math.round(n * 10) / 10;
 
-function decisions(d) {
-  const out = [], a = d.aggregate;
+// PM 在 Jira 標的狀態，一律翻成中文再顯示
+const ZH_STATUS = {'On track':'順利', 'Warning':'注意', 'At Risk':'有風險'};
+const zhStatus = s => ZH_STATUS[s] || s || '未標';
+const statusCls = s => s === 'At Risk' ? 'r' : s === 'Warning' ? 'w' : '';
 
-  // 1. 同日發布集中度
-  for (const r of a.release_concentration || []) {
-    if (r.count >= SAME_DAY_ALERT) {
-      out.push({red:true, h:`${r.date} 一天要發 ${r.count} 張`,
-        w:`${r.keys.map(k=>`<code>${esc(k.replace('APPIDEAS-',''))}</code>`).join(' ')}
-           —— 回歸測試與強制更新風險壓在同一天。決定哪幾張可以挪期。`});
-    }
+// 用「今天／N 天後／N 天前」講日期，比 2026-09-01 好懂，也讓過期的事自動退位
+function whenLabel(dateStr, today) {
+  const d = Math.round((Date.parse(dateStr + 'T00:00:00Z') - Date.parse(today + 'T00:00:00Z')) / 86400000);
+  if (Number.isNaN(d)) return esc(dateStr);
+  if (d === 0) return '今天';
+  if (d === 1) return '明天';
+  if (d > 1)   return `${d} 天後`;
+  if (d === -1) return '昨天';
+  return `${-d} 天前`;
+}
+
+const rowHtml = c => `
+    <div class="row">
+      <span class="nm">${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.summary)}</a>`
+                              : esc(c.summary)}</span>
+      <span class="team">${esc(c.domain || '未分')}</span>
+      <span class="st ${statusCls(c.project_status)}">${esc(zhStatus(c.project_status))}</span>
+      <span class="id">${idOf(c.key)}</span>
+    </div>`;
+
+// 決策卡裡只把「需要看的那幾個」攤開，其餘收起來。
+// 全部攤開會讓第一屏變成三十幾行清單，等於逼 COO 捲很久才看得完一件事 ——
+// 這一頁的工作是 60 秒內給一個要不要介入的判斷，不是把 Jira 搬過來。
+function rowsHtml(items, collapseAll) {
+  if (!items || !items.length) return '';
+  const flagged = collapseAll ? []
+    : items.filter(c => c.project_status === 'Warning' || c.project_status === 'At Risk');
+  const rest = items.filter(c => !flagged.includes(c));
+  let h = flagged.length ? `<div class="rows">${flagged.map(rowHtml).join('')}</div>` : '';
+  if (rest.length) {
+    h += `<details class="more"><summary>${flagged.length ? `其他 ${rest.length} 個` : `看是哪 ${rest.length} 個`}</summary>
+      <div class="rows">${rest.map(rowHtml).join('')}</div></details>`;
   }
+  return h;
+}
 
-  // 2. 在途存量過載
-  for (const [dom, v] of Object.entries(a.domains_by_capacity || {})) {
-    if (v.wip_verdict === 'overload') {
-      out.push({red:true, h:`${dom} 在途存量 ${v.wip_months} 個月（過載）`,
-        w:`${v.cards} 張 ${v.points} pts，對照 Q2 基準 ${v.baseline_pts_per_month} pts/月。`
-          + (v.baseline_thin ? ` <span class="thin">⚠ 基準樣本僅 n=${v.baseline_n}，絕對值不可信，只能看方向。</span>` : '')});
-    }
-  }
+// ── 決策清單。順序 = 急迫度，不是資料表的順序。 ──────────────
+function decisions(d, today) {
+  const a = d.aggregate || {}, out = [];
+  const cards = d.cards || [];
+  const byKey = Object.fromEntries(cards.map(c => [c.key, c]));
+  const upcoming = a.upcoming_releases || [];
+  // 發佈母體含 issuetype=Tech 的卡（不在 active 集合裡），所以名字要從
+  // upcoming_releases 補，不能只查 cards —— 查不到就只剩一個卡號，等於沒說。
+  const relInfo = Object.fromEntries(upcoming.map(u => [u.key, u]));
 
-  // 3. 上游斷炊
-  for (const [dom, v] of Object.entries(a.domains_by_capacity || {})) {
-    if (v.upstream_verdict === 'starving') {
-      out.push({red:false, h:`${dom} 上游存量 ${v.upstream_months} 個月（斷炊風險）`,
-        w:`Discovery + Design 只有 ${v.upstream_cards} 張。現在不補案，兩個月後會從過載翻成沒事做。`});
-    }
-  }
-
-  // 4. 卡片轉 At Risk
-  const atRisk = (d.cards || []).filter(c => c.project_status === 'At Risk');
-  for (const c of atRisk) {
-    out.push({red:true, h:`${c.key.replace('APPIDEAS-','')} 標記 At Risk`,
-      w:`${esc(c.summary)}<br>${esc(c.domain||'—')} · ${esc(c.status)} · `
-        + `停留 ${c.stage_duration_bd ?? '?'} 工作日`
-        + (c.release_date ? ` · 發布 ${c.release_date}` : '')
-        + (c.config_on && c.config_on !== c.release_date ? ` · Config On ${c.config_on}` : '')
-        + ` · <a href="${esc(c.url)}" target="_blank" rel="noopener">開卡片</a>`});
-  }
-
-  // 5. 資料品質 blocker（會讓所有數字失真，優先度高於任何紅燈）
+  // ① 資料 blocker —— 比任何紅燈都優先，因為它讓下面每個數字都不可信
   const blockers = (d.data_quality || []).filter(x => x.severity === 'blocker');
   if (blockers.length) {
-    out.push({red:true, h:`${blockers.length} 個資料 blocker —— 上面的數字先別信`,
-      w: blockers.map(b => `<code>${esc(b.key)}</code> ${esc(b.issue)}`).join('<br>')});
+    out.push({ lvl:'now', h:`有 ${blockers.length} 筆資料抓壞了`,
+      mean:'在修好之前，這一頁其他數字都可能是錯的。',
+      rows: blockers.map(b => ({ summary:b.issue, key:b.key,
+                                 domain:(byKey[b.key]||{}).domain, project_status:null,
+                                 url:(byKey[b.key]||{}).url })),
+      todo:'轉給工程確認 Jira 欄位。這通常代表卡片上有必填欄位空著。' });
   }
 
-  // 6. baseline 過期
+  // ② 同日發佈過度集中。已經過去的日子不再是決策，排到最後面。
+  for (const r of (a.release_concentration || [])) {
+    if (r.count < SAME_DAY_ALERT) continue;
+    const past = Date.parse(r.date + 'T00:00:00Z') < Date.parse(today + 'T00:00:00Z');
+    const items = r.keys.map(k => relInfo[k] || byKey[k] || { key:k, summary:`（查不到標題，卡號 ${idOf(k)}）` })
+                        .map(u => ({ ...u, url:(byKey[u.key] || {}).url ||
+                                       `https://17media.atlassian.net/browse/${u.key}` }));
+    const risky = items.filter(u => u.project_status === 'Warning' || u.project_status === 'At Risk');
+    out.push({
+      lvl: past ? 'fyi' : 'now', collapseAll: past,
+      h: `${whenLabel(r.date, today)}要上線 ${r.count} 個功能`,
+      mean: past
+        ? `這天已經過了，列在這裡只是讓你知道發生過。`
+        : `同一天上這麼多，回歸測試會全部擠在一起；其中一個出問題，其他 ${r.count - 1} 個都會被拖住。`,
+      rows: items,
+      todo: past ? '不用動作。'
+        : (risky.length === 1
+            ? `看有沒有一兩個可以往後挪一週。先看上面標「注意」的那一個 —— 它最可能是拖累別人的那個。`
+            : risky.length > 1
+              ? `看有沒有一兩個可以往後挪一週。先看上面標「注意」的那 ${risky.length} 個 —— 它們最可能是拖累別人的。`
+              : '看有沒有一兩個可以往後挪一週，把風險攤開。')
+    });
+  }
+
+  // ③ 團隊手上塞太滿
+  for (const [dom, v] of Object.entries(a.domains_by_capacity || {})) {
+    if (v.wip_verdict !== 'overload') continue;
+    const mine = cards.filter(c => (c.capacity_domains || []).includes(dom));
+    out.push({
+      lvl:'now',
+      h:`${dom} 手上的工作要做 ${round(v.wip_months)} 個月才做得完`,
+      mean:`他們平常一個月消化得掉的量，現在手上壓了 ${round(v.wip_months)} 個月份。`
+         + `現在丟新的需求過去，只會排在這 ${v.cards} 張後面。`
+         + (v.baseline_thin
+            ? ` <span class="caveat">⚠ 這個倍數是拿他們過去只有 ${v.baseline_n} 個案子的紀錄推的，樣本太少 —— 方向可信，數字本身別當真。</span>`
+            : ''),
+      rows: mine,
+      todo:`要嘛從這 ${v.cards} 個裡砍掉幾個，要嘛先別再往 ${dom} 丟新的。`
+         + '兩個都不做，就是默認這些全部一起延。'
+    });
+  }
+
+  // ④ 上游快沒東西可做（兩個月後才會痛，但現在不補就來不及）
+  for (const [dom, v] of Object.entries(a.domains_by_capacity || {})) {
+    if (v.upstream_verdict !== 'starving') continue;
+    const days = Math.round((v.upstream_months || 0) * 30);
+    out.push({
+      lvl:'soon',
+      h:`${dom} 快沒有新案子可以做了`,
+      mean:`還在規劃階段的只剩 ${v.upstream_cards} 張，大約 ${days} 天就會做完。`
+         + `之後這個團隊會閒下來 —— 現在不補案子，中間會空一段。`,
+      rows: cards.filter(c => (c.capacity_domains || []).includes(dom) &&
+                              (c.stage === 'Discovery' || c.stage === 'Design')),
+      todo:'現在就要開始想下一批要做什麼。等他們真的閒下來才補，中間至少空一個月。'
+    });
+  }
+
+  // ⑤ PM 自己標了風險的卡
+  const risk = cards.filter(c => c.project_status === 'At Risk');
+  const warn = cards.filter(c => c.project_status === 'Warning');
+  if (risk.length) {
+    out.push({ lvl:'now', h:`${risk.length} 個案子被標成「有風險」`,
+      mean:'這是負責的 PM 自己標的，代表他們認為會延或會出事。',
+      rows: risk,
+      todo:'一個一個問清楚：延多久、卡在哪、需不需要你出面。' });
+  }
+  if (warn.length) {
+    out.push({ lvl:'fyi', h:`${warn.length} 個案子被標成「注意」`,
+      mean:'不是紅燈，是負責的 PM 自己覺得有點風險。上面幾件事裡有些就是它們。',
+      rows: warn, collapseAll: true,
+      todo:'不用動作。有你在意的名字再去問。' });
+  }
+
+  // ⑥ 比較基準過期
   if (d.baseline && d.baseline.expired) {
-    out.push({red:false, h:'Q2 baseline 已過期',
-      w:`鎖定於 ${d.baseline.locked_at}，應在 ${d.baseline.expires_at} 重算。`
-        + `所有「在途／上游存量」的月數目前都是用舊基準算的。`});
+    out.push({ lvl:'soon', h:'團隊產能的比較基準過期了',
+      mean:`基準鎖在 ${esc(d.baseline.locked_at)}，${esc(d.baseline.expires_at)} 就該重算。`
+         + '上面所有「幾個月做得完」都還在用舊基準。',
+      rows:[], todo:'請 PMT 重算這一季的基準，然後更新 extract.py 裡的 BASELINES。' });
   }
 
-  return out;
+  const rank = { now:0, soon:1, fyi:2 };
+  return out.sort((x, y) => rank[x.lvl] - rank[y.lvl]);
+}
+
+// ── 團隊負荷圖 ────────────────────────────────────────────────
+// 形式：橫條 + 正常區間帶。位置本身就是判定，不必讀數字也不必解讀顏色。
+// 顏色只有兩態（正常青／超載紅，CVD 已驗證），且每條都附文字判定，
+// 不單靠顏色傳達意義。沒有基準的團隊畫成斜線空槽，不畫成 0。
+function loadChart(a) {
+  const entries = Object.entries(a.domains_by_capacity || {})
+    .sort((x, y) => (y[1].wip_months || -1) - (x[1].wip_months || -1));
+  if (!entries.length) return '';
+  const max = Math.max(3, ...entries.map(([, v]) => v.wip_months || 0)) * 1.12;
+  const pct = m => Math.min(100, (m / max) * 100);
+
+  const bars = entries.map(([dom, v]) => {
+    if (v.wip_months == null) {
+      return `<div class="bar"><div class="nm">${esc(dom)}</div>
+        <div class="track" title="${esc(dom)} 這一季還沒算過產能基準，所以沒辦法換算成月"><div class="none"></div></div>
+        <div class="val na">沒有基準可比</div></div>`;
+    }
+    const over = v.wip_months > OK_BAND[1];
+    const verdict = over ? '塞太滿' : v.wip_months < OK_BAND[0] ? '偏空' : '正常';
+    const tip = `${dom}：手上 ${v.cards} 張，照過去的速度要 ${round(v.wip_months)} 個月做完`
+              + (v.baseline_thin ? `（基準樣本只有 ${v.baseline_n} 個案子，僅供參考）` : '');
+    // 上限線畫在填色「之上」—— 畫在下面的話，超載的長條會把整條正常區間蓋住，
+    // 「超過了多少」這個唯一重點就看不見了（v1 的實測錯誤）。
+    return `<div class="bar"><div class="nm">${esc(dom)}</div>
+      <div class="track" title="${esc(tip)}">
+        <div class="ok" style="left:${pct(OK_BAND[0])}%;width:${pct(OK_BAND[1]) - pct(OK_BAND[0])}%"></div>
+        <div class="fill${over ? ' over' : ''}" style="width:${pct(v.wip_months)}%"></div>
+        <div class="limit" style="left:${pct(OK_BAND[1])}%"></div>
+      </div>
+      <div class="val"><b>${round(v.wip_months)} 個月</b>
+        <span class="verdict-txt${over ? ' over' : ''}">${verdict}</span>${
+        v.baseline_thin ? '<span class="verdict-txt">⚠ 基準薄弱</span>' : ''}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="load">
+    <h2>各團隊手上塞了多少</h2>
+    <p class="sub">手上還沒做完的工作，照這個團隊過去的速度要做幾個月。超過綠線就是塞太滿。</p>
+    <div class="bars">${bars}</div>
+    <div class="legend">
+      <span><i style="background:var(--acc)"></i>正常範圍內</span>
+      <span><i style="background:var(--red)"></i>超出正常範圍</span>
+      <span><i style="background:var(--grn);width:2px;border-radius:0"></i>正常上限（${OK_BAND[1]} 個月）—— 超過這條線就是塞太滿</span>
+    </div>
+  </div>`;
 }
 
 function render(d) {
-  const a = d.aggregate, today = new Date().toISOString().slice(0,10);
+  const a = d.aggregate || {}, today = new Date().toISOString().slice(0, 10);
   const stale = d.as_of_date !== today;
-  const q = decisions(d);
-  const dq = d.data_quality || [];
-  const warns = dq.filter(x => x.severity === 'warn').length;
+  const q = decisions(d, today);
+  const act = q.filter(i => i.lvl !== 'fyi').length;
   const H = [];
 
-  H.push(`<div class="basis">
-    <span>資料基準 <b>${esc(d.as_of_date)}</b></span>
-    <span>active <b>${a.stages ? Object.values(a.stages).reduce((x,y)=>x+y,0) : '?'}</b> 張</span>
-    <span>對帳 <b>${d.reconcile_ok ? '通過' : '有差異'}</b></span>
-    <span>產生於 ${esc((d.generated_at||'').replace('T',' ').replace('+00:00',' UTC'))}</span>
-  </div>`);
-
-  if (stale) H.push(`<div class="stale"><b>這不是今天的資料。</b>
-    最新快照是 ${esc(d.as_of_date)}，今天是 ${today}。
-    每日排程可能失敗了 —— 去 GitHub Actions 看 <code>roadmap-daily</code> 的最後一次執行。</div>`);
-
-  H.push('<h1>今天需要你決策的事</h1>');
-  if (!q.length) {
-    H.push(`<div class="clear"><div class="h">沒有。</div>
-      <div class="w">沒有同日 ≥${SAME_DAY_ALERT} 張的發布、沒有 domain 過載或斷炊、
-      沒有卡片標 At Risk、沒有資料 blocker。下面的細節今天可以不看。</div></div>`);
+  // ── ① 判決句：整頁第一眼 ──
+  if (stale) {
+    H.push(`<p class="verdict bad">這不是今天的資料。</p>`);
+  } else if (act === 0) {
+    H.push(`<p class="verdict ok">今天沒事。</p>`);
   } else {
-    H.push('<div class="q">' + q.map(i =>
-      `<div class="item${i.red?' red':''}"><div class="h">${i.h}</div><div class="w">${i.w}</div></div>`
-    ).join('') + '</div>');
+    H.push(`<p class="verdict bad">今天有 ${act} 件事要你決定。</p>`);
+  }
+  // 用 as_of_date 而不是 generated_at —— 上面的「這不是今天的資料」判斷是拿
+  // as_of_date 比的，兩處顯示不同欄位會出現「橫幅說 8/27、副標說 9/1」的矛盾。
+  H.push(`<p class="asof">這是 <b>${esc(d.as_of_date)}</b> 的 roadmap
+    　進行中的案子 <b>${(d.cards || []).length}</b> 個　每天早上 09:00 自動更新</p>`);
+
+  if (stale) H.push(`<div class="banner red"><b>最新的一份是 ${esc(d.as_of_date)}，今天是 ${today}。</b>
+    自動抓取可能失敗了，下面的內容都是舊的。去 GitHub Actions 看 <code>roadmap-daily</code> 最後一次跑的結果。</div>`);
+
+  // ── ② 決策卡 ──
+  H.push('<p class="sec">今天要決定的事</p>');
+  if (!q.length) {
+    H.push(`<div class="allclear"><div class="verdict ok" style="font-size:17px;margin:0">全部正常。</div>
+      <div class="w">沒有同一天擠超過 ${SAME_DAY_ALERT} 個上線、沒有團隊塞太滿或快沒事做、
+      沒有案子被標風險、沒有資料抓壞。下面的細節今天可以不看。</div></div>`);
+  } else {
+    // 需要動作的排在前面；「知道就好」的用一條分隔線隔開，
+    // 否則標題說 4 件、畫面上卻數得出 5 塊，讀者會不信任這個數字。
+    const cardHtml = i => `
+      <div class="card ${i.lvl}">
+        <h3>${i.h}</h3>
+        <p class="mean">${i.mean}</p>
+        ${rowsHtml(i.rows, i.collapseAll)}
+        <div class="todo"><b>你要決定的是</b>${esc(i.todo)}</div>
+      </div>`;
+    const doNow = q.filter(i => i.lvl !== 'fyi'), fyi = q.filter(i => i.lvl === 'fyi');
+    if (doNow.length) H.push('<div class="cards">' + doNow.map(cardHtml).join('') + '</div>');
+    if (fyi.length) {
+      H.push('<p class="sec">知道就好，今天不用動作</p>');
+      H.push('<div class="cards">' + fyi.map(cardHtml).join('') + '</div>');
+    }
   }
 
-  // ── 摺疊：產能
-  H.push(`<details><summary>Domain 產能<span class="tag">Teams 歸戶，參與計數 ${a.team_participation_count ?? '?'}</span></summary>
-  <div class="body"><div class="scroll"><table>
-    <tr><th>Domain</th><th class="n">卡</th><th class="n">pts</th>
-        <th class="n">在途(月)</th><th class="n">上游(月)</th><th>基準</th></tr>
-    ${Object.entries(a.domains_by_capacity||{}).sort().map(([k,v])=>`<tr>
-      <td>${esc(k)}</td><td class="n">${v.cards}</td><td class="n">${v.points}</td>
-      <td class="n"><span class="dot ${BANDS.wip[v.wip_verdict]||'off'}"></span>${v.wip_months ?? '—'}</td>
-      <td class="n"><span class="dot ${BANDS.upstream[v.upstream_verdict]||'off'}"></span>${v.upstream_months ?? '—'}</td>
-      <td>${v.baseline_pts_per_month ? esc(v.baseline_pts_per_month)+' pts/月' : '無基準'}
-          ${v.baseline_thin ? `<span class="thin">n=${v.baseline_n} 薄</span>` : ''}</td>
-    </tr>`).join('')}
-  </table></div></div></details>`);
+  // ── ③ 團隊負荷圖 ──
+  H.push('<p class="sec">背景參考</p>');
+  H.push(loadChart(a));
 
-  // ── 摺疊：即將發布
+  // ── ④ 摺疊細節（用人話命名，並在括號裡說裡面是什麼）──
   const up = a.upcoming_releases || [];
-  H.push(`<details><summary>即將發布<span class="tag">${up.length} 張${a.release_pool_partial?' · 清單不完整':''}</span></summary>
+  H.push(`<details><summary>接下來要上線的東西<span class="tag">${up.length} 個</span></summary>
   <div class="body">
-    ${a.release_pool_partial ? `<p style="color:var(--amb);font-size:12.5px;margin:0 0 12px">
-      ⚠ 抓取時沒有帶到發布母體（filter 15906），這份清單會漏掉 issuetype=Tech 的卡。集中度是低估值。</p>` : ''}
+    ${a.release_pool_partial ? `<p class="w-txt">⚠ 這次抓取沒帶到完整的發佈清單，下面會漏掉一些。</p>` : ''}
     <div class="scroll"><table>
-    <tr><th>日期</th><th>卡</th><th>標題</th><th>Domain</th><th>狀態</th></tr>
-    ${up.map(r=>`<tr><td>${esc(r.date)}</td>
-      <td>${esc(r.key.replace('APPIDEAS-',''))}</td>
-      <td>${esc(r.summary)}</td><td>${esc(r.domain||'—')}</td>
-      <td>${r.project_status==='At Risk'?'<span class="dot red"></span>':
-            r.project_status==='Warning'?'<span class="dot amb"></span>':''}${esc(r.project_status||'—')}</td>
-    </tr>`).join('') || '<tr><td colspan="5">無</td></tr>'}
+    <tr><th>日期</th><th>名稱</th><th>團隊</th><th>PM 標的狀態</th></tr>
+    ${up.map(r => `<tr>
+      <td style="white-space:nowrap">${esc(r.date)}<br><span class="thin" style="color:var(--dim)">${whenLabel(r.date, today)}</span></td>
+      <td><a href="https://17media.atlassian.net/browse/${esc(r.key)}" target="_blank" rel="noopener">${esc(r.summary)}</a></td>
+      <td>${esc(r.domain || '未分')}</td>
+      <td class="${statusCls(r.project_status) === 'r' ? 'r-txt' : statusCls(r.project_status) === 'w' ? 'w-txt' : ''}">${esc(zhStatus(r.project_status))}</td>
+    </tr>`).join('') || '<tr><td colspan="4">無</td></tr>'}
   </table></div></div></details>`);
 
-  // ── 摺疊：stage 分布
-  H.push(`<details><summary>Stage 分布<span class="tag">owner domain 歸戶</span></summary>
+  const ST = {Discovery:'還在想要不要做', Design:'在設計', Develop:'在開發', Impact:'上線後看成效'};
+  H.push(`<details><summary>案子走到哪一步了<span class="tag">${(d.cards || []).length} 個</span></summary>
+  <div class="body"><table>
+    <tr><th>階段</th><th class="n">幾個</th></tr>
+    ${['Discovery','Design','Develop','Impact'].filter(k => (a.stages || {})[k] != null)
+      .map(k => `<tr><td>${ST[k]}<span class="thin" style="color:var(--dim)"> ${k}</span></td>
+                     <td class="n">${a.stages[k]}</td></tr>`).join('')}
+  </table></div></details>`);
+
+  H.push(`<details><summary>全部進行中的案子<span class="tag">${(d.cards || []).length} 個</span></summary>
   <div class="body"><div class="scroll"><table>
-    <tr><th>Stage</th><th class="n">張數</th></tr>
-    ${Object.entries(a.stages||{}).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v}</td></tr>`).join('')}
+    <tr><th>名稱</th><th>團隊</th><th>階段</th><th>PM 標的狀態</th><th>預計上線</th></tr>
+    ${(d.cards || []).map(c => `<tr>
+      <td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.summary)}</a>
+          <span class="thin" style="color:var(--dim)">${idOf(c.key)}</span></td>
+      <td>${esc(c.domain || '未分')}</td>
+      <td>${esc(ST[c.stage] || c.stage || '—')}</td>
+      <td class="${statusCls(c.project_status) === 'r' ? 'r-txt' : statusCls(c.project_status) === 'w' ? 'w-txt' : ''}">${esc(zhStatus(c.project_status))}</td>
+      <td>${esc(c.release_date || '未定')}</td></tr>`).join('')}
   </table></div></div></details>`);
 
-  // ── 摺疊：資料品質
-  H.push(`<details><summary>資料品質<span class="tag">${dq.filter(x=>x.severity==='blocker').length} blocker · ${warns} warn</span></summary>
-  <div class="body"><div class="scroll"><table>
-    <tr><th>嚴重度</th><th>卡</th><th>問題</th></tr>
-    ${dq.map(x=>`<tr><td>${esc(x.severity)}</td><td>${esc(x.key.replace('APPIDEAS-',''))}</td>
-      <td>${esc(x.issue)}${x.detail?` <span class="thin">${esc(x.detail)}</span>`:''}</td></tr>`).join('')
-      || '<tr><td colspan="3">無問題</td></tr>'}
-  </table></div></div></details>`);
-
-  // ── 摺疊：全部卡片
-  H.push(`<details><summary>全部 active 卡片<span class="tag">${(d.cards||[]).length} 張</span></summary>
-  <div class="body"><div class="scroll"><table>
-    <tr><th>卡</th><th>標題</th><th>Domain</th><th>Stage</th>
-        <th class="n">停留(bd)</th><th>RAG</th><th>發布</th></tr>
-    ${(d.cards||[]).map(c=>`<tr>
-      <td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.key.replace('APPIDEAS-',''))}</a></td>
-      <td>${esc(c.summary)}</td><td>${esc(c.domain||'—')}</td><td>${esc(c.stage||'—')}</td>
-      <td class="n">${c.stage_duration_bd ?? '—'}${c.stage_duration_estimated?'<span class="thin">*</span>':''}</td>
-      <td>${c.project_status==='At Risk'?'<span class="dot red"></span>':
-            c.project_status==='Warning'?'<span class="dot amb"></span>':''}${esc(c.project_status||'—')}</td>
-      <td>${esc(c.release_date||'—')}</td></tr>`).join('')}
-  </table>
-  <p class="thin" style="margin-top:10px">* 停留天數是本程式推算的（Jira 欄位為空），只扣週末不扣假日。</p>
-  </div></div></details>`);
+  const dq = d.data_quality || [];
+  H.push(`<details><summary>這些數字哪來的<span class="tag">${d.reconcile_ok ? '與上份週報一致' : '與上份週報有差異'}
+    ${dq.length ? ` · ${dq.length} 筆小提醒` : ''}</span></summary>
+  <div class="body">
+    <p>每天早上 09:00（JST）從 Jira 自動抓，抓完直接更新這一頁。中間沒有人手動改過。</p>
+    <table>
+      <tr><td>來源</td><td>${esc(d.source || '—')}</td></tr>
+      <tr><td>抓的範圍</td><td><code style="font-size:11.5px">${esc(d.jql || '—')}</code>
+        ${(d.excluded_statuses || []).length ? `<br>不含：${esc((d.excluded_statuses || []).join('、'))}` : ''}</td></tr>
+      <tr><td>產能基準</td><td>PMT 每季鎖定一次，這一份鎖於 ${esc((d.baseline || {}).locked_at || '—')}，
+        ${esc((d.baseline || {}).expires_at || '—')} 重算</td></tr>
+      <tr><td>與上份週報</td><td>${d.reconcile_ok ? '數字一致'
+        : '有差異 —— 卡片每天在動，這是正常的，不代表抓錯'}</td></tr>
+    </table>
+    ${dq.length ? `<p style="margin-top:14px">資料上的小提醒（不影響上面的判斷）：</p>
+    <div class="scroll"><table>
+      <tr><th>案子</th><th>提醒</th></tr>
+      ${dq.map(x => `<tr><td>${esc((d.cards || []).find(c => c.key === x.key)?.summary || idOf(x.key))}</td>
+        <td>${esc(x.issue)}${x.detail ? ` <span class="thin">${esc(x.detail)}</span>` : ''}</td></tr>`).join('')}
+    </table></div>` : ''}
+  </div></details>`);
 
   H.push(`<div class="foot">
-    來源：${esc(d.source||'—')}<br>
-    JQL：<code>${esc(d.jql||'—')}</code>　排除 status：${esc((d.excluded_statuses||[]).join('、'))}<br>
-    這一頁只顯示事實層，不含任何 LLM 判讀。門檻規則寫死在頁面裡：
-    同日發布 ≥${SAME_DAY_ALERT} 張、在途存量過載、上游斷炊、卡片 At Risk、資料 blocker、baseline 過期。
+    這一頁不含任何 AI 判讀。上面每一件「要決定的事」都是寫死的規則跑出來的：<br>
+    同一天上線 ≥${SAME_DAY_ALERT} 個 · 團隊手上超過 ${OK_BAND[1]} 個月的量 ·
+    上游剩不到 0.5 個月 · 案子被標風險 · 資料抓壞 · 基準過期。<br>
+    每個名稱都可以點進 Jira 對照原始卡片。
   </div>`);
 
   document.getElementById('app').innerHTML = H.join('');
@@ -253,15 +500,14 @@ function render(d) {
 // 絕對路徑，不是相對路徑 —— vercel.json 設了 trailingSlash:false，
 // /roadmap-bot/web/ 會被導向 /roadmap-bot/web，此時 '../out/…' 會解析成
 // /out/latest.json（錯的位置）。絕對路徑在三種 URL 形式下都正確。
-fetch('/roadmap-bot/out/latest.json', {cache:'no-store'})
+fetch('/roadmap-bot/out/latest.json', { cache:'no-store' })
   .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
   .then(render)
   .catch(e => {
     document.getElementById('app').innerHTML = `<div class="err">
-      <b>讀不到事實層資料。</b><br>
+      <b>讀不到資料。</b><br>
       <code>/roadmap-bot/out/latest.json</code> 取得失敗：${esc(e.message)}<br><br>
-      可能原因：每日排程從未成功跑過（檔案還不存在），或 Vercel 部署沒帶到 <code>roadmap-bot/out/</code>。
-      去 GitHub Actions 看 <code>roadmap-daily</code> 的執行紀錄。
+      可能是每天的自動抓取沒跑成功。去 GitHub Actions 看 <code>roadmap-daily</code> 最後一次的結果。
     </div>`;
   });
 </script>
