@@ -65,9 +65,9 @@ jobs:
         run: |
           set -o pipefail
           cd roadmap-bot
-          # exit code 約定（跟 extract.py 檔尾的註解對齊）：
-          #   0 = 對帳一致 / 1 = 對帳有差異（正常，卡片會動）
-          #   2 = 資料有結構性問題 / 3 = 程式崩潰
+          # exit code 約定（跟 extract.py 檔頭的對照表對齊）：
+          #   0 = 正常跑完 / 2 = 資料有結構性問題 / 3 = 程式崩潰
+          # 1 已停用 —— 它是 Python 未捕捉例外的預設值，不可以有「正常」的語意。
           # 注意 pipefail：$? 取的是 python3 的 code，不是 tee 的。
           set +e
           python3 extract.py --live --out out/ 2>&1 | tee /tmp/extract.log
@@ -76,16 +76,15 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
 
           case "$code" in
-            0) echo "::notice::對帳通過。" ;;
-            1) echo "::warning::對帳有差異 —— 卡片有移動時這是正常的，看對帳報告確認。" ;;
+            0) echo "::notice::正常跑完。變化明細看下面的每日變化報告。" ;;
+            1) echo "::error::extract.py 以 exit 1 結束。這個 code 已停用，出現就代表有未捕捉的例外。" ;;
             2) echo "::error::有 blocker（通常是 Jira 新增了 STAGE_MAP 沒有的 status）。需要人改 extract.py 的 STAGE_MAP。" ;;
             3) echo "::error::extract.py 崩潰了。這一輪沒有可信資料，看下面的 traceback。" ;;
             *) echo "::error::extract.py 以未預期的 exit code $code 結束。" ;;
           esac
 
-          # exit ≥2 = 資料有結構性問題或程式崩潰，必須讓 workflow 紅燈
-          # exit 1  = 對帳差異，仍然要 commit（資料是好的，只是跟上週報告不同）
-          if [ "$code" -ge 2 ]; then exit "$code"; fi
+          # 只有 0 算成功。1 已停用（見上），2/3 是真的壞了 —— 一律紅燈。
+          if [ "$code" -ne 0 ]; then exit "$code"; fi
 
       - name: 確認真的寫出了今天的資料
         # 這一步的存在理由：2026-08-31 那次，extract.py 崩潰、workflow 綠燈、
@@ -141,15 +140,15 @@ jobs:
           echo "::error::重試三次仍推不上去。"
           exit 1
 
-      - name: 把對帳報告放進 job summary
+      - name: 把每日變化報告放進 job summary
         if: always()
         run: |
-          REPORT=$(ls -1 roadmap-bot/out/reconcile-*.md 2>/dev/null | sort | tail -1)
+          REPORT=$(ls -1 roadmap-bot/out/changes-*.md 2>/dev/null | sort | tail -1)
           if [ -n "$REPORT" ]; then
             cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
           else
             {
-              echo "## 沒有產生對帳報告"
+              echo "## 沒有產生每日變化報告"
               echo ""
               echo "extract.py 在寫出報告前就結束了。log："
               echo ""
