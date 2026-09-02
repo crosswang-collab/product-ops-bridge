@@ -15,12 +15,15 @@
 
    1. 第一眼看到的必須是結論，不是資料基準或品保狀態。
    2. 頁面上不出現內部黑話。在途存量→手上的工作量、pts→（不出現，
-      一律換算成月）、Teams 歸戶→（移進說明）、RAG→（用中文狀態）。
+      一律換算成月）、Teams 歸戶→（移進說明）、RAG→（用人話狀態）。
    3. 每一張決策卡都要有「你要決定的是」，不能只丟問題就停。
    4. 卡片一律印名字，不能只印卡號 —— 要人決定哪張能挪期，卻要他
       自己去開 9 個 Jira 分頁，是設計失敗。
    5. 被點名過載的團隊 lead 會質疑數字。所以每個數字都要能點回 Jira，
       基準薄弱時要主動說「這個數字別當真」。
+
+   三語：中文給 Cross，英文與日文給 JP／跨區團隊。卡片標題來自 Jira，
+   本來就是英文，三種語言下都原樣顯示 —— 那是專有名詞，翻了反而對不上。
    ═══════════════════════════════════════════════════════════════ */
 :root{
   --bg:#0b0e14; --s1:#141a24; --s2:#10151f; --s3:#1b2331; --bd:#232c3a;
@@ -33,13 +36,28 @@
 }
 *{box-sizing:border-box}
 body{
-  margin:0;min-height:100vh;padding:26px 18px 60px;
+  margin:0;min-height:100vh;padding:22px 18px 60px;
   background:radial-gradient(1200px 600px at 50% -10%,#121826,#0b0e14);
   color:var(--tx);
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans TC",sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans TC",
+    "Noto Sans JP",sans-serif;
   line-height:1.6;
 }
 .wrap{max-width:880px;margin:0 auto}
+
+/* ── ⓪ 工具列：語言切換 + 列印 ─────────────────────── */
+.tools{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  flex-wrap:wrap;margin-bottom:20px}
+.langs{display:inline-flex;background:var(--s2);border:1px solid var(--bd);
+  border-radius:9px;padding:2px;gap:2px}
+.langs button{appearance:none;background:none;border:none;cursor:pointer;
+  color:var(--mut);font:inherit;font-size:12.5px;padding:5px 12px;border-radius:7px;
+  white-space:nowrap}
+.langs button:hover{color:var(--tx)}
+.langs button[aria-current="true"]{background:var(--s3);color:var(--tx);font-weight:600}
+.printbtn{appearance:none;background:var(--s2);border:1px solid var(--bd);cursor:pointer;
+  color:var(--mut);font:inherit;font-size:12.5px;padding:6px 13px;border-radius:9px}
+.printbtn:hover{color:var(--acc);border-color:var(--acc)}
 
 /* ── ① 判決句：整頁最大的字，第一眼就是結論 ───────── */
 .verdict{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.01em;line-height:1.25}
@@ -167,10 +185,40 @@ a{color:var(--acc)}
 .err{background:rgba(255,107,107,.10);border:1px solid var(--red);border-radius:13px;
   padding:19px;color:#ffd0d0;font-size:14px}
 .err b{color:var(--red)}
+
+/* ═══════════════════════════════════════════════════════════════
+   列印 / 存成 PDF
+
+   深色底列印出來是一整片黑，既吃墨又難讀，而且這份 PDF 是要轉給
+   JP 團隊看的 —— 所以列印時整份翻成淺色，不是把螢幕原樣印出去。
+   摺疊區在 beforeprint 由 JS 全部展開，列印完再收回原狀。
+   ═══════════════════════════════════════════════════════════════ */
+@media print{
+  @page{margin:14mm}
+  :root{
+    --bg:#fff; --s1:#fff; --s2:#fafafa; --s3:#f4f6f8; --bd:#d5dae1;
+    --tx:#111417; --mut:#4a5260; --dim:#6b7480;
+    --red:#c0392b; --amb:#9a6a00; --grn:#1e7d4f; --acc:#0f6d80;
+  }
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff;color:#111417;padding:0;font-size:11pt;line-height:1.5}
+  .wrap{max-width:none}
+  .tools{display:none}           /* 語言切換與列印鈕本身不印 */
+  .verdict{font-size:20pt}
+  .card,.load,details,.allclear{break-inside:avoid;page-break-inside:avoid}
+  .card,.load,details,.allclear{box-shadow:none}
+  details{border:1px solid var(--bd)}
+  summary{cursor:default}
+  summary::after,details.more>summary::after{content:""}
+  .row a,a{color:inherit;text-decoration:none;border-bottom:none}
+  /* 列印時把 Jira 連結的卡號留著就夠了，不印整串網址 */
+  .foot{page-break-inside:avoid}
+  .sec{color:#6b7480}
+}
 </style>
 </head>
 <body>
-<div class="wrap" id="app"><div class="asof">載入中…</div></div>
+<div class="wrap" id="app"><div class="asof">載入中… / Loading… / 読み込み中…</div></div>
 
 <script>
 // 資料全部來自 /roadmap-bot/out/latest.json（機器產生的事實層，每天自動更新）。
@@ -178,33 +226,346 @@ a{color:var(--acc)}
 
 const SAME_DAY_ALERT = 5;            // 同一天發佈幾張以上要提醒
 const OK_BAND = [1.5, 2.5];          // 「正常」的手上工作量區間（月），對齊 extract.py 的 WIP_BANDS
+const LANG_KEY = 'roadmap-lang';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const idOf  = k => esc(String(k || '').replace('APPIDEAS-', ''));
 const round = n => Math.round(n * 10) / 10;
 
-// PM 在 Jira 標的狀態，一律翻成中文再顯示
-const ZH_STATUS = {'On track':'順利', 'Warning':'注意', 'At Risk':'有風險'};
-const zhStatus = s => ZH_STATUS[s] || s || '未標';
+// ═══════════════════════════════════════════════════════════════
+// 三語文案
+//
+// 卡片標題（summary）來自 Jira，三語都原樣顯示 —— 那是專有名詞，
+// 翻了反而跟 Jira 對不上，被點名的團隊會找不到是哪張卡。
+// ═══════════════════════════════════════════════════════════════
+const I18N = {
+  zh: {
+    htmlLang:'zh-Hant', label:'中文', docTitle:'Roadmap 今天要決定的事',
+    print:'列印 / 存成 PDF',
+    vStale:'這不是今天的資料。', vClear:'今天沒事。',
+    vN: n => `今天有 ${n} 件事要你決定。`,
+    asOf: d => `這是 <b>${d}</b> 的 roadmap`,
+    activeN: n => `進行中的案子 <b>${n}</b> 個`,
+    autoUpd:'每天早上自動更新',
+    staleBanner: (a,t) => `<b>最新的一份是 ${a}，今天是 ${t}。</b>
+      自動抓取可能失敗了，下面的內容都是舊的。去 GitHub Actions 看 <code>roadmap-daily</code> 最後一次跑的結果。`,
+    secDecide:'今天要決定的事', secFyi:'知道就好，今天不用動作', secBg:'背景參考',
+    todoLabel:'你要決定的是',
+    allClearH:'全部正常。',
+    allClearW: n => `沒有同一天擠超過 ${n} 個上線、沒有團隊塞太滿或快沒事做、`
+      + `沒有案子被標風險、沒有資料抓壞。下面的細節今天可以不看。`,
+    when: d => d===0?'今天':d===1?'明天':d>1?`${d} 天後`:d===-1?'昨天':`${-d} 天前`,
+    status:{'On track':'順利','Warning':'注意','At Risk':'有風險'}, statusNone:'未標',
+    noTeam:'未分',
+    othersN: n => `其他 ${n} 個`, whichN: n => `看是哪 ${n} 個`,
+    noTitle: id => `（查不到標題，卡號 ${id}）`,
+
+    blockH: n => `有 ${n} 筆資料抓壞了`,
+    blockM:'在修好之前，這一頁其他數字都可能是錯的。',
+    blockT:'轉給工程確認 Jira 欄位。這通常代表卡片上有必填欄位空著。',
+
+    relH: (w,n) => `${w}要上線 ${n} 個功能`,
+    relM: n => `同一天上這麼多，回歸測試會全部擠在一起；其中一個出問題，其他 ${n-1} 個都會被拖住。`,
+    relMPast:'這天已經過了，列在這裡只是讓你知道發生過。',
+    relTPast:'不用動作。',
+    relT1:'看有沒有一兩個可以往後挪一週。先看上面標「注意」的那一個 —— 它最可能是拖累別人的那個。',
+    relTN: n => `看有沒有一兩個可以往後挪一週。先看上面標「注意」的那 ${n} 個 —— 它們最可能是拖累別人的。`,
+    relT0:'看有沒有一兩個可以往後挪一週，把風險攤開。',
+
+    wipH: (d,m) => `${d} 手上的工作要做 ${m} 個月才做得完`,
+    wipM: (m,c) => `他們平常一個月消化得掉的量，現在手上壓了 ${m} 個月份。`
+      + `現在丟新的需求過去，只會排在這 ${c} 張後面。`,
+    wipThin: n => ` <span class="caveat">⚠ 這個倍數是拿他們過去只有 ${n} 個案子的紀錄推的，`
+      + `樣本太少 —— 方向可信，數字本身別當真。</span>`,
+    wipT: (c,d) => `要嘛從這 ${c} 個裡砍掉幾個，要嘛先別再往 ${d} 丟新的。兩個都不做，就是默認這些全部一起延。`,
+
+    upH: d => `${d} 快沒有新案子可以做了`,
+    upM: (c,days) => `還在規劃階段的只剩 ${c} 張，大約 ${days} 天就會做完。`
+      + `之後這個團隊會閒下來 —— 現在不補案子，中間會空一段。`,
+    upT: d => `現在就要開始想 ${d} 下一批要做什麼。等他們真的閒下來才補，中間至少空一個月。`,
+
+    riskH: n => `${n} 個案子被標成「有風險」`,
+    riskM:'這是負責的 PM 自己標的，代表他們認為會延或會出事。',
+    riskT:'一個一個問清楚：延多久、卡在哪、需不需要你出面。',
+    warnH: n => `${n} 個案子被標成「注意」`,
+    warnM:'不是紅燈，是負責的 PM 自己覺得有點風險。上面幾件事裡有些就是它們。',
+    warnT:'不用動作。有你在意的名字再去問。',
+
+    baseH:'團隊產能的比較基準過期了',
+    baseM: (l,e) => `基準鎖在 ${l}，${e} 就該重算。上面所有「幾個月做得完」都還在用舊基準。`,
+    baseT:'請 PMT 重算這一季的基準，然後更新 extract.py 裡的 BASELINES。',
+
+    loadH:'各團隊手上塞了多少',
+    loadSub:'手上還沒做完的工作，照這個團隊過去的速度要做幾個月。超過綠線就是塞太滿。',
+    months: m => `${m} 個月`,
+    vOver:'塞太滿', vNormal:'正常', vLow:'偏空', thinMark:'⚠ 基準薄弱', noBase:'沒有基準可比',
+    noBaseTip: d => `${d} 這一季還沒算過產能基準，所以沒辦法換算成月`,
+    barTip: (d,c,m) => `${d}：手上 ${c} 張，照過去的速度要 ${m} 個月做完`,
+    barTipThin: n => `（基準樣本只有 ${n} 個案子，僅供參考）`,
+    legNormal:'正常範圍內', legOver:'超出正常範圍',
+    legLimit: m => `正常上限（${m} 個月）—— 超過這條線就是塞太滿`,
+
+    dUpcoming:'接下來要上線的東西', dStages:'案子走到哪一步了',
+    dAll:'全部進行中的案子', dSource:'這些數字哪來的',
+    unitN: n => `${n} 個`,
+    thDate:'日期', thName:'名稱', thTeam:'團隊', thStatus:'PM 標的狀態',
+    thStage:'階段', thCount:'幾個', thRelease:'預計上線', thProject:'案子', thNote:'提醒',
+    none:'無', tbd:'未定',
+    stage:{Discovery:'還在想要不要做',Design:'在設計',Develop:'在開發',Impact:'上線後看成效'},
+    partialWarn:'⚠ 這次抓取沒帶到完整的發佈清單，下面會漏掉一些。',
+    recOk:'與上份週報一致', recDiff:'與上份週報有差異',
+    dqTag: n => ` · ${n} 筆小提醒`,
+    srcIntro:'每天早上從 Jira 自動抓，抓完直接更新這一頁。中間沒有人手動改過。',
+    srcSource:'來源', srcScope:'抓的範圍', srcExcl:'不含', srcBase:'產能基準',
+    srcBaseV: (l,e) => `PMT 每季鎖定一次，這一份鎖於 ${l}，${e} 重算`,
+    srcRec:'與上份週報',
+    srcRecOk:'數字一致', srcRecDiff:'有差異 —— 卡片每天在動，這是正常的，不代表抓錯',
+    dqIntro:'資料上的小提醒（不影響上面的判斷）：',
+    footA:'這一頁不含任何 AI 判讀。上面每一件「要決定的事」都是寫死的規則跑出來的：',
+    footB: (n,m) => `同一天上線 ≥${n} 個 · 團隊手上超過 ${m} 個月的量 · `
+      + `上游剩不到 0.5 個月 · 案子被標風險 · 資料抓壞 · 基準過期。`,
+    footC:'每個名稱都可以點進 Jira 對照原始卡片。',
+    errH:'讀不到資料。',
+    errB: m => `<code>/roadmap-bot/out/latest.json</code> 取得失敗：${m}<br><br>`
+      + `可能是每天的自動抓取沒跑成功。去 GitHub Actions 看 <code>roadmap-daily</code> 最後一次的結果。`
+  },
+
+  en: {
+    htmlLang:'en', label:'English', docTitle:'Roadmap — Decide Today',
+    print:'Print / Save as PDF',
+    vStale:'This is not today’s data.', vClear:'Nothing needs you today.',
+    vN: n => `${n} thing${n > 1 ? 's' : ''} need${n > 1 ? '' : 's'} your decision today.`,
+    asOf: d => `Roadmap as of <b>${d}</b>`,
+    activeN: n => `<b>${n}</b> active projects`,
+    autoUpd:'Refreshed automatically every morning',
+    staleBanner: (a,t) => `<b>The newest snapshot is ${a}; today is ${t}.</b>
+      The automatic pull may have failed, so everything below is stale.
+      Check the last <code>roadmap-daily</code> run in GitHub Actions.`,
+    secDecide:'Decide today', secFyi:'For awareness — no action today', secBg:'Background',
+    todoLabel:'Your decision',
+    allClearH:'All clear.',
+    allClearW: n => `No day has ${n} or more releases stacked on it, no team is overloaded `
+      + `or running dry, nothing is flagged at risk, and no data is broken. `
+      + `You can skip the details below today.`,
+    when: d => d===0?'today':d===1?'tomorrow':d>1?`in ${d} days`:d===-1?'yesterday':`${-d} days ago`,
+    status:{'On track':'On track','Warning':'Watch','At Risk':'At risk'}, statusNone:'Unset',
+    noTeam:'Unassigned',
+    othersN: n => `${n} more`, whichN: n => `Show all ${n}`,
+    noTitle: id => `(no title found, ticket ${id})`,
+
+    blockH: n => `${n} data problem${n > 1 ? 's' : ''} in this pull`,
+    blockM:'Until these are fixed, every other number on this page may be wrong.',
+    blockT:'Send to engineering to check the Jira fields. Usually a required field was left empty.',
+
+    relH: (w,n) => `${n} features shipping ${w}`,
+    relM: n => `That many on one day puts all the regression testing in the same window — `
+      + `if one breaks, the other ${n-1} get held up with it.`,
+    relMPast:'That day has already passed. Listed here only so you know it happened.',
+    relTPast:'No action needed.',
+    relT1:'See whether one or two can slip a week. Start with the one marked Watch above — '
+      + 'it is the most likely to drag the others.',
+    relTN: n => `See whether one or two can slip a week. Start with the ${n} marked Watch above — `
+      + `they are the most likely to drag the others.`,
+    relT0:'See whether one or two can slip a week to spread the risk.',
+
+    wipH: (d,m) => `${d} has ${m} months of work in hand`,
+    wipM: (m,c) => `They normally clear one month of work per month; right now ${m} months are `
+      + `queued up. Anything new you send them lands behind these ${c}.`,
+    wipThin: n => ` <span class="caveat">⚠ This multiple is derived from only ${n} past `
+      + `projects — too small a sample. The direction is real; the exact number is not.</span>`,
+    wipT: (c,d) => `Either cut a few of these ${c}, or stop sending ${d} new work. `
+      + `Doing neither means accepting that all of it slips together.`,
+
+    upH: d => `${d} is running out of work to pick up`,
+    upM: (c,days) => `Only ${c} still in planning, roughly ${days} days of it. `
+      + `After that the team goes idle — if you don't refill now, there will be a gap.`,
+    upT: d => `Start deciding ${d}'s next batch now. Refilling only once they are idle `
+      + `leaves at least a month of dead time.`,
+
+    riskH: n => `${n} project${n > 1 ? 's' : ''} flagged At risk`,
+    riskM:'Flagged by the owning PM, meaning they expect a slip or a problem.',
+    riskT:'Ask each one directly: how long, what is blocking, do they need you to step in.',
+    warnH: n => `${n} project${n > 1 ? 's' : ''} flagged Watch`,
+    warnM:'Not a red flag — the owning PM just sees some risk. Some of them appear above too.',
+    warnT:'No action needed. Ask about any name you care about.',
+
+    baseH:'The team-capacity baseline has expired',
+    baseM: (l,e) => `Locked on ${l}, due for recalculation on ${e}. `
+      + `Every "months of work" figure above still uses the old baseline.`,
+    baseT:'Ask PMT to recalculate this quarter’s baseline, then update BASELINES in extract.py.',
+
+    loadH:'How full each team’s plate is',
+    loadSub:'Work still on hand, expressed as months at that team’s own past pace. '
+      + 'Past the green line means overloaded.',
+    months: m => `${m} months`,
+    vOver:'Overloaded', vNormal:'Normal', vLow:'Light', thinMark:'⚠ thin baseline',
+    noBase:'No baseline yet',
+    noBaseTip: d => `${d} has no capacity baseline for this quarter, so it cannot be `
+      + `expressed in months`,
+    barTip: (d,c,m) => `${d}: ${c} projects in hand, ${m} months at their past pace`,
+    barTipThin: n => ` (baseline drawn from only ${n} projects — indicative only)`,
+    legNormal:'Within normal range', legOver:'Beyond normal range',
+    legLimit: m => `Normal ceiling (${m} months) — past this line is overloaded`,
+
+    dUpcoming:'Coming up for release', dStages:'Where each project stands',
+    dAll:'All active projects', dSource:'Where these numbers come from',
+    unitN: n => `${n} items`,
+    thDate:'Date', thName:'Name', thTeam:'Team', thStatus:'PM flag',
+    thStage:'Stage', thCount:'Count', thRelease:'Target release', thProject:'Project', thNote:'Note',
+    none:'None', tbd:'TBD',
+    stage:{Discovery:'Deciding whether to build',Design:'In design',
+           Develop:'In development',Impact:'Live, measuring impact'},
+    partialWarn:'⚠ This pull did not include the full release list, so some items are missing below.',
+    recOk:'Matches last weekly report', recDiff:'Differs from last weekly report',
+    dqTag: n => ` · ${n} note${n > 1 ? 's' : ''}`,
+    srcIntro:'Pulled from Jira automatically every morning; this page updates straight from '
+      + 'that pull. Nobody edits it by hand in between.',
+    srcSource:'Source', srcScope:'Scope', srcExcl:'Excluding', srcBase:'Capacity baseline',
+    srcBaseV: (l,e) => `PMT locks it once a quarter. This one was locked ${l}, recalculated ${e}.`,
+    srcRec:'vs last weekly report',
+    srcRecOk:'Numbers match',
+    srcRecDiff:'Different — projects move every day, so this is normal and does not mean a bad pull',
+    dqIntro:'Notes on the data (they do not affect the judgements above):',
+    footA:'This page contains no AI judgement. Every item under "Decide today" comes from a '
+      + 'hard-coded rule:',
+    footB: (n,m) => `${n}+ releases on one day · a team holding more than ${m} months of work · `
+      + `under 0.5 months left upstream · a project flagged at risk · broken data · expired baseline.`,
+    footC:'Every name links back to its original Jira ticket.',
+    errH:'Could not load the data.',
+    errB: m => `<code>/roadmap-bot/out/latest.json</code> failed: ${m}<br><br>`
+      + `The daily automatic pull may not have run. Check the last <code>roadmap-daily</code> `
+      + `run in GitHub Actions.`
+  },
+
+  ja: {
+    htmlLang:'ja', label:'日本語', docTitle:'ロードマップ — 今日決めること',
+    print:'印刷 / PDF 保存',
+    vStale:'これは今日のデータではありません。', vClear:'今日は対応不要です。',
+    vN: n => `今日、判断が必要なことが ${n} 件あります。`,
+    asOf: d => `<b>${d}</b> 時点のロードマップ`,
+    activeN: n => `進行中の案件 <b>${n}</b> 件`,
+    autoUpd:'毎朝自動更新',
+    staleBanner: (a,t) => `<b>最新のデータは ${a} 時点、本日は ${t} です。</b>
+      自動取得が失敗した可能性があり、以下の内容はすべて古いものです。
+      GitHub Actions で <code>roadmap-daily</code> の最終実行を確認してください。`,
+    secDecide:'今日決めること', secFyi:'参考まで（本日の対応は不要）', secBg:'背景データ',
+    todoLabel:'あなたが決めること',
+    allClearH:'すべて正常です。',
+    allClearW: n => `同じ日に ${n} 件以上のリリースが重なっている日はなく、負荷超過や`
+      + `案件切れのチームもなく、リスク扱いの案件もデータの不具合もありません。`
+      + `以下の詳細は今日は確認不要です。`,
+    when: d => d===0?'今日':d===1?'明日':d>1?`${d} 日後`:d===-1?'昨日':`${-d} 日前`,
+    status:{'On track':'順調','Warning':'注意','At Risk':'リスクあり'}, statusNone:'未設定',
+    noTeam:'未割当',
+    othersN: n => `ほか ${n} 件`, whichN: n => `${n} 件を表示`,
+    noTitle: id => `（タイトル不明、チケット ${id}）`,
+
+    blockH: n => `データの不具合が ${n} 件あります`,
+    blockM:'修正されるまで、このページの他の数値も誤っている可能性があります。',
+    blockT:'エンジニアリングに Jira の項目を確認してもらってください。通常は必須項目の未入力です。',
+
+    relH: (w,n) => `${w}、${n} 件リリース予定`,
+    relM: n => `同じ日にこれだけ重なると回帰テストが集中します。1 件でも問題が出れば、`
+      + `残りの ${n-1} 件も巻き添えになります。`,
+    relMPast:'この日はすでに過ぎています。記録として表示しています。',
+    relTPast:'対応は不要です。',
+    relT1:'1〜2 件を翌週にずらせないか確認してください。まず上の「注意」が付いた 1 件から '
+      + '—— 他を巻き込む可能性が最も高い案件です。',
+    relTN: n => `1〜2 件を翌週にずらせないか確認してください。まず上の「注意」が付いた ${n} 件から `
+      + `—— 他を巻き込む可能性が最も高い案件です。`,
+    relT0:'1〜2 件を翌週にずらし、リスクを分散できないか確認してください。',
+
+    wipH: (d,m) => `${d} は手持ちの作業に ${m} か月かかります`,
+    wipM: (m,c) => `このチームが通常 1 か月で消化できる量に対し、現在 ${m} か月分を抱えています。`
+      + `今から新しい依頼を出しても、この ${c} 件の後ろに並ぶだけです。`,
+    wipThin: n => ` <span class="caveat">⚠ この倍率は過去 ${n} 件の実績のみから算出しています。`
+      + `サンプルが少なすぎるため、傾向は信頼できますが数値そのものは目安です。</span>`,
+    wipT: (c,d) => `この ${c} 件から何件か削るか、${d} への新規依頼を止めるかのどちらかです。`
+      + `どちらもしない場合は、すべてまとめて遅れることを認めたことになります。`,
+
+    upH: d => `${d} は着手できる案件が尽きかけています`,
+    upM: (c,days) => `企画段階に残っているのは ${c} 件のみ、約 ${days} 日分です。`
+      + `その後このチームは手空きになります —— 今補充しなければ空白期間が生じます。`,
+    upT: d => `${d} の次のバッチを今から検討してください。手空きになってから補充すると、`
+      + `最低 1 か月の空白が生まれます。`,
+
+    riskH: n => `${n} 件が「リスクあり」と設定されています`,
+    riskM:'担当 PM 自身による設定で、遅延や問題の発生を見込んでいることを意味します。',
+    riskT:'1 件ずつ確認してください：どれくらい遅れるか、何が止まっているか、介入が必要か。',
+    warnH: n => `${n} 件が「注意」と設定されています`,
+    warnM:'赤信号ではなく、担当 PM が多少のリスクを感じている状態です。上記の項目と重複するものもあります。',
+    warnT:'対応は不要です。気になる案件があれば個別に確認してください。',
+
+    baseH:'チーム生産性の基準値が期限切れです',
+    baseM: (l,e) => `基準値は ${l} に固定され、${e} に再計算予定です。`
+      + `上記の「何か月分」はすべて旧基準で算出されています。`,
+    baseT:'PMT に今四半期の基準値の再計算を依頼し、extract.py の BASELINES を更新してください。',
+
+    loadH:'各チームの抱えている量',
+    loadSub:'未完了の作業量を、そのチーム自身の過去のペースで何か月分かに換算したものです。'
+      + '緑の線を超えると負荷超過です。',
+    months: m => `${m} か月`,
+    vOver:'負荷超過', vNormal:'正常', vLow:'余裕あり', thinMark:'⚠ 基準値が脆弱',
+    noBase:'比較する基準値なし',
+    noBaseTip: d => `${d} は今四半期の生産性基準がまだ算出されていないため、月数に換算できません`,
+    barTip: (d,c,m) => `${d}：手持ち ${c} 件、過去のペースで ${m} か月分`,
+    barTipThin: n => `（基準値は過去 ${n} 件のみに基づくため参考値）`,
+    legNormal:'正常範囲内', legOver:'正常範囲を超過',
+    legLimit: m => `正常上限（${m} か月）—— この線を超えると負荷超過`,
+
+    dUpcoming:'今後のリリース予定', dStages:'各案件の進捗段階',
+    dAll:'進行中の全案件', dSource:'この数値の出どころ',
+    unitN: n => `${n} 件`,
+    thDate:'日付', thName:'名称', thTeam:'チーム', thStatus:'PM 設定',
+    thStage:'段階', thCount:'件数', thRelease:'リリース予定', thProject:'案件', thNote:'備考',
+    none:'なし', tbd:'未定',
+    stage:{Discovery:'実施を検討中',Design:'設計中',Develop:'開発中',Impact:'リリース済・効果測定中'},
+    partialWarn:'⚠ 今回の取得ではリリース一覧が完全ではないため、以下に抜けがあります。',
+    recOk:'前回の週次レポートと一致', recDiff:'前回の週次レポートと差異あり',
+    dqTag: n => ` · 備考 ${n} 件`,
+    srcIntro:'毎朝 Jira から自動取得し、そのままこのページに反映しています。'
+      + '途中で人が手を加えることはありません。',
+    srcSource:'取得元', srcScope:'取得範囲', srcExcl:'除外', srcBase:'生産性基準',
+    srcBaseV: (l,e) => `PMT が四半期ごとに固定。今回は ${l} に固定、${e} に再計算予定。`,
+    srcRec:'前回の週次レポートとの比較',
+    srcRecOk:'数値は一致',
+    srcRecDiff:'差異あり —— 案件は日々動くため正常であり、取得ミスを意味しません',
+    dqIntro:'データに関する備考（上記の判断には影響しません）：',
+    footA:'このページに AI による判断は含まれていません。「今日決めること」はすべて'
+      + '固定ルールから算出されています：',
+    footB: (n,m) => `同日リリース ${n} 件以上 · チームの手持ちが ${m} か月分超 · `
+      + `企画残が 0.5 か月未満 · リスク設定あり · データ不具合 · 基準値の期限切れ。`,
+    footC:'各名称から Jira の元チケットを開けます。',
+    errH:'データを読み込めませんでした。',
+    errB: m => `<code>/roadmap-bot/out/latest.json</code> の取得に失敗しました：${m}<br><br>`
+      + `毎日の自動取得が実行されていない可能性があります。GitHub Actions で `
+      + `<code>roadmap-daily</code> の最終実行を確認してください。`
+  }
+};
+
+let LANG = 'zh', L = I18N.zh, DATA = null;
+
+// localStorage 在無痕視窗或封鎖 cookie 的瀏覽器會直接丟例外，包起來。
+function savedLang() {
+  try { const v = localStorage.getItem(LANG_KEY); return I18N[v] ? v : null; } catch { return null; }
+}
+function saveLang(v) { try { localStorage.setItem(LANG_KEY, v); } catch {} }
+
+const zhStatus = s => (L.status[s] || s || L.statusNone);
 const statusCls = s => s === 'At Risk' ? 'r' : s === 'Warning' ? 'w' : '';
 
-// 用「今天／N 天後／N 天前」講日期，比 2026-09-01 好懂，也讓過期的事自動退位
+// 用「今天／N 天後」講日期，比 2026-09-02 好懂，也讓過期的事自動退位
 function whenLabel(dateStr, today) {
   const d = Math.round((Date.parse(dateStr + 'T00:00:00Z') - Date.parse(today + 'T00:00:00Z')) / 86400000);
-  if (Number.isNaN(d)) return esc(dateStr);
-  if (d === 0) return '今天';
-  if (d === 1) return '明天';
-  if (d > 1)   return `${d} 天後`;
-  if (d === -1) return '昨天';
-  return `${-d} 天前`;
+  return Number.isNaN(d) ? esc(dateStr) : L.when(d);
 }
 
 const rowHtml = c => `
     <div class="row">
       <span class="nm">${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.summary)}</a>`
                               : esc(c.summary)}</span>
-      <span class="team">${esc(c.domain || '未分')}</span>
+      <span class="team">${esc(c.domain || L.noTeam)}</span>
       <span class="st ${statusCls(c.project_status)}">${esc(zhStatus(c.project_status))}</span>
       <span class="id">${idOf(c.key)}</span>
     </div>`;
@@ -219,7 +580,7 @@ function rowsHtml(items, collapseAll) {
   const rest = items.filter(c => !flagged.includes(c));
   let h = flagged.length ? `<div class="rows">${flagged.map(rowHtml).join('')}</div>` : '';
   if (rest.length) {
-    h += `<details class="more"><summary>${flagged.length ? `其他 ${rest.length} 個` : `看是哪 ${rest.length} 個`}</summary>
+    h += `<details class="more"><summary>${flagged.length ? L.othersN(rest.length) : L.whichN(rest.length)}</summary>
       <div class="rows">${rest.map(rowHtml).join('')}</div></details>`;
   }
   return h;
@@ -230,76 +591,62 @@ function decisions(d, today) {
   const a = d.aggregate || {}, out = [];
   const cards = d.cards || [];
   const byKey = Object.fromEntries(cards.map(c => [c.key, c]));
-  const upcoming = a.upcoming_releases || [];
   // 發佈母體含 issuetype=Tech 的卡（不在 active 集合裡），所以名字要從
   // upcoming_releases 補，不能只查 cards —— 查不到就只剩一個卡號，等於沒說。
-  const relInfo = Object.fromEntries(upcoming.map(u => [u.key, u]));
+  const relInfo = Object.fromEntries((a.upcoming_releases || []).map(u => [u.key, u]));
 
   // ① 資料 blocker —— 比任何紅燈都優先，因為它讓下面每個數字都不可信
   const blockers = (d.data_quality || []).filter(x => x.severity === 'blocker');
   if (blockers.length) {
-    out.push({ lvl:'now', h:`有 ${blockers.length} 筆資料抓壞了`,
-      mean:'在修好之前，這一頁其他數字都可能是錯的。',
+    out.push({ lvl:'now', h:L.blockH(blockers.length), mean:L.blockM,
       rows: blockers.map(b => ({ summary:b.issue, key:b.key,
                                  domain:(byKey[b.key]||{}).domain, project_status:null,
                                  url:(byKey[b.key]||{}).url })),
-      todo:'轉給工程確認 Jira 欄位。這通常代表卡片上有必填欄位空著。' });
+      todo:L.blockT });
   }
 
   // ② 同日發佈過度集中。已經過去的日子不再是決策，排到最後面。
   for (const r of (a.release_concentration || [])) {
     if (r.count < SAME_DAY_ALERT) continue;
     const past = Date.parse(r.date + 'T00:00:00Z') < Date.parse(today + 'T00:00:00Z');
-    const items = r.keys.map(k => relInfo[k] || byKey[k] || { key:k, summary:`（查不到標題，卡號 ${idOf(k)}）` })
+    const items = r.keys.map(k => relInfo[k] || byKey[k] || { key:k, summary:L.noTitle(idOf(k)) })
                         .map(u => ({ ...u, url:(byKey[u.key] || {}).url ||
                                        `https://17media.atlassian.net/browse/${u.key}` }));
     const risky = items.filter(u => u.project_status === 'Warning' || u.project_status === 'At Risk');
     out.push({
       lvl: past ? 'fyi' : 'now', collapseAll: past,
-      h: `${whenLabel(r.date, today)}要上線 ${r.count} 個功能`,
-      mean: past
-        ? `這天已經過了，列在這裡只是讓你知道發生過。`
-        : `同一天上這麼多，回歸測試會全部擠在一起；其中一個出問題，其他 ${r.count - 1} 個都會被拖住。`,
+      h: L.relH(whenLabel(r.date, today), r.count),
+      mean: past ? L.relMPast : L.relM(r.count),
       rows: items,
-      todo: past ? '不用動作。'
-        : (risky.length === 1
-            ? `看有沒有一兩個可以往後挪一週。先看上面標「注意」的那一個 —— 它最可能是拖累別人的那個。`
-            : risky.length > 1
-              ? `看有沒有一兩個可以往後挪一週。先看上面標「注意」的那 ${risky.length} 個 —— 它們最可能是拖累別人的。`
-              : '看有沒有一兩個可以往後挪一週，把風險攤開。')
+      todo: past ? L.relTPast
+        : risky.length === 1 ? L.relT1
+        : risky.length > 1   ? L.relTN(risky.length)
+        : L.relT0
     });
   }
 
   // ③ 團隊手上塞太滿
   for (const [dom, v] of Object.entries(a.domains_by_capacity || {})) {
     if (v.wip_verdict !== 'overload') continue;
-    const mine = cards.filter(c => (c.capacity_domains || []).includes(dom));
     out.push({
       lvl:'now',
-      h:`${dom} 手上的工作要做 ${round(v.wip_months)} 個月才做得完`,
-      mean:`他們平常一個月消化得掉的量，現在手上壓了 ${round(v.wip_months)} 個月份。`
-         + `現在丟新的需求過去，只會排在這 ${v.cards} 張後面。`
-         + (v.baseline_thin
-            ? ` <span class="caveat">⚠ 這個倍數是拿他們過去只有 ${v.baseline_n} 個案子的紀錄推的，樣本太少 —— 方向可信，數字本身別當真。</span>`
-            : ''),
-      rows: mine,
-      todo:`要嘛從這 ${v.cards} 個裡砍掉幾個，要嘛先別再往 ${dom} 丟新的。`
-         + '兩個都不做，就是默認這些全部一起延。'
+      h: L.wipH(dom, round(v.wip_months)),
+      mean: L.wipM(round(v.wip_months), v.cards) + (v.baseline_thin ? L.wipThin(v.baseline_n) : ''),
+      rows: cards.filter(c => (c.capacity_domains || []).includes(dom)),
+      todo: L.wipT(v.cards, dom)
     });
   }
 
   // ④ 上游快沒東西可做（兩個月後才會痛，但現在不補就來不及）
   for (const [dom, v] of Object.entries(a.domains_by_capacity || {})) {
     if (v.upstream_verdict !== 'starving') continue;
-    const days = Math.round((v.upstream_months || 0) * 30);
     out.push({
       lvl:'soon',
-      h:`${dom} 快沒有新案子可以做了`,
-      mean:`還在規劃階段的只剩 ${v.upstream_cards} 張，大約 ${days} 天就會做完。`
-         + `之後這個團隊會閒下來 —— 現在不補案子，中間會空一段。`,
+      h: L.upH(dom),
+      mean: L.upM(v.upstream_cards, Math.round((v.upstream_months || 0) * 30)),
       rows: cards.filter(c => (c.capacity_domains || []).includes(dom) &&
                               (c.stage === 'Discovery' || c.stage === 'Design')),
-      todo:'現在就要開始想下一批要做什麼。等他們真的閒下來才補，中間至少空一個月。'
+      todo: L.upT(dom)
     });
   }
 
@@ -307,24 +654,18 @@ function decisions(d, today) {
   const risk = cards.filter(c => c.project_status === 'At Risk');
   const warn = cards.filter(c => c.project_status === 'Warning');
   if (risk.length) {
-    out.push({ lvl:'now', h:`${risk.length} 個案子被標成「有風險」`,
-      mean:'這是負責的 PM 自己標的，代表他們認為會延或會出事。',
-      rows: risk,
-      todo:'一個一個問清楚：延多久、卡在哪、需不需要你出面。' });
+    out.push({ lvl:'now', h:L.riskH(risk.length), mean:L.riskM, rows:risk, todo:L.riskT });
   }
   if (warn.length) {
-    out.push({ lvl:'fyi', h:`${warn.length} 個案子被標成「注意」`,
-      mean:'不是紅燈，是負責的 PM 自己覺得有點風險。上面幾件事裡有些就是它們。',
-      rows: warn, collapseAll: true,
-      todo:'不用動作。有你在意的名字再去問。' });
+    out.push({ lvl:'fyi', h:L.warnH(warn.length), mean:L.warnM,
+               rows:warn, collapseAll:true, todo:L.warnT });
   }
 
   // ⑥ 比較基準過期
   if (d.baseline && d.baseline.expired) {
-    out.push({ lvl:'soon', h:'團隊產能的比較基準過期了',
-      mean:`基準鎖在 ${esc(d.baseline.locked_at)}，${esc(d.baseline.expires_at)} 就該重算。`
-         + '上面所有「幾個月做得完」都還在用舊基準。',
-      rows:[], todo:'請 PMT 重算這一季的基準，然後更新 extract.py 裡的 BASELINES。' });
+    out.push({ lvl:'soon', h:L.baseH,
+      mean:L.baseM(esc(d.baseline.locked_at), esc(d.baseline.expires_at)),
+      rows:[], todo:L.baseT });
   }
 
   const rank = { now:0, soon:1, fyi:2 };
@@ -345,13 +686,13 @@ function loadChart(a) {
   const bars = entries.map(([dom, v]) => {
     if (v.wip_months == null) {
       return `<div class="bar"><div class="nm">${esc(dom)}</div>
-        <div class="track" title="${esc(dom)} 這一季還沒算過產能基準，所以沒辦法換算成月"><div class="none"></div></div>
-        <div class="val na">沒有基準可比</div></div>`;
+        <div class="track" title="${esc(L.noBaseTip(dom))}"><div class="none"></div></div>
+        <div class="val na">${esc(L.noBase)}</div></div>`;
     }
     const over = v.wip_months > OK_BAND[1];
-    const verdict = over ? '塞太滿' : v.wip_months < OK_BAND[0] ? '偏空' : '正常';
-    const tip = `${dom}：手上 ${v.cards} 張，照過去的速度要 ${round(v.wip_months)} 個月做完`
-              + (v.baseline_thin ? `（基準樣本只有 ${v.baseline_n} 個案子，僅供參考）` : '');
+    const verdict = over ? L.vOver : v.wip_months < OK_BAND[0] ? L.vLow : L.vNormal;
+    const tip = L.barTip(dom, v.cards, round(v.wip_months))
+              + (v.baseline_thin ? L.barTipThin(v.baseline_n) : '');
     // 上限線畫在填色「之上」—— 畫在下面的話，超載的長條會把整條正常區間蓋住，
     // 「超過了多少」這個唯一重點就看不見了（v1 的實測錯誤）。
     return `<div class="bar"><div class="nm">${esc(dom)}</div>
@@ -360,21 +701,32 @@ function loadChart(a) {
         <div class="fill${over ? ' over' : ''}" style="width:${pct(v.wip_months)}%"></div>
         <div class="limit" style="left:${pct(OK_BAND[1])}%"></div>
       </div>
-      <div class="val"><b>${round(v.wip_months)} 個月</b>
-        <span class="verdict-txt${over ? ' over' : ''}">${verdict}</span>${
-        v.baseline_thin ? '<span class="verdict-txt">⚠ 基準薄弱</span>' : ''}</div>
+      <div class="val"><b>${esc(L.months(round(v.wip_months)))}</b>
+        <span class="verdict-txt${over ? ' over' : ''}">${esc(verdict)}</span>${
+        v.baseline_thin ? `<span class="verdict-txt">${esc(L.thinMark)}</span>` : ''}</div>
     </div>`;
   }).join('');
 
   return `<div class="load">
-    <h2>各團隊手上塞了多少</h2>
-    <p class="sub">手上還沒做完的工作，照這個團隊過去的速度要做幾個月。超過綠線就是塞太滿。</p>
+    <h2>${esc(L.loadH)}</h2>
+    <p class="sub">${esc(L.loadSub)}</p>
     <div class="bars">${bars}</div>
     <div class="legend">
-      <span><i style="background:var(--acc)"></i>正常範圍內</span>
-      <span><i style="background:var(--red)"></i>超出正常範圍</span>
-      <span><i style="background:var(--grn);width:2px;border-radius:0"></i>正常上限（${OK_BAND[1]} 個月）—— 超過這條線就是塞太滿</span>
+      <span><i style="background:var(--acc)"></i>${esc(L.legNormal)}</span>
+      <span><i style="background:var(--red)"></i>${esc(L.legOver)}</span>
+      <span><i style="background:var(--grn);width:2px;border-radius:0"></i>${esc(L.legLimit(OK_BAND[1]))}</span>
     </div>
+  </div>`;
+}
+
+function toolbar() {
+  return `<div class="tools">
+    <div class="langs" role="group">
+      ${Object.entries(I18N).map(([k, v]) =>
+        `<button type="button" data-lang="${k}" aria-current="${k === LANG}">${esc(v.label)}</button>`
+      ).join('')}
+    </div>
+    <button type="button" class="printbtn" id="printbtn">${esc(L.print)}</button>
   </div>`;
 }
 
@@ -383,132 +735,157 @@ function render(d) {
   const stale = d.as_of_date !== today;
   const q = decisions(d, today);
   const act = q.filter(i => i.lvl !== 'fyi').length;
-  const H = [];
+  const H = [toolbar()];
+
+  document.documentElement.lang = L.htmlLang;
+  document.title = L.docTitle;
 
   // ── ① 判決句：整頁第一眼 ──
-  if (stale) {
-    H.push(`<p class="verdict bad">這不是今天的資料。</p>`);
-  } else if (act === 0) {
-    H.push(`<p class="verdict ok">今天沒事。</p>`);
-  } else {
-    H.push(`<p class="verdict bad">今天有 ${act} 件事要你決定。</p>`);
-  }
+  H.push(stale ? `<p class="verdict bad">${esc(L.vStale)}</p>`
+       : act === 0 ? `<p class="verdict ok">${esc(L.vClear)}</p>`
+       : `<p class="verdict bad">${esc(L.vN(act))}</p>`);
+
   // 用 as_of_date 而不是 generated_at —— 上面的「這不是今天的資料」判斷是拿
   // as_of_date 比的，兩處顯示不同欄位會出現「橫幅說 8/27、副標說 9/1」的矛盾。
-  H.push(`<p class="asof">這是 <b>${esc(d.as_of_date)}</b> 的 roadmap
-    　進行中的案子 <b>${(d.cards || []).length}</b> 個　每天早上 09:00 自動更新</p>`);
+  H.push(`<p class="asof">${L.asOf(esc(d.as_of_date))}　${L.activeN((d.cards || []).length)}　${esc(L.autoUpd)}</p>`);
 
-  if (stale) H.push(`<div class="banner red"><b>最新的一份是 ${esc(d.as_of_date)}，今天是 ${today}。</b>
-    自動抓取可能失敗了，下面的內容都是舊的。去 GitHub Actions 看 <code>roadmap-daily</code> 最後一次跑的結果。</div>`);
+  if (stale) H.push(`<div class="banner red">${L.staleBanner(esc(d.as_of_date), today)}</div>`);
 
   // ── ② 決策卡 ──
-  H.push('<p class="sec">今天要決定的事</p>');
+  H.push(`<p class="sec">${esc(L.secDecide)}</p>`);
   if (!q.length) {
-    H.push(`<div class="allclear"><div class="verdict ok" style="font-size:17px;margin:0">全部正常。</div>
-      <div class="w">沒有同一天擠超過 ${SAME_DAY_ALERT} 個上線、沒有團隊塞太滿或快沒事做、
-      沒有案子被標風險、沒有資料抓壞。下面的細節今天可以不看。</div></div>`);
+    H.push(`<div class="allclear"><div class="verdict ok" style="font-size:17px;margin:0">${esc(L.allClearH)}</div>
+      <div class="w">${esc(L.allClearW(SAME_DAY_ALERT))}</div></div>`);
   } else {
     // 需要動作的排在前面；「知道就好」的用一條分隔線隔開，
     // 否則標題說 4 件、畫面上卻數得出 5 塊，讀者會不信任這個數字。
     const cardHtml = i => `
       <div class="card ${i.lvl}">
-        <h3>${i.h}</h3>
+        <h3>${esc(i.h)}</h3>
         <p class="mean">${i.mean}</p>
         ${rowsHtml(i.rows, i.collapseAll)}
-        <div class="todo"><b>你要決定的是</b>${esc(i.todo)}</div>
+        <div class="todo"><b>${esc(L.todoLabel)}</b>${esc(i.todo)}</div>
       </div>`;
     const doNow = q.filter(i => i.lvl !== 'fyi'), fyi = q.filter(i => i.lvl === 'fyi');
     if (doNow.length) H.push('<div class="cards">' + doNow.map(cardHtml).join('') + '</div>');
     if (fyi.length) {
-      H.push('<p class="sec">知道就好，今天不用動作</p>');
+      H.push(`<p class="sec">${esc(L.secFyi)}</p>`);
       H.push('<div class="cards">' + fyi.map(cardHtml).join('') + '</div>');
     }
   }
 
   // ── ③ 團隊負荷圖 ──
-  H.push('<p class="sec">背景參考</p>');
+  H.push(`<p class="sec">${esc(L.secBg)}</p>`);
   H.push(loadChart(a));
 
-  // ── ④ 摺疊細節（用人話命名，並在括號裡說裡面是什麼）──
+  // ── ④ 摺疊細節（用人話命名）──
   const up = a.upcoming_releases || [];
-  H.push(`<details><summary>接下來要上線的東西<span class="tag">${up.length} 個</span></summary>
+  H.push(`<details><summary>${esc(L.dUpcoming)}<span class="tag">${esc(L.unitN(up.length))}</span></summary>
   <div class="body">
-    ${a.release_pool_partial ? `<p class="w-txt">⚠ 這次抓取沒帶到完整的發佈清單，下面會漏掉一些。</p>` : ''}
+    ${a.release_pool_partial ? `<p class="w-txt">${esc(L.partialWarn)}</p>` : ''}
     <div class="scroll"><table>
-    <tr><th>日期</th><th>名稱</th><th>團隊</th><th>PM 標的狀態</th></tr>
+    <tr><th>${esc(L.thDate)}</th><th>${esc(L.thName)}</th><th>${esc(L.thTeam)}</th><th>${esc(L.thStatus)}</th></tr>
     ${up.map(r => `<tr>
       <td style="white-space:nowrap">${esc(r.date)}<br><span class="thin" style="color:var(--dim)">${whenLabel(r.date, today)}</span></td>
       <td><a href="https://17media.atlassian.net/browse/${esc(r.key)}" target="_blank" rel="noopener">${esc(r.summary)}</a></td>
-      <td>${esc(r.domain || '未分')}</td>
+      <td>${esc(r.domain || L.noTeam)}</td>
       <td class="${statusCls(r.project_status) === 'r' ? 'r-txt' : statusCls(r.project_status) === 'w' ? 'w-txt' : ''}">${esc(zhStatus(r.project_status))}</td>
-    </tr>`).join('') || '<tr><td colspan="4">無</td></tr>'}
+    </tr>`).join('') || `<tr><td colspan="4">${esc(L.none)}</td></tr>`}
   </table></div></div></details>`);
 
-  const ST = {Discovery:'還在想要不要做', Design:'在設計', Develop:'在開發', Impact:'上線後看成效'};
-  H.push(`<details><summary>案子走到哪一步了<span class="tag">${(d.cards || []).length} 個</span></summary>
+  H.push(`<details><summary>${esc(L.dStages)}<span class="tag">${esc(L.unitN((d.cards || []).length))}</span></summary>
   <div class="body"><table>
-    <tr><th>階段</th><th class="n">幾個</th></tr>
+    <tr><th>${esc(L.thStage)}</th><th class="n">${esc(L.thCount)}</th></tr>
     ${['Discovery','Design','Develop','Impact'].filter(k => (a.stages || {})[k] != null)
-      .map(k => `<tr><td>${ST[k]}<span class="thin" style="color:var(--dim)"> ${k}</span></td>
+      .map(k => `<tr><td>${esc(L.stage[k])}<span class="thin" style="color:var(--dim)"> ${k}</span></td>
                      <td class="n">${a.stages[k]}</td></tr>`).join('')}
   </table></div></details>`);
 
-  H.push(`<details><summary>全部進行中的案子<span class="tag">${(d.cards || []).length} 個</span></summary>
+  H.push(`<details><summary>${esc(L.dAll)}<span class="tag">${esc(L.unitN((d.cards || []).length))}</span></summary>
   <div class="body"><div class="scroll"><table>
-    <tr><th>名稱</th><th>團隊</th><th>階段</th><th>PM 標的狀態</th><th>預計上線</th></tr>
+    <tr><th>${esc(L.thName)}</th><th>${esc(L.thTeam)}</th><th>${esc(L.thStage)}</th>
+        <th>${esc(L.thStatus)}</th><th>${esc(L.thRelease)}</th></tr>
     ${(d.cards || []).map(c => `<tr>
       <td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.summary)}</a>
           <span class="thin" style="color:var(--dim)">${idOf(c.key)}</span></td>
-      <td>${esc(c.domain || '未分')}</td>
-      <td>${esc(ST[c.stage] || c.stage || '—')}</td>
+      <td>${esc(c.domain || L.noTeam)}</td>
+      <td>${esc(L.stage[c.stage] || c.stage || '—')}</td>
       <td class="${statusCls(c.project_status) === 'r' ? 'r-txt' : statusCls(c.project_status) === 'w' ? 'w-txt' : ''}">${esc(zhStatus(c.project_status))}</td>
-      <td>${esc(c.release_date || '未定')}</td></tr>`).join('')}
+      <td>${esc(c.release_date || L.tbd)}</td></tr>`).join('')}
   </table></div></div></details>`);
 
   const dq = d.data_quality || [];
-  H.push(`<details><summary>這些數字哪來的<span class="tag">${d.reconcile_ok ? '與上份週報一致' : '與上份週報有差異'}
-    ${dq.length ? ` · ${dq.length} 筆小提醒` : ''}</span></summary>
+  H.push(`<details><summary>${esc(L.dSource)}<span class="tag">${esc(d.reconcile_ok ? L.recOk : L.recDiff)}${
+    dq.length ? esc(L.dqTag(dq.length)) : ''}</span></summary>
   <div class="body">
-    <p>每天早上 09:00（JST）從 Jira 自動抓，抓完直接更新這一頁。中間沒有人手動改過。</p>
+    <p>${esc(L.srcIntro)}</p>
     <table>
-      <tr><td>來源</td><td>${esc(d.source || '—')}</td></tr>
-      <tr><td>抓的範圍</td><td><code style="font-size:11.5px">${esc(d.jql || '—')}</code>
-        ${(d.excluded_statuses || []).length ? `<br>不含：${esc((d.excluded_statuses || []).join('、'))}` : ''}</td></tr>
-      <tr><td>產能基準</td><td>PMT 每季鎖定一次，這一份鎖於 ${esc((d.baseline || {}).locked_at || '—')}，
-        ${esc((d.baseline || {}).expires_at || '—')} 重算</td></tr>
-      <tr><td>與上份週報</td><td>${d.reconcile_ok ? '數字一致'
-        : '有差異 —— 卡片每天在動，這是正常的，不代表抓錯'}</td></tr>
+      <tr><td>${esc(L.srcSource)}</td><td>${esc(d.source || '—')}</td></tr>
+      <tr><td>${esc(L.srcScope)}</td><td><code style="font-size:11.5px">${esc(d.jql || '—')}</code>
+        ${(d.excluded_statuses || []).length ? `<br>${esc(L.srcExcl)}：${esc((d.excluded_statuses || []).join('、'))}` : ''}</td></tr>
+      <tr><td>${esc(L.srcBase)}</td><td>${esc(L.srcBaseV((d.baseline || {}).locked_at || '—',
+                                                          (d.baseline || {}).expires_at || '—'))}</td></tr>
+      <tr><td>${esc(L.srcRec)}</td><td>${esc(d.reconcile_ok ? L.srcRecOk : L.srcRecDiff)}</td></tr>
     </table>
-    ${dq.length ? `<p style="margin-top:14px">資料上的小提醒（不影響上面的判斷）：</p>
+    ${dq.length ? `<p style="margin-top:14px">${esc(L.dqIntro)}</p>
     <div class="scroll"><table>
-      <tr><th>案子</th><th>提醒</th></tr>
+      <tr><th>${esc(L.thProject)}</th><th>${esc(L.thNote)}</th></tr>
       ${dq.map(x => `<tr><td>${esc((d.cards || []).find(c => c.key === x.key)?.summary || idOf(x.key))}</td>
         <td>${esc(x.issue)}${x.detail ? ` <span class="thin">${esc(x.detail)}</span>` : ''}</td></tr>`).join('')}
     </table></div>` : ''}
   </div></details>`);
 
   H.push(`<div class="foot">
-    這一頁不含任何 AI 判讀。上面每一件「要決定的事」都是寫死的規則跑出來的：<br>
-    同一天上線 ≥${SAME_DAY_ALERT} 個 · 團隊手上超過 ${OK_BAND[1]} 個月的量 ·
-    上游剩不到 0.5 個月 · 案子被標風險 · 資料抓壞 · 基準過期。<br>
-    每個名稱都可以點進 Jira 對照原始卡片。
+    ${esc(L.footA)}<br>${esc(L.footB(SAME_DAY_ALERT, OK_BAND[1]))}<br>${esc(L.footC)}
   </div>`);
 
   document.getElementById('app').innerHTML = H.join('');
+
+  document.querySelectorAll('.langs button').forEach(b =>
+    b.addEventListener('click', () => setLang(b.dataset.lang)));
+  document.getElementById('printbtn').addEventListener('click', () => window.print());
 }
+
+function setLang(v) {
+  if (!I18N[v] || v === LANG) return;
+  LANG = v; L = I18N[v]; saveLang(v);
+  if (DATA) render(DATA);
+}
+
+// 列印時把所有摺疊區展開 —— 印出來的 PDF 不該有「點開才看得到」的東西。
+// 印完再收回原狀，不改變螢幕上的狀態。
+// null = 目前不在列印流程中。用 null 而不是空陣列，是為了分辨
+// 「還沒展開過」與「展開過但當時全部本來就是開的」。
+let reopened = null;
+addEventListener('beforeprint', () => {
+  // beforeprint 可能連續觸發兩次（部分瀏覽器與匯出 PDF 的工具會這樣）。
+  // 不擋的話第二次會把 reopened 覆蓋成空陣列，afterprint 就收不回來，
+  // 摺疊區從此永遠開著 —— 實測踩到過。
+  if (reopened) return;
+  reopened = [...document.querySelectorAll('details:not([open])')];
+  reopened.forEach(d => d.open = true);
+});
+addEventListener('afterprint', () => {
+  if (!reopened) return;
+  reopened.forEach(d => d.open = false);
+  reopened = null;
+});
+
+LANG = savedLang() || 'zh';
+L = I18N[LANG];
 
 // 絕對路徑，不是相對路徑 —— vercel.json 設了 trailingSlash:false，
 // /roadmap-bot/web/ 會被導向 /roadmap-bot/web，此時 '../out/…' 會解析成
 // /out/latest.json（錯的位置）。絕對路徑在三種 URL 形式下都正確。
 fetch('/roadmap-bot/out/latest.json', { cache:'no-store' })
   .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-  .then(render)
+  .then(d => { DATA = d; render(d); })
   .catch(e => {
-    document.getElementById('app').innerHTML = `<div class="err">
-      <b>讀不到資料。</b><br>
-      <code>/roadmap-bot/out/latest.json</code> 取得失敗：${esc(e.message)}<br><br>
-      可能是每天的自動抓取沒跑成功。去 GitHub Actions 看 <code>roadmap-daily</code> 最後一次的結果。
-    </div>`;
+    document.getElementById('app').innerHTML = toolbar()
+      + `<div class="err"><b>${esc(L.errH)}</b><br>${L.errB(esc(e.message))}</div>`;
+    document.querySelectorAll('.langs button').forEach(b =>
+      b.addEventListener('click', () => { setLang(b.dataset.lang); location.reload(); }));
+    document.getElementById('printbtn').addEventListener('click', () => window.print());
   });
 </script>
 </body>
