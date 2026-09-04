@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-04T01:46:07+00:00",
+  "generated_at": "2026-09-04T03:26:03+00:00",
   "as_of_date": "2026-09-04",
   "source": "Jira REST live pull（filter = 16245 ORDER BY key ASC ＋ filter = 15906 ORDER BY key ASC）",
   "jql": "filter = 16245 ORDER BY key ASC",
@@ -1388,5 +1388,18 @@
       "severity": "info"
     }
   ],
-  "reconcile_ok": false
+  "changes": {
+    "has_previous": true,
+    "since": "2026-09-04",
+    "days_ago": 0,
+    "added": [],
+    "removed": [],
+    "stage_moved": [],
+    "status_changed": [],
+    "release_moved": [],
+    "load_changed": [],
+    "active_from": 30,
+    "active_to": 30,
+    "total": 0
+  }
 }
