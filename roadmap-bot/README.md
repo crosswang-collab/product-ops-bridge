@@ -9,7 +9,14 @@
 
 ## 現在的狀態
 
-`extract.py` 已完成並通過 dry-run（2026-08-24）。尚未接排程。
+每天 00:00 UTC 自動從 Jira 抓，commit 回 main，Vercel 自動更新頁面。
+2026-09-02 起無人介入運作中。
+
+**比較基準是「上一份快照」，不是任何人工報告。**
+Jira 是唯一真實來源，每天直接撈最準；週報是從 Jira 整理出來的衍生品，
+拿它去驗上游方向是反的，而且基準固定在某個星期四之後差異只會越來越大，
+最後每天都在喊「有差異」—— 讀者會被訓練成無視它。
+「跟昨天比」的差異天生可行動：哪張卡動了、誰的狀態變差了。
 
 ## 跑法
 
@@ -23,7 +30,7 @@ export JIRA_TOKEN="Atlassian API token"
 python3 extract.py --live --out out/
 ```
 
-Exit code：`0` = 對帳通過／`1` = 對帳有差異（需人工看）／`2` = 有 blocker（STAGE_MAP 漏接）
+Exit code：`0` = 正常跑完／`2` = 有 blocker（STAGE_MAP 漏接）／`3` = 程式崩潰
 
 ## 產出
 
@@ -31,7 +38,7 @@ Exit code：`0` = 對帳通過／`1` = 對帳有差異（需人工看）／`2` =
 |---|---|
 | `facts-YYYY-MM-DD.json` | dashboard + 判讀層。當日快照，append-only 不覆寫 |
 | `latest.json` | dashboard 固定讀這支 |
-| `reconcile-YYYY-MM-DD.md` | 人看的。抓到幾張、對不對得上、哪裡怪 |
+| `changes-YYYY-MM-DD.md` | 人看的。跟上一份快照比，動了什麼 |
 
 ## dry-run 查到的四件事（2026-08-24）
 
@@ -56,7 +63,7 @@ Exit code：`0` = 對帳通過／`1` = 對帳有差異（需人工看）／`2` =
 ## 已知限制
 
 - Q2 baseline 是 PMT 每季手動鎖定的值，不在 Jira 裡。寫在 `BASELINES`，
-  `2026-10-01` 季度切換要更新（含 Platform 的第一個 baseline）。過期會在對帳報告警告。
+  `2026-10-01` 季度切換要更新（含 Platform 的第一個 baseline）。過期會在變化報告警告。
 - IST（n=5）與 Live Commerce（n=3）的 baseline 樣本很薄，
   在途存量的絕對值誤差區間很寬。`baseline_thin` 旗標會標出來，判讀層必須讀。
 - `--live` 的 HTTP 路徑尚未實測（寫這份時沒有 token）。
@@ -81,13 +88,13 @@ Exit code 的處理：
 
 | code | 意義 | workflow |
 |---|---|---|
-| `0` | 對帳與上一份週報一致 | 綠燈，commit |
-| `1` | 對帳有差異（卡片會動，正常） | 綠燈，commit |
+| `0` | 正常跑完（有沒有變化都算正常） | 綠燈，commit |
+| `1` | **已停用** —— 出現就代表有未捕捉的例外 | 紅燈 |
 | `2` | 資料有結構性問題，沒寫出東西 | 紅燈，不 commit |
 | `3` | 程式崩潰 | 紅燈，不 commit |
 
 `2` 最常見的原因是 Jira 新增了 `STAGE_MAP` 沒有的 status，需要人改 code。
-對帳報告會貼在每次執行的 job summary 裡。
+每日變化報告會貼在每次執行的 job summary 裡。
 
 抓取完成後還有一道獨立守門：檢查 `out/latest.json` 的 `as_of_date` 真的等於今天，
 不是就紅燈。exit code 是程式**自己說**它成功了，這一步是去看檔案**真的**變了 ——
@@ -101,7 +108,7 @@ Vercel 網址：`/roadmap-bot/web/`（目前受 Vercel SSO 保護，只有團隊
 **設計前提：這不是資料表，是決策隊列。** 第一屏只回答一個問題——今天有沒有需要你決策的事。
 沒有就寫「沒有」然後結束；其他細節全部摺疊在下面。
 
-會進決策隊列的六個門檻（寫死在頁面裡，不是 LLM 判斷）：
+會進決策隊列的七個門檻（寫死在頁面裡，不是 LLM 判斷）：
 
 | 門檻 | 為什麼 |
 |---|---|
@@ -109,6 +116,7 @@ Vercel 網址：`/roadmap-bot/web/`（目前受 Vercel SSO 保護，只有團隊
 | 在途存量 overload | domain 過載 |
 | 上游存量 starving | 兩個月後會斷炊 |
 | 卡片 `project_status = At Risk` | 有明確 owner 與日期的單卡卡死 |
+| 狀態自上次快照後變差（且尚未到 At Risk） | 剛翻的時候去問，比等它延期才問有用 |
 | 資料品質 blocker | 數字失真，其他紅燈先別信 |
 | baseline 過期 | 所有月數都是舊基準算的 |
 

@@ -21,7 +21,7 @@ roadmap-bot / extract.py — 把 Jira roadmap 卡片正規化成一份事實層 
 產出三個檔（都寫進 --out 指定的目錄）：
      facts-YYYY-MM-DD.json   當日事實快照（給 dashboard 讀、給判讀層讀）
      latest.json             上面那份的複本，dashboard 固定讀這支
-     reconcile-YYYY-MM-DD.md 對帳報告（人看的：抓到幾張、對不對得上、哪裡怪）
+     changes-YYYY-MM-DD.md   每日變化報告（人看的：跟上一份快照比動了什麼）
 
 ═══════════════════════════════════════════════════════════════════
 已知限制（部署前先讀）
@@ -34,25 +34,27 @@ roadmap-bot / extract.py — 把 Jira roadmap 卡片正規化成一份事實層 
     只撈 16245 會漏掉發布卡，「同日集中度」就會低估。dry-run 時第二個母體可省略，
     省略時發布清單會標記 partial=true。
   · Q2 baseline（每個 domain 每月交付幾點）是 PMT 每季手動鎖定的值，
-    不存在於 Jira。本程式從 BASELINES 讀，不自己推算。過期會在對帳報告警告。
+    不存在於 Jira。本程式從 BASELINES 讀，不自己推算。過期會在變化報告警告。
   · 工作日（business day）計算只扣週末，不扣台灣/日本假日。
     PMT 報告的 bd 來自 Jira 自動化欄位，本程式直接讀那個欄位，
     只有在欄位為空時才自己算 —— 自己算的值會標記 estimated=true。
   · Jira 的 status 名稱若被改名，STAGE_MAP 會漏接。漏接不會靜默：
-    未知 status 會進對帳報告的「未分類」區並讓 exit code = 2。
+    未知 status 會進變化報告的「未分類」區並讓 exit code = 2。
 
 ═══════════════════════════════════════════════════════════════════
 exit code（排程靠這個判斷成敗，改動前先看 roadmap-daily.yml）
 ═══════════════════════════════════════════════════════════════════
 
-    0  對帳與上一份週報一致                    → 綠燈，commit
-    1  對帳有差異（卡片會動，正常）            → 綠燈，commit
+    0  正常跑完（有沒有變化都算正常）          → 綠燈，commit
     2  資料有結構性問題，沒寫出東西            → 紅燈
     3  程式崩潰                                → 紅燈
 
-  1 與 2/3 的分界就是「資料能不能用」。所以任何走不下去的錯誤都要
-  raise HardStop（→ 2），絕不能用會 exit 1 的方式結束 —— 那會讓
-  排程把當機當成正常差異。2026-08-31 真的發生過一次。
+  1 已停用。它原本的意思是「對帳與週報有差異」，但 2026-09-02 起比較
+  基準改成「上一份快照」，差異變成常態訊號而不是警告，這個 code 就沒有
+  意義了。**不要拿 1 來表示別的東西** —— Python 未捕捉的例外預設就是
+  exit 1，一旦 1 有了「正常」的語意，當機就會被當成成功放行。
+  2026-08-31 真的發生過一次：程式炸了、workflow 綠燈、什麼都沒寫。
+  所以任何走不下去的錯誤都要 raise HardStop（→ 2）。
 """
 
 import argparse
@@ -71,8 +73,8 @@ class HardStop(Exception):
     """走不下去、這一輪不會寫出任何檔案的錯誤。
 
     一律以 exit code 2 結束，讓排程紅燈。
-    不要改用 Python 內建的 SystemExit(字串) —— 那會 exit 1，而 1 在這支
-    程式裡是「對帳有差異，但資料是好的」的意思，等於把當機偽裝成正常。
+    不要改用 Python 內建的 SystemExit(字串) —— 那會 exit 1，而 exit 1 是
+    Python 未捕捉例外的預設值，等於把走不下去偽裝成正常結束。
     """
 
 
@@ -180,23 +182,28 @@ WIP_BANDS = [(1.5, "below"), (2.5, "healthy"), (3.5, "warning"), (float("inf"), 
 # 上游存量判定帶（PMT §1）：<0.5 斷炊風險 / 0.5-1.5 中等 / >1.5 充足
 UPSTREAM_BANDS = [(0.5, "starving"), (1.5, "medium"), (float("inf"), "ample")]
 
-# 對帳基準：上一份 PMT 週報的數字，用來確認我們算出來的東西對得上。
-# 每週報告出來後更新這一區（或由判讀層自動更新）。
-EXPECT = {
-    "as_of": "2026-08-21",
-    "active_cards": 32,
-    "stages": {"Discovery": 2, "Design": 11, "Develop": 15, "Impact": 4},
-    # 產能表（Teams 歸戶）。2026-08-24 用這組數字反推驗證了 TEAM_TO_DOMAIN 的正確性。
-    "capacity": {
-        "17App":         {"cards": 9, "points": 24},
-        "Internal Tool": {"cards": 7, "points": 16},
-        "IST":           {"cards": 9, "points": 24},
-        "Live Commerce": {"cards": 5, "points": 11},
-        "Platform":      {"cards": 6, "points": 18},
-    },
-    "team_participation_count": 36,
-    "release_concentration": {"2026-09-01": 7},
-}
+# ── 比較基準：昨天的自己，不是任何人工報告 ─────────────────────
+#
+# 2026-09-02 決策（Cross）：Jira 是唯一真實來源，每天直接撈最準；
+# 比較對象改成「上一份快照」。
+#
+# 為什麼不再拿 PMT 週報當基準：
+#   · 週報是從 Jira 整理出來的「衍生品」，比 Jira 晚、且經過人工歸納。
+#     拿衍生品去驗上游，方向是反的。
+#   · 基準固定在某個星期四，之後每天的差異只會越來越大，最後每天都在
+#     喊「與週報有差異」—— 讀者會被訓練成無視它。這跟先前拿掉 PASS/FAIL
+#     措辭是同一個病。
+#   · 「跟昨天比」的差異天生可行動：哪張卡動了、誰的狀態變差了。
+#
+# 歷史紀錄（不要刪，這是 TEAM_TO_DOMAIN 正確性的唯一證據）：
+#   2026-08-24 曾用 PMT 2026-08-21 週報的產能數字反推驗證 TEAM_TO_DOMAIN，
+#   四個 domain 的卡數與點數全部精確吻合：
+#     17App 9 張 24 pts／Internal Tool 7 張 16 pts／IST 9 張 24 pts／
+#     Live Commerce 5 張 11 pts／Platform 6 張 18 pts，Teams 參與計數 36。
+#   若日後要重新驗證歸戶邏輯，拿當週的 PMT 報告重跑一次同樣的反推即可。
+
+# project_status 的嚴重度排序，用來判斷「變好」還是「變差」。
+STATUS_RANK = {"On track": 0, "Warning": 1, "At Risk": 2}
 
 HTTP_RETRIES = 4
 HTTP_BACKOFF_SEC = [2, 4, 8, 16]
@@ -584,58 +591,153 @@ def data_quality(cards):
     return issues
 
 
-def reconcile(cards, agg, excluded, unmapped):
-    """跟上一份 PMT 週報對帳。對不上不是錯，但必須說出來。"""
-    lines, ok = [], True
+def load_previous(out_dir):
+    """讀上一份快照（latest.json），在覆寫它之前。
 
-    def verdict(got, want):
-        if got == want:
-            return "一致"
-        # 走 _num()，因為 points 是 float（Jira 回 24.0）—— 直接用 :+d 會炸。
-        return f"差 {_num(got - want, sign=True)}"
+    用 latest.json 而不是 facts-<昨天>.json：排程可能週末沒跑、可能失敗過，
+    「上一次成功跑出來的」才是正確的比較對象，不是日曆上的昨天。
+    讀不到就回 None —— 第一次跑本來就沒有昨天，不是錯誤。
+    """
+    path = os.path.join(out_dir, "latest.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            prev = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+    # 沒有 cards 的檔案比不了，當成沒有前一份
+    return prev if isinstance(prev, dict) and prev.get("cards") else None
 
-    n = len(cards)
-    want_n = EXPECT["active_cards"]
-    lines.append(f"| active 卡數 | {n} | {want_n} | {verdict(n, want_n)} |")
-    if n != want_n:
-        ok = False
 
-    for st, want in EXPECT["stages"].items():
-        got = agg["stages"].get(st, 0)
-        lines.append(f"| stage {st} | {got} | {want} | {verdict(got, want)} |")
-        if got != want:
-            ok = False
+def diff_snapshots(prev, cards, agg, today):
+    """跟上一份快照逐卡比對，產出「這次跟上次差在哪」。
 
-    # 產能表對帳（Teams 歸戶）—— 這是驗證 TEAM_TO_DOMAIN 對不對的關鍵
-    for d, want in EXPECT["capacity"].items():
-        a = agg["domains_by_capacity"].get(d)
-        if not a:
-            lines.append(f"| 產能 {d} | 沒有這個池子 | {want['cards']} 張 | ★需處理★ |")
-            ok = False
+    這是整個系統唯一的比較基準 —— Jira 是真實來源，昨天的自己是基準。
+    差異在這裡不是「錯誤」，是「訊號」：卡片本來就會動，重點是動了什麼。
+    """
+    empty = {"has_previous": False, "since": None, "days_ago": None,
+             "added": [], "removed": [], "stage_moved": [], "status_changed": [],
+             "release_moved": [], "load_changed": [],
+             "active_from": None, "active_to": len(cards), "total": 0}
+    if not prev:
+        return empty
+
+    since = prev.get("as_of_date")
+    try:
+        days_ago = (today - dt.date.fromisoformat(since)).days
+    except (TypeError, ValueError):
+        days_ago = None
+
+    p_cards = {c["key"]: c for c in prev.get("cards", [])}
+    c_cards = {c["key"]: c for c in cards}
+    brief = lambda c: {"key": c["key"], "summary": c.get("summary", ""),
+                       "domain": c.get("domain")}
+
+    added = [{**brief(c), "stage": c.get("stage")}
+             for k, c in c_cards.items() if k not in p_cards]
+    removed = [{**brief(c), "last_stage": c.get("stage"),
+                "last_status": c.get("project_status")}
+               for k, c in p_cards.items() if k not in c_cards]
+
+    stage_moved, status_changed, release_moved = [], [], []
+    for k, c in c_cards.items():
+        p = p_cards.get(k)
+        if not p:
             continue
-        lines.append(f"| 產能 {d} 張數 | {a['cards']} | {want['cards']} | "
-                     f"{verdict(a['cards'], want['cards'])} |")
-        lines.append(f"| 產能 {d} 點數 | {_num(a['points'])} | {want['points']} | "
-                     f"{verdict(a['points'], want['points'])} |")
-        if a["cards"] != want["cards"] or a["points"] != want["points"]:
-            ok = False
+        if p.get("stage") != c.get("stage"):
+            stage_moved.append({**brief(c), "from": p.get("stage"), "to": c.get("stage")})
+        if p.get("project_status") != c.get("project_status"):
+            a = STATUS_RANK.get(p.get("project_status"))
+            b = STATUS_RANK.get(c.get("project_status"))
+            status_changed.append({
+                **brief(c), "from": p.get("project_status"), "to": c.get("project_status"),
+                # None（未標）不參與好壞判斷 —— 沒標不等於變好或變差
+                "worsened": (a is not None and b is not None and b > a),
+            })
+        if p.get("release_date") != c.get("release_date"):
+            shift = None
+            try:
+                shift = (dt.date.fromisoformat(c["release_date"])
+                         - dt.date.fromisoformat(p["release_date"])).days
+            except (TypeError, ValueError, KeyError):
+                pass
+            release_moved.append({**brief(c), "from": p.get("release_date"),
+                                  "to": c.get("release_date"), "days": shift})
 
-    got_part = agg["team_participation_count"]
-    want_part = EXPECT["team_participation_count"]
-    lines.append(f"| Teams 參與計數 | {got_part} | {want_part} | {verdict(got_part, want_part)} |")
-    if got_part != want_part:
-        ok = False
+    # 團隊負荷變化。只在判定改變、或月數變動 ≥0.1 時才報 —— 小數點後的抖動不是訊號。
+    load_changed = []
+    p_cap = (prev.get("aggregate") or {}).get("domains_by_capacity") or {}
+    for dom, now in (agg.get("domains_by_capacity") or {}).items():
+        was = p_cap.get(dom)
+        if not was:
+            continue
+        m0, m1 = was.get("wip_months"), now.get("wip_months")
+        v0, v1 = was.get("wip_verdict"), now.get("wip_verdict")
+        moved = (m0 is not None and m1 is not None and abs(m1 - m0) >= 0.1)
+        if moved or v0 != v1:
+            load_changed.append({"domain": dom, "from": m0, "to": m1,
+                                 "delta": round(m1 - m0, 2) if (m0 is not None and m1 is not None) else None,
+                                 "verdict_from": v0, "verdict_to": v1})
 
-    for day, want in EXPECT["release_concentration"].items():
-        got = next((r["count"] for r in agg["release_concentration"] if r["date"] == day), 0)
-        lines.append(f"| {day} 同日發布 | {got} | {want} | {verdict(got, want)} |")
-        if got != want:
-            ok = False
+    out = {"has_previous": True, "since": since, "days_ago": days_ago,
+           "added": added, "removed": removed, "stage_moved": stage_moved,
+           "status_changed": status_changed, "release_moved": release_moved,
+           "load_changed": load_changed,
+           "active_from": len(p_cards), "active_to": len(cards)}
+    out["total"] = sum(len(out[k]) for k in
+                       ("added", "removed", "stage_moved", "status_changed",
+                        "release_moved", "load_changed"))
+    return out
 
-    lines.append(f"| 被排除（{'/'.join(sorted(EXCLUDED_STATUSES))}） | {len(excluded)} | — | 參考 |")
-    lines.append(f"| status 未分類 | {len(unmapped)} | 0 | "
-                 f"{'一致' if not unmapped else '★需處理★'} |")
-    return lines, ok and not unmapped
+
+def changelog_md(ch):
+    """把 diff 寫成人看的段落。沒有變化時就明講沒有，不要留空白。"""
+    if not ch["has_previous"]:
+        return ["這是第一份快照，沒有可以比較的上一次。明天起這一段會列出每天的變化。"]
+
+    d = ch["days_ago"]
+    when = ("今天稍早" if d == 0 else "昨天" if d == 1
+            else f"{d} 天前" if isinstance(d, int) else str(ch["since"]))
+    head = [f"跟{when}（{ch['since']}）那份比，active 從 "
+            f"**{ch['active_from']}** 張變成 **{ch['active_to']}** 張。", ""]
+    if not ch["total"]:
+        return head + ["逐卡比對後**沒有任何變化** —— 沒有卡片新增、消失、換階段、"
+                       "改狀態或改發布日，團隊負荷也沒動。"]
+
+    L, nm = [], lambda x: f"**{x['key'].replace('APPIDEAS-', '')}** {x['summary']}"
+    if ch["added"]:
+        L += [f"### 新進來的卡（{len(ch['added'])}）", ""]
+        L += [f"- {nm(x)} — {x['domain'] or '未分'}／{x['stage'] or '—'}" for x in ch["added"]] + [""]
+    if ch["removed"]:
+        L += [f"### 離開 active 的卡（{len(ch['removed'])}）", "",
+              "> 可能是做完了、被關掉，或被移到 Parking lot。", ""]
+        L += [f"- {nm(x)} — 最後停在 {x['last_stage'] or '—'}／{x['last_status'] or '未標'}"
+              for x in ch["removed"]] + [""]
+    if ch["status_changed"]:
+        worse = [x for x in ch["status_changed"] if x["worsened"]]
+        L += [f"### PM 改了狀態（{len(ch['status_changed'])}"
+              + (f"，其中 {len(worse)} 個變差" if worse else "") + "）", ""]
+        L += [f"- {'⚠ ' if x['worsened'] else ''}{nm(x)} — "
+              f"{x['from'] or '未標'} → {x['to'] or '未標'}" for x in ch["status_changed"]] + [""]
+    if ch["stage_moved"]:
+        L += [f"### 換了階段（{len(ch['stage_moved'])}）", ""]
+        L += [f"- {nm(x)} — {x['from'] or '—'} → {x['to'] or '—'}" for x in ch["stage_moved"]] + [""]
+    if ch["release_moved"]:
+        L += [f"### 改了發布日（{len(ch['release_moved'])}）", ""]
+        for x in ch["release_moved"]:
+            move = (f"延後 {x['days']} 天" if isinstance(x["days"], int) and x["days"] > 0
+                    else f"提前 {-x['days']} 天" if isinstance(x["days"], int) and x["days"] < 0
+                    else "改了")
+            L += [f"- {nm(x)} — {x['from'] or '未定'} → {x['to'] or '未定'}（{move}）"]
+        L += [""]
+    if ch["load_changed"]:
+        L += [f"### 團隊負荷變化（{len(ch['load_changed'])}）", ""]
+        for x in ch["load_changed"]:
+            tail = (f"，判定 {x['verdict_from'] or '無'} → {x['verdict_to'] or '無'}"
+                    if x["verdict_from"] != x["verdict_to"] else "")
+            L += [f"- **{x['domain']}** — {_num(x['from'])} → {_num(x['to'])} 個月"
+                  f"（{_num(x['delta'], sign=True)}）{tail}"]
+        L += [""]
+    return head + L
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -680,7 +782,8 @@ def main():
         release_cards, _, _ = normalize(raw_release, today)
     agg = aggregate(cards, today, release_cards)
     dq = data_quality(cards)
-    rec_lines, rec_ok = reconcile(cards, agg, excluded, unmapped)
+    # 一定要在覆寫 latest.json「之前」讀舊的那份
+    changes = diff_snapshots(load_previous(args.out), cards, agg, today)
 
     facts = {
         "schema_version": 1,
@@ -697,7 +800,7 @@ def main():
         "aggregate": agg,
         "cards": cards,
         "data_quality": dq,
-        "reconcile_ok": rec_ok,
+        "changes": changes,
     }
 
     os.makedirs(args.out, exist_ok=True)
@@ -710,25 +813,18 @@ def main():
     blockers = [d for d in dq if d["severity"] == "blocker"]
     warns = [d for d in dq if d["severity"] == "warn"]
 
-    md = [f"# Roadmap 抓取對帳報告 — {stamp}", "",
-          "> 這份是**抓取品質的自我檢查**，不是給人做決策用的。決策看 dashboard。",
-          "> 它唯一要回答的問題是：「今天抓到的數字，跟上一份 PMT 週報對得上嗎？」",
-          "> **對不上是常態**——卡片每天在動，數字當然會變。",
-          "> 只有在你看不出差異原因、或出現 blocker 時才需要找人。", "",
+    md = [f"# Roadmap 每日變化報告 — {stamp}", "",
+          "> 資料直接來自 Jira，比較基準是**上一份快照**（昨天的自己），"
+          "不是任何人工整理過的報告。",
+          "> 這一份回答的是：「跟上次比，動了什麼？」",
+          "> 卡片每天都在動，有變化是常態；真的壞掉會出現在下面的「資料品質」段。", "",
           f"- 來源：{source}", f"- 原始 {len(raw)} 張 → active **{len(cards)}** 張"
           f"（排除 {len(excluded)}、未分類 {len(unmapped)}）",
-          f"- baseline 鎖定於 {BASELINE_LOCKED_AT}，"
+          f"- 產能基準鎖定於 {BASELINE_LOCKED_AT}，"
           f"{'**已過期，數字不可用**' if facts['baseline']['expired'] else f'{BASELINE_EXPIRES_AT} 重算'}",
-          "", f"## 與上一份 PMT 週報（{EXPECT['as_of']}）的逐項比對", "",
-          "| 項目 | 本次抓到 | 上一份週報 | 差異 |", "| --- | --- | --- | --- |"]
-    md += rec_lines
-    # 措辭刻意避開 PASS/FAIL：對非工程師讀者，一份天天寫「FAIL」的報告會被訓練成無視。
-    # 這裡描述的是「有沒有差異」，而差異本身通常不是問題。
-    md += ["", ("**與上一份週報完全一致。**" if rec_ok else
-                "**與上一份週報有差異。** 這通常代表卡片移動了（做完、換 stage、改發布日），"
-                "不代表抓取出錯。逐項差異見上表；資料真的有問題時會出現在下面的「資料品質」段，"
-                "而不是這裡。"), "",
-           "## Stage 分布", "", "| Stage | 張數 |", "| --- | --- |"]
+          "", "## 跟上一份快照的差異", ""]
+    md += changelog_md(changes)
+    md += ["", "## Stage 分布", "", "| Stage | 張數 |", "| --- | --- |"]
     md += [f"| {k} | {v} |" for k, v in sorted(agg["stages"].items())]
     md += ["", "## 產能（Teams 歸戶 — 對應 PMT 📈 Capacity）", "",
            f"Teams 參與計數 {agg['team_participation_count']}（>{len(cards)} 是正常的："
@@ -767,33 +863,38 @@ def main():
     md += [f"| {c['key']} | {c['domain'] or '—'} | {', '.join(c['teams']) or '（空白）'} |"
            for c in cards]
 
-    rec_path = os.path.join(args.out, f"reconcile-{stamp}.md")
+    rec_path = os.path.join(args.out, f"changes-{stamp}.md")
     with open(rec_path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(md) + "\n")
 
     print(f"[OK] active {len(cards)} 張 → {facts_path}")
-    print(f"[OK] 對帳報告 → {rec_path}")
-    print(f"[{'OK' if rec_ok else 'INFO'}] 與上一份週報"
-          f"{'一致' if rec_ok else '有差異（卡片移動時屬正常）'}"f"／blocker {len(blockers)}／warn {len(warns)}")
+    print(f"[OK] 每日變化報告 → {rec_path}")
+    if changes["has_previous"]:
+        print(f"[OK] 跟 {changes['since']} 那份比：{changes['total']} 項變化"
+              f"（新增 {len(changes['added'])}／離開 {len(changes['removed'])}／"
+              f"換階段 {len(changes['stage_moved'])}／改狀態 {len(changes['status_changed'])}／"
+              f"改發布日 {len(changes['release_moved'])}／負荷 {len(changes['load_changed'])}）")
+    else:
+        print("[OK] 第一份快照，沒有可比較的上一次。")
+    print(f"[OK] 資料品質：blocker {len(blockers)}／warn {len(warns)}")
 
     if unmapped:
         print("[BLOCKER] 有 status 沒對應到 stage，STAGE_MAP 要補：")
         for u in unmapped:
             print(f"    {u['key']}  status={u['status']!r}")
         return 2
-    return 0 if rec_ok else 1
+    return 0
 
 
 if __name__ == "__main__":
     # exit code 約定（workflow 依賴這個）：
-    #   0 = 對帳一致
-    #   1 = 對帳有差異（卡片會動，正常）→ 仍然 commit
+    #   0 = 正常跑完（有沒有變化都算正常）
     #   2 = 資料有結構性問題（例如 status 沒對應到 stage）→ workflow 紅燈
     #   3 = 程式自己炸了 → workflow 紅燈
     #
-    # 3 存在的理由：Python 未捕捉的例外預設 exit 1，而 1 在這裡被定義成
-    # 「正常差異」。2026-08-31 就真的發生過 —— verdict() 對 float 炸掉，
-    # workflow 卻是綠燈、什麼都沒寫。崩潰絕不可以長得像成功。
+    # 1 已停用，而且不要拿去表示別的東西：Python 未捕捉的例外預設就是
+    # exit 1，一旦 1 有「正常」的語意，當機就會被當成成功。2026-08-31
+    # 真的發生過 —— 程式炸掉，workflow 卻是綠燈、什麼都沒寫。
     try:
         sys.exit(main())
     except SystemExit:
