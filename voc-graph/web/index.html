@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>VoC × Roadmap 對照</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ctext y=%2714%27 font-size=%2714%27%3E%F0%9F%95%B8%3C/text%3E%3C/svg%3E">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   設計前提（改動前先讀）
+
+   讀者是 COO，早上掃一眼。這頁只回答三件事，順序固定：
+   1. 哪些聲音在變多？（要不要打斷某個團隊）
+   2. 哪些痛點有聲音、沒有卡？（roadmap 漏了什麼）
+   3. 哪些 [VoC] 卡對不到痛點？（roadmap 上沒有原話撐腰的）
+   之後才是 25 痛點全表與 F 主題明細。
+
+   這頁是公開網址（無密碼）。所以只放 人數、代碼、Jira 卡名、hit_id，
+   絕不放用戶原話 —— 原話要用 hit_id 回 BigQuery 查（社外不可）。
+   資料由 voc-graph-daily workflow 每天產生，並經 check.py 驗收通過才會更新。
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0b0e14; --s1:#141a24; --s2:#10151f; --s3:#1b2331; --bd:#232c3a;
+  --tx:#e6ebf4; --mut:#8b96a8; --dim:#5a6577;
+  --red:#ff6b6b; --amb:#ffc233; --grn:#5fd39a; --acc:#5fd3e6;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:22px 16px 60px;
+  background:radial-gradient(1200px 600px at 50% -10%,#121826,#0b0e14);color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans TC","Noto Sans JP",sans-serif;
+  line-height:1.6}
+.wrap{max-width:920px;margin:0 auto}
+h1{font-size:21px;margin:0 0 4px}
+h2{font-size:15px;margin:30px 0 4px}
+.sub{color:var(--mut);font-size:12.5px;margin:0}
+.hint{color:var(--dim);font-size:12px;margin:0 0 10px}
+.fresh{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
+.pill{font-size:12px;background:var(--s2);border:1px solid var(--bd);border-radius:999px;padding:3px 11px;color:var(--mut)}
+.pill b{color:var(--tx);font-weight:600}
+.pill.warn{border-color:var(--amb);color:var(--amb)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;text-decoration:none;color:inherit}
+.kpi:hover{border-color:var(--acc)}
+.kpi .n{font-size:28px;font-weight:700;line-height:1.1}
+.kpi .l{font-size:12.5px;color:var(--mut)}
+.kpi.red .n{color:var(--red)} .kpi.amb .n{color:var(--amb)} .kpi.acc .n{color:var(--acc)}
+.list{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.row{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border-top:1px solid var(--bd)}
+.row:first-child{border-top:none}
+.code{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--acc);min-width:44px;padding-top:2px}
+.main{flex:1;min-width:0}
+.t{font-size:14px}
+.meta{font-size:12px;color:var(--mut)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;font-size:13px}
+.up{color:var(--red)} .down{color:var(--grn)}
+.chip{display:inline-block;font-size:11.5px;border:1px solid var(--bd);background:var(--s2);border-radius:7px;
+  padding:1px 8px;margin:3px 4px 0 0;color:var(--tx);text-decoration:none}
+.chip:hover{border-color:var(--acc)}
+.chip.nocard{border-color:var(--red);color:var(--red)}
+.chip.left{border-style:dashed;color:var(--mut)}
+.badge{font-size:11px;border-radius:6px;padding:0 6px;margin-left:6px}
+.badge.gap{background:rgba(255,107,107,.15);color:var(--red)}
+.empty{padding:14px;color:var(--dim);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-weight:500;color:var(--mut);text-align:left;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--bd)}
+td{padding:9px 10px;border-top:1px solid var(--bd);vertical-align:top}
+.tbl{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow-x:auto}
+svg.sp{vertical-align:middle}
+details{margin-top:28px}
+summary{cursor:pointer;color:var(--mut);font-size:13px}
+.foot{margin-top:30px;font-size:11.5px;color:var(--dim);border-top:1px solid var(--bd);padding-top:14px}
+.foot li{margin:3px 0}
+.err{background:var(--s1);border:1px solid var(--red);border-radius:14px;padding:18px;color:var(--red)}
+@media (max-width:640px){.kpis{grid-template-columns:1fr}.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🕸 VoC × Roadmap 對照</h1>
+  <p class="sub">STT 主播聲音 → VoC 25 痛點 → Jira 卡。每天自動更新，驗收沒過就維持前一天。</p>
+  <div id="app"><p class="hint">載入中…</p></div>
+</div>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = x => x == null ? '—' : (x > 0 ? '+' : '') + Math.round(x * 100) + '%';
+const cls = x => x == null ? '' : x >= 0.2 ? 'up' : x <= -0.2 ? 'down' : '';
+const STATUS = {'On track':'正常','Warning':'注意','Off track':'落後','At risk':'有風險'};
+
+function spark(series){
+  const v = series.map(p => p.streamers), w = 70, h = 18, max = Math.max(1, ...v);
+  if (v.length < 2) return '';
+  const pts = v.map((y, i) => `${(i/(v.length-1)*w).toFixed(1)},${(h - y/max*h).toFixed(1)}`).join(' ');
+  return `<svg class="sp" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="1.5"/></svg>`;
+}
+function cardChips(cards){
+  if (!cards.length) return '<span class="chip nocard">沒有卡</span>';
+  return cards.map(c => c.active
+    ? `<a class="chip" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.key.replace('APPIDEAS-',''))} · ${esc(c.stage)} · ${esc(STATUS[c.project_status] || c.project_status || '未標')}</a>`
+    : `<a class="chip left" href="${esc(c.url)}" target="_blank" rel="noopener" title="已不在 active：做完、關掉或移到停車場">${esc(c.key.replace('APPIDEAS-',''))} · 已離開 active</a>`).join('');
+}
+
+function render(g){
+  const s = g.sources, v = g.views, lw = s.stt.latest_window;
+  const pains = Object.fromEntries(g.nodes.pains.map(p => [p.code, p]));
+  const sttWarn = s.stt.age_days == null || s.stt.age_days > 10;
+  let h = `<div class="fresh">
+    <span class="pill">Jira <b>${esc(s.jira.as_of_date)}</b>（active ${s.jira.active_cards} 張）</span>
+    <span class="pill ${sttWarn ? 'warn' : ''}">STT <b>${lw ? esc(lw.start) + '〜' + esc(lw.end) : '無資料'}</b>${lw ? `（${s.stt.age_days} 天前）` : ''}</span>
+    <span class="pill">對應表 <b>${s.mapping.pains_mapped}/25</b> 痛點有卡</span>
+  </div>
+  <div class="kpis">
+    <a class="kpi red" href="#rising"><div class="n">${v.rising.length}</div><div class="l">聲音在變多</div></a>
+    <a class="kpi amb" href="#gaps"><div class="n">${v.gaps.length}</div><div class="l">有聲音、沒有卡</div></a>
+    <a class="kpi acc" href="#unbacked"><div class="n">${v.unbacked_voc_cards.length}</div><div class="l">[VoC] 卡對不到痛點</div></a>
+  </div>`;
+
+  h += `<h2 id="rising">1. 聲音在變多</h2><p class="hint">最新一週 ≥ ${g.rules.read_floor} 人、且比前一週多 ${Math.round(g.rules.rising_pct*100)}% 以上。人數 = 不重複主播數。</p><div class="list">`;
+  h += v.rising.length ? v.rising.map(x => {
+    const p = x.kind === 'pain' ? pains[x.code] : null;
+    return `<div class="row"><span class="code">${esc(x.code)}</span><div class="main">
+      <div class="t">${esc(x.name)}${x.status === 'gap' ? '<span class="badge gap">沒有卡</span>' : ''}</div>
+      <div class="meta">${x.kind === 'pain' ? 'VoC 痛點' : 'STT 主題'}${x.stop_streamers ? ` · sTop ${x.stop_streamers} 人` : ''}</div>
+      ${p ? cardChips(p.cards) : ''}</div>
+      <div class="num">${x.prev}→<b>${x.latest}</b> 人<br><span class="${cls(x.delta_pct)}">${pct(x.delta_pct)}</span></div></div>`;
+  }).join('') : '<div class="empty">本週沒有明顯變多的項目。</div>';
+  h += `</div>`;
+
+  h += `<h2 id="gaps">2. 有聲音、沒有卡</h2><p class="hint">VoC 痛點最新一週 ≥ ${g.rules.read_floor} 人，但對應表裡沒有任何 Jira 卡。要嘛補卡，要嘛在 mapping.json 補上已存在的卡。</p><div class="list">`;
+  h += v.gaps.length ? v.gaps.map(x => `<div class="row"><span class="code">${esc(x.code)}</span><div class="main">
+      <div class="t">${esc(x.title)}</div><div class="meta">VoC 分數 ${x.voc_score}</div></div>
+      <div class="num"><b>${x.latest}</b> 人<br><span class="${cls(x.delta_pct)}">${pct(x.delta_pct)}</span></div></div>`).join('')
+    : '<div class="empty">沒有。</div>';
+  h += `</div>`;
+
+  h += `<h2 id="unbacked">3. 標了 [VoC] 但對不到痛點的卡</h2><p class="hint">卡名寫了 VoC，對應表卻沒有任何痛點指向它 —— 找不到原話依據。</p><div class="list">`;
+  h += v.unbacked_voc_cards.length ? v.unbacked_voc_cards.map(c => `<div class="row"><span class="code">${esc(c.key.replace('APPIDEAS-',''))}</span><div class="main">
+      <div class="t"><a class="chip" style="margin:0" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.summary)}</a></div>
+      <div class="meta">${esc(c.stage)} · ${esc(STATUS[c.project_status] || c.project_status || '未標')}</div></div></div>`).join('')
+    : '<div class="empty">沒有。</div>';
+  h += `</div>`;
+
+  const rows = [...g.nodes.pains].sort((a, b) => b.stt.latest - a.stt.latest || b.voc_score - a.voc_score);
+  h += `<h2>4. VoC 25 痛點全表</h2><p class="hint">依最新一週 STT 人數排序。灰色 = 低於 ${g.rules.read_floor} 人，動向不讀。</p><div class="tbl"><table>
+    <thead><tr><th>代碼</th><th>痛點</th><th class="hide-sm">趨勢</th><th>人數</th><th>對應卡</th></tr></thead><tbody>`;
+  h += rows.map(p => `<tr style="${p.stt.readable ? '' : 'color:var(--dim)'}"><td class="code">${esc(p.code)}</td>
+    <td>${esc(p.title)}<div class="meta">VoC 分數 ${p.voc_score}</div></td>
+    <td class="hide-sm">${spark(p.stt.series)}</td>
+    <td class="num"><b>${p.stt.latest}</b><br><span class="${p.stt.readable ? cls(p.stt.delta_pct) : ''}">${pct(p.stt.delta_pct)}</span></td>
+    <td>${p.stt.readable || p.cards.length ? cardChips(p.cards) : '<span class="meta">—</span>'}</td></tr>`).join('');
+  h += `</tbody></table></div>`;
+
+  if (v.outside_catalog.length){
+    h += `<h2>5. STT 有、VoC 25 痛點沒有的代碼</h2><p class="hint">STT 偵測得到，但不在你的 VoC roadmap 25 痛點裡（例：X1.0 通知）。要不要納入是你的決定。</p><div class="list">`;
+    h += v.outside_catalog.map(x => `<div class="row"><span class="code">${esc(x.code)}</span><div class="main"></div><div class="num"><b>${x.latest}</b> 人</div></div>`).join('');
+    h += `</div>`;
+  }
+
+  const themes = [...g.nodes.themes].filter(t => t.stt.latest > 0).sort((a, b) => b.stt.latest - a.stt.latest);
+  h += `<details><summary>STT F 主題明細（${themes.length} 個，看板母體：P1 × 真痛點 × 可行動）</summary><div class="tbl" style="margin-top:10px"><table>
+    <thead><tr><th>代碼</th><th>主題</th><th class="hide-sm">趨勢</th><th>人數</th><th>sTop</th></tr></thead><tbody>`;
+  h += themes.map(t => `<tr style="${t.stt.readable ? '' : 'color:var(--dim)'}"><td class="code">${esc(t.code)}</td><td>${esc(t.name)}<div class="meta">${esc(t.routing)}</div></td>
+    <td class="hide-sm">${spark(t.stt.series)}</td><td class="num"><b>${t.stt.latest}</b><br><span class="${t.stt.readable ? cls(t.stt.delta_pct) : ''}">${pct(t.stt.delta_pct)}</span></td><td class="num">${t.stt.stop_streamers}</td></tr>`).join('');
+  h += `</tbody></table></div></details>`;
+
+  h += `<div class="foot"><ul>
+    <li>STT 判定由 Gemini 自動完成：抽驗準確度 77–86%、幾乎不漏 → 人數約多算 1–2 成，看方向不看小數。</li>
+    <li>F 主題人數 = 看板母體（P1 × 真痛點 × 可行動）；痛點人數 = 所有真痛點裡帶 25 痛點代碼的。兩者母體不同，不能相加。</li>
+    <li>原話：用 hit_id 回 BigQuery <code>stt_voc_judgments</code> 查（社外不可），本頁不放原話。</li>
+    <li>痛點 ↔ 卡的對應在 repo 的 <code>voc-graph/mapping.json</code>，由 PM 維護。</li>
+    ${g.data_quality.map(d => `<li>[${esc(d.level)}] ${esc(d.msg)}</li>`).join('')}
+    <li>產生時間 ${esc(g.generated_at)}</li></ul></div>`;
+  document.getElementById('app').innerHTML = h;
+}
+
+fetch('/voc-graph/out/latest.json', {cache:'no-store'})
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(render)
+  .catch(e => { document.getElementById('app').innerHTML =
+    `<div class="err">讀不到今天的資料（${esc(e.message)}）。通常代表 voc-graph-daily 還沒成功跑過，或驗收沒過。到 GitHub Actions 看 voc-graph-daily 的最近一次執行。</div>`; });
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+# 每天把 STT 聲音 × VoC 25 痛點 × Jira 卡接成一張圖，驗收通過才 commit 回 main，Vercel 自動 redeploy。
+#
+# 契約卡與部署步驟見 voc-graph/README.md。這支 workflow 不呼叫任何 LLM。
+#
+# 觸發：roadmap-daily 成功跑完之後（確保 Jira 是今天的）；也可以手動觸發。
+#
+# 要能跑，必須先在 repo Settings → Secrets and variables → Actions 加一個 secret：
+#   GCP_SA_KEY  有 BigQuery 讀取權的服務帳號 JSON 金鑰
+#               （需要：DataLab_Ayana 資料集的 BigQuery Data Viewer ＋ media17-1119 的 BigQuery Job User）
+# 少了它 → 第一步就紅燈，不寫任何檔案。
+#
+# 驗收（check.py）沒過 → 不 commit，頁面維持前一天的版本，workflow 紅燈，GitHub 寄信給 repo watcher。
+
+name: voc-graph-daily
+
+on:
+  workflow_run:
+    workflows: [roadmap-daily]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: voc-graph-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  graph:
+    # roadmap-daily 失敗就不跑：Jira 不是今天的，跑了也一定驗收不過
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10   # 對齊契約 BUDGET：單輪 ≤ 10 分鐘
+
+    steps:
+      - name: 取出 repo（main 最新，含 roadmap-daily 剛推的 Jira 快照）
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: 準備 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 確認 secret 有設
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          if [ -z "$GCP_SA_KEY" ]; then
+            echo "::error::缺少 GCP_SA_KEY secret（BigQuery 服務帳號金鑰）。"
+            echo "::error::去 repo Settings → Secrets and variables → Actions 補上，然後重跑。"
+            exit 1
+          fi
+          echo "secret 在。"
+
+      - name: 登入 Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: 安裝 BigQuery client
+        run: pip install --quiet google-cloud-bigquery
+
+      - name: 抓 STT（只抓聚合數字，不抓原話）
+        run: |
+          set -o pipefail
+          cd voc-graph
+          set +e
+          python3 fetch_stt.py --out out/ 2>&1 | tee /tmp/fetch.log
+          code=$?
+          set -e
+          case "$code" in
+            0) echo "::notice::STT 抓取完成。" ;;
+            2) echo "::error::STT 判定表的欄位值跟預期不同（定義可能改了），看上面的 BLOCKER。需要人改 fetch_stt.py。" ;;
+            3) echo "::error::fetch_stt.py 崩潰或連不上 BigQuery（權限？金鑰？），看上面的 traceback。" ;;
+            *) echo "::error::fetch_stt.py 以未預期的 exit code $code 結束。" ;;
+          esac
+          if [ "$code" -ne 0 ]; then exit "$code"; fi
+
+      - name: 組圖
+        run: python3 voc-graph/build.py
+
+      - name: 驗收（checker）
+        run: python3 voc-graph/check.py
+
+      - name: Commit（只在驗收通過、且資料有變時）
+        run: |
+          git config user.name  "voc-graph-bot"
+          git config user.email "voc-graph-bot@users.noreply.github.com"
+          git add voc-graph/out/
+          if git diff --cached --quiet; then
+            echo "::notice::資料沒有變化，不產生空 commit。"
+            exit 0
+          fi
+          AS_OF=$(python3 -c "import json;print(json.load(open('voc-graph/out/latest.json'))['as_of_date'])")
+          SUM=$(python3 -c "import json;v=json.load(open('voc-graph/out/latest.json'))['views'];print(f\"變多 {len(v['rising'])}／沒卡 {len(v['gaps'])}／VoC 卡沒對應 {len(v['unbacked_voc_cards'])}\")")
+          git commit -m "data(voc-graph): ${AS_OF} 對照圖（${SUM}）" -m "由 .github/workflows/voc-graph-daily.yml 自動產生，check.py 驗收 PASS。"
+          for i in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "::notice::已推上 main，Vercel 會自動 redeploy。"
+              exit 0
+            fi
+            echo "push 失敗（第 $i 次），拉取後重試…"
+            git pull --rebase origin main || exit 1
+            sleep $((2 ** i))
+          done
+          echo "::error::重試三次仍推不上去。"
+          exit 1
+
+      - name: 把每日摘要放進 job summary
+        if: always()
+        run: |
+          B=$(ls -1 voc-graph/out/brief-*.md 2>/dev/null | sort | tail -1)
+          if [ -n "$B" ]; then cat "$B" >> "$GITHUB_STEP_SUMMARY"; fi
