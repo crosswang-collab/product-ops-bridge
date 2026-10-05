@@ -3,7 +3,7 @@
 每天把三份事實接成一張圖，放在 Vercel 的 `/voc-graph/web/`：
 
 ```
-STT 主播聲音（BigQuery，每週一批）─┐
+STT 主播聲音（BigQuery，每週一批）─┐  F 主題 ← stt_voc_judgments／25 痛點 ← stt_voc_weekly_metrics
 VoC roadmap 25 痛點（catalog.json）─┼─▶ build.py ─▶ check.py ─▶ Vercel 頁面
 Jira active 卡（roadmap-bot，每天）─┘   （組圖）    （驗收，沒過就不更新）
           ▲
@@ -88,5 +88,8 @@ python3 check.py --out /tmp/vg --today <同上>
 ## 已知限制
 
 - **VoC Daily Bot（Slack ＋ 4 份表單）還沒接進來**。它的資料在 Google Sheet，下一階段用同一個服務帳號讀
-- STT 的痛點人數是用**判定表**的 `pain25_tags` 算的；ayana 週報的「定点」是從精讀池用正規表現數的，母體不同，數字不會一樣
+- **25 痛點人數讀 `stt_voc_weekly_metrics`（pain25）**，就是 ayana 週報的「定点」：09/14 窗 X1.0=277／S2.1=233／S2.0=154／U4.1=100／U4.4=76 與週報逐一相符（2026-10-05 驗證）。不經 Gemini 判定、沒有 tier，所以痛點沒有 sTop 人數
+  - 不用判定表的原因：判定表只收 P1＋4 條固定 lane，09/21 窗只出現 5 種痛點代碼，U4.1／U4.4 等會全部變 0
+  - 不用精讀池的原因：精讀池是抽樣後的子集，S2.0 只剩 19 人（週報 154）
+- 週次窗以判定表為準：weekly_metrics 若比判定表早一週出來，那一週的痛點人數要等判定表跟上才會顯示
 - 欄位值（tier 等）是照 ayana notebook 推定的，第一次實跑才會知道是否完全吻合 —— 不吻合會紅燈停下，不會算錯

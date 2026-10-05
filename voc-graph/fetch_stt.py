@@ -2,8 +2,8 @@
 """
 fetch_stt.py — 從 BigQuery 把 STT-VoC 判定結果抓成「只有數字」的事實層 JSON。
 
-來源：media17-1119.DataLab_Ayana.stt_voc_judgments
-      （ayana 的 Gemini 判定 pipeline 寫入；欄位定義見 V8.1 notebook 的 JUDGMENT_SCHEMA）
+來源：media17-1119.DataLab_Ayana.stt_voc_judgments      → F 主題（ayana 的 Gemini 判定）
+      media17-1119.DataLab_Ayana.stt_voc_weekly_metrics  → 25 痛點（週報「定点」，正規表現檢知）
 
 這支只做事實，不呼叫任何 LLM，也不碰原話：
   · 聚合全部在 BigQuery 裡做完，userID / stt / context 從來不離開 BigQuery。
@@ -14,8 +14,8 @@ fetch_stt.py — 從 BigQuery 把 STT-VoC 判定結果抓成「只有數字」�
 這裡用的是判定表，母體不同）：
   · 看板列（board）  = priority='P1' ∧ exist='TRUE_PAIN' ∧ actionability ∈ {PRODUCT_ACTIONABLE, OPERATION_ACTIONABLE}
                        → F 主題的人數用這個母體（＝週報「Fテーマ推移」的定義）
-  · 痛點列（pain）    = exist='TRUE_PAIN'（不限 priority），且 pain25_tags 帶有 25 痛點代碼
-                       → VoC roadmap 25 痛點的人數用這個母體
+  · 痛點（pain）      = weekly_metrics 的 metric_type='pain25'（＝週報「定点ルート」，不經 Gemini）
+                       → VoC roadmap 25 痛點的人數用這個；判定表只收 P1+4 lane，大部分痛點進不去
   · 人數 = COUNT(DISTINCT userID)，是主指標；件數只當輔助（多話的人會灌件數）
 
 跑法：
@@ -38,6 +38,7 @@ import time
 import traceback
 
 TABLE = "media17-1119.DataLab_Ayana.stt_voc_judgments"
+METRICS_TABLE = "media17-1119.DataLab_Ayana.stt_voc_weekly_metrics"
 BILLING_PROJECT = os.environ.get("GCP_BILLING_PROJECT", "media17-1119")
 LOOKBACK_DAYS = 63  # 9 週：夠畫趨勢，又不會每天掃太多
 
@@ -119,17 +120,25 @@ GROUP BY window_start, theme
 ORDER BY window_start, streamers DESC
 """
 
-SQL_PAINS = SQL_BASE + """
+# 25 痛點不能用判定表算：判定表只收 P1 + 4 條固定 lane，U4.1／U4.4 這類痛點根本進不去
+# （2026-10-05 實測：09/21 窗判定表只出現 5 種代碼）。改讀 weekly_metrics 的 pain25，
+# 這就是 ayana 週報「定点ルート」的來源 —— 09/14 窗 X1.0=277／S2.1=233／S2.0=154／
+# U4.1=100／U4.4=76 與週報逐一相符。定点是正規表現檢知，不經 Gemini 判定，也沒有 tier。
+# 同一窗被重建過（例：9/29 補日曜）會有多次 loaded_at，只取最新那次。
+SQL_PAINS = f"""
 SELECT
-  window_start, pain AS code,
-  COUNT(DISTINCT userID) AS streamers,
-  COUNT(*) AS rows_n,
-  COUNT(DISTINCT IF(tier = 'sTop', userID, NULL)) AS stop_streamers,
-  COUNT(DISTINCT IF(tier = 'Top', userID, NULL)) AS top_streamers,
-  ARRAY_AGG(hit_id ORDER BY hit_id LIMIT 3) AS sample_hit_ids
-FROM base, UNNEST(pains) AS pain
-WHERE exist = 'TRUE_PAIN'
-GROUP BY window_start, pain
+  window_start,
+  REGEXP_EXTRACT(metric_key, r'^({PAIN_CODE_RE})') AS code,
+  n_liver AS streamers,
+  n_seg AS rows_n,
+  CAST(NULL AS INT64) AS stop_streamers,
+  CAST(NULL AS INT64) AS top_streamers,
+  ARRAY<STRING>[] AS sample_hit_ids
+FROM `{METRICS_TABLE}`
+WHERE metric_type = 'pain25'
+  AND REGEXP_CONTAINS(metric_key, r'^{PAIN_CODE_RE}')
+  AND window_start >= DATE_SUB(CURRENT_DATE('Asia/Tokyo'), INTERVAL {LOOKBACK_DAYS} DAY)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY window_start, metric_key ORDER BY loaded_at DESC) = 1
 ORDER BY window_start, streamers DESC
 """
 
@@ -224,6 +233,11 @@ def main():
         traceback.print_exc()
         return EXIT_CRASH
 
+    if not pains:
+        print(f"[BLOCKER] {METRICS_TABLE} 最近 {LOOKBACK_DAYS} 天沒有 metric_type='pain25' 的列，"
+              "25 痛點會全部變 0 —— 不寫檔。")
+        return EXIT_DATA
+
     for r in themes + pains:
         r["rows"] = r.pop("rows_n")
 
@@ -236,7 +250,7 @@ def main():
         "lookback_days": LOOKBACK_DAYS,
         "definitions": {
             "board": "priority='P1' ∧ exist='TRUE_PAIN' ∧ actionability ∈ PRODUCT/OPERATION_ACTIONABLE（F 主題母體）",
-            "pain": "exist='TRUE_PAIN' 且 pain25_tags 帶 25 痛點代碼（不限 priority）",
+            "pain": "stt_voc_weekly_metrics 的 pain25（＝週報定点：正規表現檢知，不經 Gemini 判定，無 tier）",
             "streamers": "COUNT(DISTINCT userID)，主指標",
             "precision_note": "Gemini 判定適合率 77–86%、再現率 96–100%（ayana n=90 盲檢）→ 人數約多算 1–2 成",
         },
