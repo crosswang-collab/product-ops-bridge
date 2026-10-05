@@ -1,0 +1,656 @@
+{
+  "meta": {
+    "generated_at": "2026-08-17",
+    "source": "Jira APPIDEAS (source of truth) + JP Needs Roadmap sheet",
+    "jira_base": "https://17media.atlassian.net/browse/"
+  },
+  "stats": {
+    "total_requests": 52,
+    "ticketed": 17,
+    "with_release_date": 8,
+    "untracked": 33,
+    "untracked_p0": 2
+  },
+  "groups": [
+    {
+      "id": "released",
+      "icon": "✅",
+      "label": {
+        "zh": "已上線・收集成效中",
+        "en": "Released — Measuring Impact",
+        "ja": "リリース済み・効果測定中"
+      },
+      "items": [
+        {
+          "key": "APPIDEAS-2128",
+          "owner": "Belle Lo",
+          "title": {
+            "zh": "扭蛋「隱藏款」設定",
+            "en": "Gacha “Hidden Item” setting",
+            "ja": "ガチャ「シークレット商品」設定"
+          },
+          "date": {
+            "zh": "2026/7/21",
+            "en": "2026/7/21",
+            "ja": "2026/7/21"
+          },
+          "status": {
+            "zh": "效果測定中",
+            "en": "Collecting impact data",
+            "ja": "効果測定中"
+          }
+        }
+      ]
+    },
+    {
+      "id": "august",
+      "icon": "🚀",
+      "label": {
+        "zh": "8 月內上線",
+        "en": "Releasing in August",
+        "ja": "8月中リリース"
+      },
+      "items": [
+        {
+          "key": "APPIDEAS-1797",
+          "owner": "Calvin Sung",
+          "highlight": true,
+          "title": {
+            "zh": "個人檔案改版 Phase 1",
+            "en": "Profile Revamp Phase 1",
+            "ja": "プロフィール改修 フェーズ1"
+          },
+          "date": {
+            "zh": "8/18",
+            "en": "8/18",
+            "ja": "8/18"
+          },
+          "status": {
+            "zh": "開發與測試已完成",
+            "en": "Dev & QA complete",
+            "ja": "開発・QA完了"
+          }
+        },
+        {
+          "key": "APPIDEAS-2135",
+          "owner": "Belle Lo",
+          "title": {
+            "zh": "直播間扭蛋開獎顯示機台名稱",
+            "en": "Show gacha machine name in stream room reveal",
+            "ja": "配信ルーム内ガチャ結果表示（ガチャ機名）"
+          },
+          "date": {
+            "zh": "8/24 扭蛋 → 8/26 網頁 → 9/1 App",
+            "en": "8/24 Gacha → 8/26 Web → 9/1 App",
+            "ja": "8/24 ガチャ → 8/26 Web → 9/1 アプリ"
+          },
+          "status": {
+            "zh": "開發中",
+            "en": "In development",
+            "ja": "開発中"
+          }
+        },
+        {
+          "key": "APPIDEAS-2169",
+          "owner": "Belle Lo",
+          "title": {
+            "zh": "使用 17Shop / 扭蛋時可同時 PK 與連麥",
+            "en": "Enable PK & Group Call while using 17Shop / Gacha",
+            "ja": "17Shop・ガチャ利用中でもPK／グループ通話を可能に"
+          },
+          "date": {
+            "zh": "8/26 網頁 → 9/1 App",
+            "en": "8/26 Web → 9/1 App",
+            "ja": "8/26 Web → 9/1 アプリ"
+          },
+          "status": {
+            "zh": "開發中",
+            "en": "In development",
+            "ja": "開発中"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sept1",
+      "icon": "📅",
+      "label": {
+        "zh": "9/1 同一班上線列車（iOS v3.336.0 / Android v2.251.0）",
+        "en": "Releasing 9/1 (iOS v3.336.0 / Android v2.251.0)",
+        "ja": "9/1 リリース（iOS v3.336.0 / Android v2.251.0）"
+      },
+      "items": [
+        {
+          "key": "APPIDEAS-1910",
+          "owner": "Mila Chang",
+          "title": {
+            "zh": "重複虛擬獎勵的通知流程統一",
+            "en": "Unified notification flow for duplicate virtual rewards",
+            "ja": "同一報酬受取時の通知フロー統一"
+          },
+          "date": {
+            "zh": "後端 8/17 → App 9/1",
+            "en": "BE 8/17 → App 9/1",
+            "ja": "BE 8/17 → アプリ 9/1"
+          },
+          "status": {
+            "zh": "開發中",
+            "en": "In development",
+            "ja": "開発中"
+          }
+        },
+        {
+          "key": "APPIDEAS-1927",
+          "owner": "Calvin Sung",
+          "title": {
+            "zh": "日本版私訊功能",
+            "en": "Direct Message for JP",
+            "ja": "日本版ダイレクトメッセージ"
+          },
+          "date": {
+            "zh": "9/1（9/7 強制更新後開啟）",
+            "en": "9/1 (enabled after 9/7 force update)",
+            "ja": "9/1（9/7 強制アップデート後に有効化）"
+          },
+          "status": {
+            "zh": "開發中",
+            "en": "In development",
+            "ja": "開発中"
+          }
+        },
+        {
+          "key": "APPIDEAS-2230",
+          "owner": "Stacey Luo",
+          "title": {
+            "zh": "My Revenue 收入顯示日提前至每月 10 號",
+            "en": "Move My Revenue income display date to the 10th",
+            "ja": "My Revenue 収入反映日を毎月10日に前倒し"
+          },
+          "date": {
+            "zh": "網頁 9/1 / 帳務 9/10",
+            "en": "Web 9/1 / Billing 9/10",
+            "ja": "Web 9/1 / 請求 9/10"
+          },
+          "status": {
+            "zh": "UI/UX 設計中",
+            "en": "UI/UX design",
+            "ja": "UI/UXデザイン中"
+          }
+        }
+      ]
+    },
+    {
+      "id": "late",
+      "icon": "🗓",
+      "label": {
+        "zh": "9 月末以後",
+        "en": "Late September and beyond",
+        "ja": "9月末以降"
+      },
+      "items": [
+        {
+          "key": "APPIDEAS-1928",
+          "owner": "Mila Chang",
+          "title": {
+            "zh": "Call-in（限 Army 開播）",
+            "en": "Call-in (Army-only stream)",
+            "ja": "コール機能（Army限定配信）"
+          },
+          "date": {
+            "zh": "9/29（10/6 開啟）",
+            "en": "9/29 (enabled 10/6)",
+            "ja": "9/29（10/6 有効化）"
+          },
+          "status": {
+            "zh": "開發中",
+            "en": "In development",
+            "ja": "開発中"
+          }
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "icon": "🔧",
+      "label": {
+        "zh": "設計・規格討論中（尚無上線日）",
+        "en": "In Design / Spec — No Release Date Yet",
+        "ja": "設計・仕様検討中（リリース日未定）"
+      },
+      "items": [
+        {
+          "key": "APPIDEAS-2116",
+          "owner": "Amber Liu",
+          "title": {
+            "zh": "高價禮物動畫優先播放",
+            "en": "Prioritize high-value gift animations",
+            "ja": "高額ギフトアニメーション優先再生"
+          },
+          "date": {
+            "zh": "8/21 前提出時程",
+            "en": "Schedule due by 8/21",
+            "ja": "8/21までにスケジュール提示"
+          },
+          "status": {
+            "zh": "規格精查中",
+            "en": "Refinement",
+            "ja": "要件精査中"
+          }
+        },
+        {
+          "key": "APPIDEAS-1986",
+          "owner": "Stacey Luo",
+          "title": {
+            "zh": "日本區新申請流程 ph-4（自動建立合約）",
+            "en": "JP new application flow ph-4 (auto contract creation)",
+            "ja": "日本エリア新規申請フロー ph-4（契約自動作成）"
+          },
+          "date": {
+            "zh": "技術評估至 ~8/21",
+            "en": "Tech spike through ~8/21",
+            "ja": "技術検証 ～8/21"
+          },
+          "status": {
+            "zh": "規格精查中",
+            "en": "Refinement",
+            "ja": "要件精査中"
+          }
+        },
+        {
+          "key": "APPIDEAS-2115",
+          "owner": "Caroline Su",
+          "title": {
+            "zh": "跑馬燈優化",
+            "en": "Marquee (ticker) optimization",
+            "ja": "テロップ（マーキー）最適化"
+          },
+          "date": {
+            "zh": "—",
+            "en": "—",
+            "ja": "—"
+          },
+          "status": {
+            "zh": "UI/UX 設計中",
+            "en": "UI/UX design",
+            "ja": "UI/UXデザイン中"
+          }
+        },
+        {
+          "key": "APPIDEAS-2241",
+          "owner": "Cher Mo",
+          "title": {
+            "zh": "紅包搶奪條件調整",
+            "en": "Revise red envelope claim conditions",
+            "ja": "お年玉取得条件の見直し"
+          },
+          "date": {
+            "zh": "規格 8/17 完成",
+            "en": "Spec completed 8/17",
+            "ja": "仕様 8/17 完成"
+          },
+          "status": {
+            "zh": "探索階段",
+            "en": "Discovery",
+            "ja": "ディスカバリー"
+          }
+        },
+        {
+          "key": "APPIDEAS-2238",
+          "owner": "Calvin Sung",
+          "title": {
+            "zh": "個人檔案徽章自訂",
+            "en": "Profile badge customization",
+            "ja": "プロフィールバッジのカスタマイズ"
+          },
+          "date": {
+            "zh": "規格 8/13 完成",
+            "en": "Spec completed 8/13",
+            "ja": "仕様 8/13 完成"
+          },
+          "status": {
+            "zh": "探索階段",
+            "en": "Discovery",
+            "ja": "ディスカバリー"
+          }
+        },
+        {
+          "key": "APPIDEAS-2225",
+          "owner": "Stella L.",
+          "title": {
+            "zh": "活動進行中變更指定禮物",
+            "en": "Switch mini-event target gifts mid-event",
+            "ja": "ミニイベントの対象ギフトを途中変更"
+          },
+          "date": {
+            "zh": "—",
+            "en": "—",
+            "ja": "—"
+          },
+          "status": {
+            "zh": "規劃中",
+            "en": "Story map",
+            "ja": "ストーリーマップ作成中"
+          }
+        }
+      ]
+    },
+    {
+      "id": "parking",
+      "icon": "🅿",
+      "label": {
+        "zh": "停車場（尚未著手）",
+        "en": "Parking Lot — Not Started",
+        "ja": "保留中（着手前）"
+      },
+      "items": [
+        {
+          "key": "APPIDEAS-2220",
+          "owner": "YC Chang",
+          "title": {
+            "zh": "直播中頻繁閃退、鍵盤延遲",
+            "en": "Frequent crashes while live; keyboard lag",
+            "ja": "配信中の頻繁なクラッシュ・キーボード遅延"
+          },
+          "date": {
+            "zh": "—",
+            "en": "—",
+            "ja": "—"
+          },
+          "status": {
+            "zh": "停車場",
+            "en": "Parking lot",
+            "ja": "保留"
+          }
+        },
+        {
+          "key": "APPIDEAS-2224",
+          "owner": "Mila Chang",
+          "title": {
+            "zh": "指定限量禮物／隨機禮物子袋",
+            "en": "Designate limited gifts / random gift sub-bags",
+            "ja": "限定ギフト・ランダムギフト（子袋）の指定"
+          },
+          "date": {
+            "zh": "—",
+            "en": "—",
+            "ja": "—"
+          },
+          "status": {
+            "zh": "停車場",
+            "en": "Parking lot",
+            "ja": "保留"
+          }
+        },
+        {
+          "key": "APPIDEAS-2223",
+          "owner": "Stella L.",
+          "title": {
+            "zh": "記住迷你活動設定",
+            "en": "Remember mini-event settings",
+            "ja": "ミニイベント設定の記憶"
+          },
+          "date": {
+            "zh": "—",
+            "en": "—",
+            "ja": "—"
+          },
+          "status": {
+            "zh": "停車場",
+            "en": "Parking lot",
+            "ja": "保留"
+          }
+        }
+      ]
+    }
+  ],
+  "untracked": [
+    {
+      "rank": 8,
+      "p": "P0",
+      "zh": "禮物榜只給主播看",
+      "en": "Make the gifter leaderboard visible only to the streamer",
+      "ja": "ギフトボードを配信者のみに表示"
+    },
+    {
+      "rank": 10,
+      "p": "P0",
+      "zh": "留言區禮物顯示問題（連續中大獎被合併）",
+      "en": "Paid-gift comments merging — consecutive big wins collapsed",
+      "ja": "コメント欄のギフト表示問題（連続当選が統合される）"
+    },
+    {
+      "rank": 12,
+      "p": "P1",
+      "zh": "VS 模式切換異常、對戰資訊混亂",
+      "en": "VS-mode switching glitches; match info breaks",
+      "ja": "VSモード切替時の不具合・対戦情報の乱れ"
+    },
+    {
+      "rank": 13,
+      "p": "P1",
+      "zh": "開放經紀公司或主播購買曝光／提升排序（閃卡）",
+      "en": "Allow agencies or streamers to purchase exposure / higher page rank",
+      "ja": "事務所・ライバーが露出や上位表示を購入できるように"
+    },
+    {
+      "rank": 14,
+      "p": "P1",
+      "zh": "高價禮物誤送無法撤回、送出時閃退",
+      "en": "High-value gift mis-send cannot be undone; crashes on send",
+      "ja": "高額ギフトの誤送信を取り消せない・送信時にクラッシュ"
+    },
+    {
+      "rank": 16,
+      "p": "P1",
+      "zh": "禮物太多找不到",
+      "en": "Too many gifts to find",
+      "ja": "ギフトが多すぎて探せない"
+    },
+    {
+      "rank": 17,
+      "p": "P1",
+      "zh": "PK 模式太淺，獲勝缺乏成就感",
+      "en": "PK mode too shallow — winning feels unrewarding",
+      "ja": "PKモードが浅く、勝っても達成感がない"
+    },
+    {
+      "rank": 18,
+      "p": "P1",
+      "zh": "改善新人主播的 PK 體驗",
+      "en": "Improve PK experience for newbie streamers",
+      "ja": "新人ライバー向けPK体験の改善"
+    },
+    {
+      "rank": 19,
+      "p": "P1",
+      "zh": "價格斷層、缺少中價位選項",
+      "en": "Pricing gap — no mid-tier option to spend",
+      "ja": "価格帯の空白・中価格帯の選択肢がない"
+    },
+    {
+      "rank": 20,
+      "p": "P1",
+      "zh": "Army 希望有階級與歸屬感；無法封鎖不想要的 Army",
+      "en": "Army wants ranks & stronger belonging; cannot block unwanted Army",
+      "ja": "Armyに階級と帰属意識を・不要なArmyをブロックできない"
+    },
+    {
+      "rank": 21,
+      "p": "P1",
+      "zh": "想查看上個月的最終禮物榜",
+      "en": "Allow users to view the previous month’s final gift board",
+      "ja": "先月の最終ギフトボードを見たい"
+    },
+    {
+      "rank": 22,
+      "p": "P1",
+      "zh": "新主播推廣計畫（D0-D7 推上熱門頁）",
+      "en": "New streamer promotion plan (D0–D7 to top of hot page)",
+      "ja": "新人ライバープロモーション（D0–D7を人気ページ上位に）"
+    },
+    {
+      "rank": 23,
+      "p": "P1",
+      "zh": "個人檔案改版－興趣標籤審核工具",
+      "en": "Profile revamp — interest tag moderation tool",
+      "ja": "プロフィール改修―興味タグの審査ツール"
+    },
+    {
+      "rank": 24,
+      "p": "P2",
+      "zh": "守護者改善－避免未經主播同意被取代",
+      "en": "Guardian improvement — prevent replacement without streamer consent",
+      "ja": "ガーディアン改善―配信者の同意なしに交代されないように"
+    },
+    {
+      "rank": 25,
+      "p": "P2",
+      "zh": "VIP 禮物流程繁瑣混亂",
+      "en": "VIP gift flow convoluted & confusing",
+      "ja": "VIPギフトのフローが複雑で分かりにくい"
+    },
+    {
+      "rank": 26,
+      "p": "P2",
+      "zh": "等級強制顯示，使用者想自行控制",
+      "en": "Level forced-visible; users want to control it",
+      "ja": "レベルが強制表示・ユーザーが制御したい"
+    },
+    {
+      "rank": 27,
+      "p": "P2",
+      "zh": "改善 SVIP 的「榜單隱身設定」（匿名應援）",
+      "en": "Improve “leaderboard invisible setting” (anonymous support) for SVIP",
+      "ja": "SVIP向け「匿名応援・神秘客」設定の改善"
+    },
+    {
+      "rank": 28,
+      "p": "P2",
+      "zh": "重要分頁被收起來、找不到入口",
+      "en": "Key tabs hidden — cannot find the entry",
+      "ja": "主要タブが隠れていて入口が見つからない"
+    },
+    {
+      "rank": 30,
+      "p": "P2",
+      "zh": "排名邏輯不明、希望多元維度",
+      "en": "Ranking logic unclear; want more dimensions",
+      "ja": "ランキングのロジックが不明瞭・多軸化してほしい"
+    },
+    {
+      "rank": 31,
+      "p": "P2",
+      "zh": "直播／重播無法快轉",
+      "en": "No fast-forward in live / archive",
+      "ja": "ライブ・アーカイブで早送りができない"
+    },
+    {
+      "rank": 32,
+      "p": "P2",
+      "zh": "年齡認證極簡化",
+      "en": "Radically simplify age verification",
+      "ja": "年齢認証の大幅な簡素化"
+    },
+    {
+      "rank": 33,
+      "p": "P2",
+      "zh": "好友對戰可刷分；封鎖後仍會配對",
+      "en": "Friend battles farmable; still matched after block",
+      "ja": "フレンド対戦がファーミング可能・ブロック後もマッチする"
+    },
+    {
+      "rank": 34,
+      "p": "P2",
+      "zh": "個人檔案改版可能一夜清掉主播自介",
+      "en": "Profile revamp may wipe streamers’ bio overnight",
+      "ja": "プロフィール改修でライバーの自己紹介が消える恐れ"
+    },
+    {
+      "rank": 35,
+      "p": "P2",
+      "zh": "進一步限制被封鎖者瀏覽主播內容",
+      "en": "Further restrict blocked users from viewing streamer’s content",
+      "ja": "ブロックされたユーザーの閲覧をさらに制限"
+    },
+    {
+      "rank": 36,
+      "p": "P2",
+      "zh": "希望可自訂稱號與認證徽章",
+      "en": "Want customizable titles & verified badges",
+      "ja": "称号や認証バッジをカスタマイズしたい"
+    },
+    {
+      "rank": 37,
+      "p": "P3",
+      "zh": "達成 BC 目標時希望有里程碑跑馬燈",
+      "en": "Want a milestone ticker when BC targets are hit",
+      "ja": "BC目標達成時のマイルストーンテロップが欲しい"
+    },
+    {
+      "rank": 42,
+      "p": "P3",
+      "zh": "活動合作禮新玩法",
+      "en": "New mechanics for event collaboration gifts",
+      "ja": "イベントコラボギフトの新しい仕組み"
+    },
+    {
+      "rank": 43,
+      "p": "P3",
+      "zh": "線上／線下賽事形式脫節、規則不清",
+      "en": "On/offline contest formats disjointed; rules unclear",
+      "ja": "オンライン・オフライン大会の形式が不揃い・ルールが不明瞭"
+    },
+    {
+      "rank": 44,
+      "p": "P3",
+      "zh": "對戰中看不到聊天、乾等",
+      "en": "Cannot see chat during matches; idle waiting",
+      "ja": "対戦中にチャットが見えない・待ち時間が多い"
+    },
+    {
+      "rank": 45,
+      "p": "P3",
+      "zh": "AI 助手不穩定；轉型為話題提示工具",
+      "en": "AI assistant buggy; transform into topic prompting tool",
+      "ja": "AIアシスタントが不安定・話題提供ツールへ転換"
+    },
+    {
+      "rank": 46,
+      "p": "P3",
+      "zh": "失去點螢幕集愛心的樂趣",
+      "en": "Lost the thrill of tapping the screen for hearts",
+      "ja": "画面をタップしてハートを集める楽しさが失われた"
+    },
+    {
+      "rank": 47,
+      "p": "P3",
+      "zh": "留言太多看不完、希望自動摘要",
+      "en": "Too many comments to read; want auto-summary",
+      "ja": "コメントが多すぎて読めない・自動要約が欲しい"
+    },
+    {
+      "rank": 48,
+      "p": "P3",
+      "zh": "OBS Plugin 相關 VoC（下一階段規劃）",
+      "en": "OBS Plugin related VoC (next phase planning)",
+      "ja": "OBSプラグイン関連VoC（次フェーズの計画）"
+    }
+  ],
+  "notes": [
+    {
+      "zh": "APPIDEAS-1928 上線日以 <b>9/29</b> 為準；票內殘留的 10/13 是舊估算，已失效。",
+      "en": "APPIDEAS-1928 release date is <b>9/29</b>; the 10/13 still listed in the ticket is a stale earlier estimate.",
+      "ja": "APPIDEAS-1928 のリリース日は <b>9/29</b>。チケット内に残っている 10/13 は旧見積のため無効。"
+    },
+    {
+      "zh": "9/1 上線列車的全量推送日，各票記載不一（9/4 與 9/7），<b>待確認</b>。",
+      "en": "For the 9/1 release train, the full-rollout date is recorded as 9/4 on one ticket and 9/7 on others — <b>needs confirmation</b>.",
+      "ja": "9/1 リリース分の全量配信日はチケットにより 9/4 と 9/7 の記載差異あり。<b>要確認</b>。"
+    },
+    {
+      "zh": "尚無上線日的 6 件中，只有 APPIDEAS-2116 承諾了「什麼時候給時程」（8/21）。",
+      "en": "Of the six items without a release date, only APPIDEAS-2116 has a committed date-for-a-date (8/21).",
+      "ja": "リリース日未定の6件のうち、期日が約束されているのは APPIDEAS-2116（8/21）のみ。"
+    }
+  ]
+}
