@@ -1,15 +1,15 @@
 # 每天把 STT 聲音 × VoC 25 痛點 × Jira 卡接成一張圖，驗收通過才 commit 回 main，Vercel 自動 redeploy。
 #
-# 契約卡與部署步驟見 voc-graph/README.md。這支 workflow 不呼叫任何 LLM。
+# 契約卡與部署步驟見 voc-graph/README.md。這支 workflow 不呼叫任何 LLM，也不連 GCP。
+#
+# 資料來源（都已經在 repo 裡）：
+#   roadmap-bot/out/latest.json     ← roadmap-daily 每天寫入
+#   voc-graph/out/stt-latest.json   ← Apps Script（voc-graph/gas/SttExport.gs）每天 08:30 JST 以 Cross 身分讀 BigQuery 後推入
+#                                      （公司禁止 GCP 服務帳號金鑰，所以不在 Actions 裡連 BigQuery）
 #
 # 觸發：roadmap-daily 成功跑完之後（確保 Jira 是今天的）；也可以手動觸發。
-#
-# 要能跑，必須先在 repo Settings → Secrets and variables → Actions 加一個 secret：
-#   GCP_SA_KEY  有 BigQuery 讀取權的服務帳號 JSON 金鑰
-#               （需要：DataLab_Ayana 資料集的 BigQuery Data Viewer ＋ media17-1119 的 BigQuery Job User）
-# 少了它 → 第一步就紅燈，不寫任何檔案。
-#
 # 驗收（check.py）沒過 → 不 commit，頁面維持前一天的版本，workflow 紅燈，GitHub 寄信給 repo watcher。
+# STT 超過 14 天沒被 Apps Script 更新 → check.py C4 紅燈。
 
 name: voc-graph-daily
 
@@ -44,41 +44,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: 確認 secret 有設
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          if [ -z "$GCP_SA_KEY" ]; then
-            echo "::error::缺少 GCP_SA_KEY secret（BigQuery 服務帳號金鑰）。"
-            echo "::error::去 repo Settings → Secrets and variables → Actions 補上，然後重跑。"
-            exit 1
-          fi
-          echo "secret 在。"
-
-      - name: 登入 Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: 安裝 BigQuery client
-        run: pip install --quiet google-cloud-bigquery
-
-      - name: 抓 STT（只抓聚合數字，不抓原話）
-        run: |
-          set -o pipefail
-          cd voc-graph
-          set +e
-          python3 fetch_stt.py --out out/ 2>&1 | tee /tmp/fetch.log
-          code=$?
-          set -e
-          case "$code" in
-            0) echo "::notice::STT 抓取完成。" ;;
-            2) echo "::error::STT 判定表的欄位值跟預期不同（定義可能改了），看上面的 BLOCKER。需要人改 fetch_stt.py。" ;;
-            3) echo "::error::fetch_stt.py 崩潰或連不上 BigQuery（權限？金鑰？），看上面的 traceback。" ;;
-            *) echo "::error::fetch_stt.py 以未預期的 exit code $code 結束。" ;;
-          esac
-          if [ "$code" -ne 0 ]; then exit "$code"; fi
 
       - name: 組圖
         run: python3 voc-graph/build.py

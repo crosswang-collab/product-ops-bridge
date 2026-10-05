@@ -5,7 +5,7 @@ build.py — 把三份事實接成一張圖：STT 聲音 → VoC 痛點 → Jira
 不呼叫任何 LLM、不連網。只讀 repo 裡已經存在的檔：
   · catalog.json                      VoC roadmap 25 痛點 + STT F 主題（節點清單）
   · ../roadmap-bot/out/latest.json    Jira 每日事實層（roadmap-daily 產出）
-  · out/stt-latest.json               STT 判定聚合（fetch_stt.py 產出）
+  · out/stt-latest.json               STT 聚合（gas/SttExport.gs 以 Cross 身分讀 BigQuery 後推入）
   · mapping.json                      痛點 → Jira 卡（人工維護，唯一的人工輸入）
 
 產出：
