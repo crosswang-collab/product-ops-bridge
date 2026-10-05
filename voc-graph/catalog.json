@@ -1,0 +1,321 @@
+{
+ "_source": {
+  "pains": "JP_Needs_Heatmap_ZH.html 的 RANK（VoC roadmap 25 痛點，voc_score = N*3+pri*4）",
+  "themes": "ayana V8.1_STT_VOC_Gemini_Judgment_Pipeline.ipynb 的 CATALOG（統一v1）+ NEW",
+  "extracted_at": "2026-10-05"
+ },
+ "pains": [
+  {
+   "code": "U4.0",
+   "card": "U4",
+   "title": "抽選被海外 bot 鑽、玩法不公平",
+   "voc_n": 13,
+   "voc_pri": 4,
+   "voc_score": 55
+  },
+  {
+   "code": "S2.0",
+   "card": "S2",
+   "title": "直播畫面被免費 ticker 蓋住、擋工作",
+   "voc_n": 11,
+   "voc_pri": 5,
+   "voc_score": 53
+  },
+  {
+   "code": "U2.0",
+   "card": "U2",
+   "title": "畫面被系統元素塞滿又關不掉",
+   "voc_n": 10,
+   "voc_pri": 5,
+   "voc_score": 50
+  },
+  {
+   "code": "U4.4",
+   "card": "U4",
+   "title": "高額禮物誤送不能取消、送出還閃退",
+   "voc_n": 9,
+   "voc_pri": 5,
+   "voc_score": 47
+  },
+  {
+   "code": "U5.0",
+   "card": "U5",
+   "title": "徽章太小又擠，成就感看不見",
+   "voc_n": 10,
+   "voc_pri": 4,
+   "voc_score": 46
+  },
+  {
+   "code": "U6.1",
+   "card": "U6",
+   "title": "PK 玩法太單薄，贏了也沒成就感",
+   "voc_n": 8,
+   "voc_pri": 5,
+   "voc_score": 44
+  },
+  {
+   "code": "U4.2",
+   "card": "U4",
+   "title": "禮物爆量卻找不到，也擋不掉不想要的 Army",
+   "voc_n": 8,
+   "voc_pri": 4,
+   "voc_score": 40
+  },
+  {
+   "code": "U5.1",
+   "card": "U5",
+   "title": "Army 想要階級與更強的歸屬感",
+   "voc_n": 6,
+   "voc_pri": 5,
+   "voc_score": 38
+  },
+  {
+   "code": "U2.1",
+   "card": "U2",
+   "title": "個人檔案改版恐讓實況主一夜失去自介",
+   "voc_n": 6,
+   "voc_pri": 4,
+   "voc_score": 34
+  },
+  {
+   "code": "U5.2",
+   "card": "U5",
+   "title": "排行邏輯看不懂、想要更多維度",
+   "voc_n": 6,
+   "voc_pri": 4,
+   "voc_score": 34
+  },
+  {
+   "code": "U6.0",
+   "card": "U6",
+   "title": "VS 模式切換會錯亂、比賽資訊亂掉",
+   "voc_n": 4,
+   "voc_pri": 5,
+   "voc_score": 32
+  },
+  {
+   "code": "U4.1",
+   "card": "U4",
+   "title": "課金金額有斷層，中間價位想課也難課",
+   "voc_n": 5,
+   "voc_pri": 4,
+   "voc_score": 31
+  },
+  {
+   "code": "U4.3",
+   "card": "U4",
+   "title": "VIP 禮物動線繞、看不懂怎麼用",
+   "voc_n": 6,
+   "voc_pri": 3,
+   "voc_score": 30
+  },
+  {
+   "code": "U2.2",
+   "card": "U2",
+   "title": "重要分頁被藏起來、找不到入口",
+   "voc_n": 6,
+   "voc_pri": 3,
+   "voc_score": 30
+  },
+  {
+   "code": "S2.1",
+   "card": "S2",
+   "title": "開播中一直閃退、鍵盤還卡",
+   "voc_n": 3,
+   "voc_pri": 5,
+   "voc_score": 29
+  },
+  {
+   "code": "U5.3",
+   "card": "U5",
+   "title": "等級被強制顯示、想自己控制",
+   "voc_n": 3,
+   "voc_pri": 5,
+   "voc_score": 29
+  },
+  {
+   "code": "U2.3",
+   "card": "U2",
+   "title": "看實況/回放沒有快轉，像沒遙控器",
+   "voc_n": 4,
+   "voc_pri": 4,
+   "voc_score": 28
+  },
+  {
+   "code": "U6.2",
+   "card": "U6",
+   "title": "好友戰能刷勝、封鎖了還是被配對",
+   "voc_n": 4,
+   "voc_pri": 4,
+   "voc_score": 28
+  },
+  {
+   "code": "U5.4",
+   "card": "U5",
+   "title": "稱號與認證徽章想要能客製",
+   "voc_n": 4,
+   "voc_pri": 3,
+   "voc_score": 24
+  },
+  {
+   "code": "U6.4",
+   "card": "U6",
+   "title": "線上線下賽制脫節、規則不清",
+   "voc_n": 5,
+   "voc_pri": 1,
+   "voc_score": 19
+  },
+  {
+   "code": "S2.4",
+   "card": "S2",
+   "title": "BC 達標里程碑想要有 ticker 提示",
+   "voc_n": 2,
+   "voc_pri": 3,
+   "voc_score": 18
+  },
+  {
+   "code": "U6.3",
+   "card": "U6",
+   "title": "比賽中看不到留言、待機又乾等",
+   "voc_n": 4,
+   "voc_pri": 1,
+   "voc_score": 16
+  },
+  {
+   "code": "S2.2",
+   "card": "S2",
+   "title": "AI 助手有 bug、回應不準",
+   "voc_n": 4,
+   "voc_pri": 1,
+   "voc_score": 16
+  },
+  {
+   "code": "U2.4",
+   "card": "U2",
+   "title": "以前狂點螢幕出愛心的爽快感被砍了",
+   "voc_n": 2,
+   "voc_pri": 2,
+   "voc_score": 14
+  },
+  {
+   "code": "S2.3",
+   "card": "S2",
+   "title": "留言太多看不完、想要自動摘要",
+   "voc_n": 1,
+   "voc_pri": 1,
+   "voc_score": 7
+  }
+ ],
+ "themes": [
+  {
+   "code": "F01",
+   "name": "通知・フォロー保全",
+   "routing": "dev"
+  },
+  {
+   "code": "F02",
+   "name": "アーカイブ・録画・クリップ",
+   "routing": "dev"
+  },
+  {
+   "code": "F03",
+   "name": "視聴UI・導線",
+   "routing": "dev"
+  },
+  {
+   "code": "F04",
+   "name": "コメント体験",
+   "routing": "dev"
+  },
+  {
+   "code": "F05",
+   "name": "配信安定性",
+   "routing": "dev"
+  },
+  {
+   "code": "F06",
+   "name": "ティッカー/エフェクト表示・制御",
+   "routing": "dev"
+  },
+  {
+   "code": "F07",
+   "name": "配信設定・配信モード",
+   "routing": "dev"
+  },
+  {
+   "code": "F08",
+   "name": "AIアシスタント",
+   "routing": "dev"
+  },
+  {
+   "code": "F09",
+   "name": "ギフト送受信・ボックス",
+   "routing": "dev"
+  },
+  {
+   "code": "F11",
+   "name": "価格・課金設計",
+   "routing": "R"
+  },
+  {
+   "code": "F12",
+   "name": "VIPギフト導線・マイボックス",
+   "routing": "dev"
+  },
+  {
+   "code": "F13",
+   "name": "バッジ・称号",
+   "routing": "dev"
+  },
+  {
+   "code": "F14",
+   "name": "ランキング",
+   "routing": "dev"
+  },
+  {
+   "code": "F15",
+   "name": "アーミー・帰属",
+   "routing": "R"
+  },
+  {
+   "code": "F16",
+   "name": "PK・VS/グルコ機能仕様",
+   "routing": "dev"
+  },
+  {
+   "code": "F17",
+   "name": "対戦・コラボ中UX",
+   "routing": "dev"
+  },
+  {
+   "code": "F18",
+   "name": "イベント表示・形式・ルール",
+   "routing": "E"
+  },
+  {
+   "code": "F19",
+   "name": "公平性・モデレーション・ポリシー",
+   "routing": "dev"
+  },
+  {
+   "code": "F20",
+   "name": "プロフィール保全・表示",
+   "routing": "dev"
+  },
+  {
+   "code": "F21",
+   "name": "運営サポート対応",
+   "routing": "ops"
+  },
+  {
+   "code": "E01",
+   "name": "イベント企画インプット",
+   "routing": "E"
+  },
+  {
+   "code": "NEW",
+   "name": "カタログ外(新規)",
+   "routing": "dev"
+  }
+ ]
+}

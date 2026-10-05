@@ -154,6 +154,7 @@ STAGE_MAP = {
     "Design - Story map":             "Design",
     "DESIGN - UX/UI":                 "Design",
     "Design - Refinement":            "Design",
+    "Design - UX READY":              "Design",   # 2026-10-02 起 Jira 新增（APPIDEAS-2226）
     "Delivery - Develop In Progress": "Develop",
     "Dev/QA Done":                    "Develop",
     "Release":                        "Impact",

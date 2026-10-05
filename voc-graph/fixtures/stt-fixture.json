@@ -1,0 +1,445 @@
+{
+ "_fixture": "虛構資料，僅供本機測試 build.py / check.py，數字仿照 9 月週報量級，不是真實 STT",
+ "schema_version": 1,
+ "fetched_at": "2026-10-05T00:00:00+00:00",
+ "fetched_date": "2026-10-05",
+ "source_table": "FIXTURE",
+ "lookback_days": 63,
+ "definitions": {
+  "board": "fixture"
+ },
+ "windows": [
+  {
+   "window_start": "2026-09-07",
+   "window_end": "2026-09-13",
+   "judged_rows": 2800,
+   "true_pain_rows": 1170,
+   "board_rows": 600,
+   "board_streamers": 363,
+   "prompt_versions": [
+    "v6"
+   ],
+   "dict_versions": [
+    "v6.5"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "window_end": "2026-09-20",
+   "judged_rows": 2800,
+   "true_pain_rows": 1170,
+   "board_rows": 600,
+   "board_streamers": 363,
+   "prompt_versions": [
+    "v6"
+   ],
+   "dict_versions": [
+    "v6.5"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "window_end": "2026-09-27",
+   "judged_rows": 2800,
+   "true_pain_rows": 1170,
+   "board_rows": 600,
+   "board_streamers": 363,
+   "prompt_versions": [
+    "v6"
+   ],
+   "dict_versions": [
+    "v6.5"
+   ]
+  }
+ ],
+ "pains": [
+  {
+   "window_start": "2026-09-07",
+   "code": "U6.0",
+   "streamers": 11,
+   "rows": 22,
+   "stop_streamers": 1,
+   "top_streamers": 2,
+   "sample_hit_ids": [
+    "H_FIXTURE_U6.0_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U6.0",
+   "streamers": 23,
+   "rows": 46,
+   "stop_streamers": 2,
+   "top_streamers": 4,
+   "sample_hit_ids": [
+    "H_FIXTURE_U6.0_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U6.0",
+   "streamers": 28,
+   "rows": 56,
+   "stop_streamers": 2,
+   "top_streamers": 5,
+   "sample_hit_ids": [
+    "H_FIXTURE_U6.0_2"
+   ]
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "S2.1",
+   "streamers": 197,
+   "rows": 394,
+   "stop_streamers": 19,
+   "top_streamers": 39,
+   "sample_hit_ids": [
+    "H_FIXTURE_S2.1_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.1",
+   "streamers": 233,
+   "rows": 466,
+   "stop_streamers": 23,
+   "top_streamers": 46,
+   "sample_hit_ids": [
+    "H_FIXTURE_S2.1_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "S2.1",
+   "streamers": 240,
+   "rows": 480,
+   "stop_streamers": 24,
+   "top_streamers": 48,
+   "sample_hit_ids": [
+    "H_FIXTURE_S2.1_2"
+   ]
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "S2.0",
+   "streamers": 108,
+   "rows": 216,
+   "stop_streamers": 10,
+   "top_streamers": 21,
+   "sample_hit_ids": [
+    "H_FIXTURE_S2.0_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.0",
+   "streamers": 154,
+   "rows": 308,
+   "stop_streamers": 15,
+   "top_streamers": 30,
+   "sample_hit_ids": [
+    "H_FIXTURE_S2.0_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "S2.0",
+   "streamers": 150,
+   "rows": 300,
+   "stop_streamers": 15,
+   "top_streamers": 30,
+   "sample_hit_ids": [
+    "H_FIXTURE_S2.0_2"
+   ]
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U4.1",
+   "streamers": 77,
+   "rows": 154,
+   "stop_streamers": 7,
+   "top_streamers": 15,
+   "sample_hit_ids": [
+    "H_FIXTURE_U4.1_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U4.1",
+   "streamers": 100,
+   "rows": 200,
+   "stop_streamers": 10,
+   "top_streamers": 20,
+   "sample_hit_ids": [
+    "H_FIXTURE_U4.1_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U4.1",
+   "streamers": 96,
+   "rows": 192,
+   "stop_streamers": 9,
+   "top_streamers": 19,
+   "sample_hit_ids": [
+    "H_FIXTURE_U4.1_2"
+   ]
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U4.4",
+   "streamers": 59,
+   "rows": 118,
+   "stop_streamers": 5,
+   "top_streamers": 11,
+   "sample_hit_ids": [
+    "H_FIXTURE_U4.4_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U4.4",
+   "streamers": 76,
+   "rows": 152,
+   "stop_streamers": 7,
+   "top_streamers": 15,
+   "sample_hit_ids": [
+    "H_FIXTURE_U4.4_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U4.4",
+   "streamers": 70,
+   "rows": 140,
+   "stop_streamers": 7,
+   "top_streamers": 14,
+   "sample_hit_ids": [
+    "H_FIXTURE_U4.4_2"
+   ]
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "X1.0",
+   "streamers": 324,
+   "rows": 648,
+   "stop_streamers": 32,
+   "top_streamers": 64,
+   "sample_hit_ids": [
+    "H_FIXTURE_X1.0_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "X1.0",
+   "streamers": 277,
+   "rows": 554,
+   "stop_streamers": 27,
+   "top_streamers": 55,
+   "sample_hit_ids": [
+    "H_FIXTURE_X1.0_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "X1.0",
+   "streamers": 270,
+   "rows": 540,
+   "stop_streamers": 27,
+   "top_streamers": 54,
+   "sample_hit_ids": [
+    "H_FIXTURE_X1.0_2"
+   ]
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U2.1",
+   "streamers": 5,
+   "rows": 10,
+   "stop_streamers": 0,
+   "top_streamers": 1,
+   "sample_hit_ids": [
+    "H_FIXTURE_U2.1_0"
+   ]
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U2.1",
+   "streamers": 6,
+   "rows": 12,
+   "stop_streamers": 0,
+   "top_streamers": 1,
+   "sample_hit_ids": [
+    "H_FIXTURE_U2.1_1"
+   ]
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U2.1",
+   "streamers": 4,
+   "rows": 8,
+   "stop_streamers": 0,
+   "top_streamers": 0,
+   "sample_hit_ids": [
+    "H_FIXTURE_U2.1_2"
+   ]
+  }
+ ],
+ "themes": [
+  {
+   "window_start": "2026-09-07",
+   "code": "F01",
+   "streamers": 161,
+   "rows": 322,
+   "stop_streamers": 16,
+   "top_streamers": 32,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "F01",
+   "streamers": 144,
+   "rows": 288,
+   "stop_streamers": 14,
+   "top_streamers": 28,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "F01",
+   "streamers": 142,
+   "rows": 284,
+   "stop_streamers": 14,
+   "top_streamers": 28,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "F05",
+   "streamers": 77,
+   "rows": 154,
+   "stop_streamers": 7,
+   "top_streamers": 15,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "F05",
+   "streamers": 97,
+   "rows": 194,
+   "stop_streamers": 9,
+   "top_streamers": 19,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "F05",
+   "streamers": 111,
+   "rows": 222,
+   "stop_streamers": 11,
+   "top_streamers": 22,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "F16",
+   "streamers": 20,
+   "rows": 40,
+   "stop_streamers": 2,
+   "top_streamers": 4,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "F16",
+   "streamers": 39,
+   "rows": 78,
+   "stop_streamers": 3,
+   "top_streamers": 7,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "F16",
+   "streamers": 42,
+   "rows": 84,
+   "stop_streamers": 4,
+   "top_streamers": 8,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "F17",
+   "streamers": 14,
+   "rows": 28,
+   "stop_streamers": 1,
+   "top_streamers": 2,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "F17",
+   "streamers": 11,
+   "rows": 22,
+   "stop_streamers": 1,
+   "top_streamers": 2,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "F17",
+   "streamers": 21,
+   "rows": 42,
+   "stop_streamers": 2,
+   "top_streamers": 4,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "F20",
+   "streamers": 23,
+   "rows": 46,
+   "stop_streamers": 2,
+   "top_streamers": 4,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "F20",
+   "streamers": 19,
+   "rows": 38,
+   "stop_streamers": 1,
+   "top_streamers": 3,
+   "sample_hit_ids": []
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "F20",
+   "streamers": 8,
+   "rows": 16,
+   "stop_streamers": 0,
+   "top_streamers": 1,
+   "sample_hit_ids": []
+  }
+ ],
+ "theme_pain": [
+  {
+   "window_start": "2026-09-21",
+   "theme": "F16",
+   "pain": "U6.0",
+   "streamers": 25
+  },
+  {
+   "window_start": "2026-09-21",
+   "theme": "F05",
+   "pain": "S2.1",
+   "streamers": 90
+  },
+  {
+   "window_start": "2026-09-21",
+   "theme": "F01",
+   "pain": "X1.0",
+   "streamers": 120
+  }
+ ]
+}

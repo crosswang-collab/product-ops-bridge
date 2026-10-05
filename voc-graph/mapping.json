@@ -1,0 +1,5 @@
+{
+ "_how_to_edit": "痛點代碼 → Jira 卡 key（APPIDEAS-xxxx）。一個痛點可以對多張卡，一張卡也可以出現在多個痛點。只改 pain_to_cards 這一段；代碼必須是 catalog.json 裡的 25 個之一，否則每日驗收會 FAIL。卡做完離開 active 不用刪，頁面會標成「已離開 active」。",
+ "_owner": "PM 維護；Cross 只看頁面上的「有聲音沒卡」與「VoC 卡沒對應痛點」兩張清單",
+ "pain_to_cards": {}
+}
