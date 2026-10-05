@@ -164,8 +164,8 @@ function render(g){
   h += `</tbody></table></div></details>`;
 
   h += `<div class="foot"><ul>
-    <li>STT 判定由 Gemini 自動完成：抽驗準確度 77–86%、幾乎不漏 → 人數約多算 1–2 成，看方向不看小數。</li>
-    <li>F 主題人數 = 看板母體（P1 × 真痛點 × 可行動）；痛點人數 = 所有真痛點裡帶 25 痛點代碼的。兩者母體不同，不能相加。</li>
+    <li>F 主題由 Gemini 自動判定：抽驗準確度 77–86%、幾乎不漏 → 人數約多算 1–2 成，看方向不看小數。</li>
+    <li>F 主題人數 = Gemini 判定後的看板母體（P1 × 真痛點 × 可行動）；25 痛點人數 = ayana 週報的「定点」（關鍵字檢知，不經判定，會比 F 主題雜）。兩者母體不同，不能相加。</li>
     <li>原話：用 hit_id 回 BigQuery <code>stt_voc_judgments</code> 查（社外不可），本頁不放原話。</li>
     <li>痛點 ↔ 卡的對應在 repo 的 <code>voc-graph/mapping.json</code>，由 PM 維護。</li>
     ${g.data_quality.map(d => `<li>[${esc(d.level)}] ${esc(d.msg)}</li>`).join('')}
