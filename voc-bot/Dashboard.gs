@@ -30,6 +30,9 @@
 
 var DASH_TITLE = 'VoC Console';
 
+/** 「VoC 作戰台」的網址（部署後貼上）。填了之後，舊的 Console 只會顯示一個連過去的頁面。留空＝照舊。 */
+var NEW_DASHBOARD_URL = '';
+
 /** 每次 apiRaw() 回傳幾列。壓在千位數是因為 google.script.run 的回傳要序列化，
  *  一次塞太多列在網路慢的時候會整包逾時重來。分頁失敗只損失一頁，會自動重試。 */
 var DASH_PAGE = 1200;
@@ -52,6 +55,14 @@ var DASH_WHY_MAX = 240;
  * 改了這裡的字串，Apps Script 裡的 HTML 檔名就要跟著改，兩邊必須一致。
  */
 function doGet(e) {
+  // 已併入「VoC 作戰台」：填了新網址就只顯示轉址頁（見 dashboard/README.md 第 5 步）
+  if (/^https:\/\/script\.google\.com\/[\w\/.\-]+$/.test(NEW_DASHBOARD_URL)) {
+    return HtmlService.createHtmlOutput(
+      '<meta charset="utf-8"><div style="font-family:sans-serif;padding:32px;line-height:1.7">' +
+      '<h2>VoC Console 已搬家</h2><p>Slack＋表單的聲音現在和直播原話、Roadmap 放在同一個頁面。</p>' +
+      '<p><a href="' + NEW_DASHBOARD_URL + '" target="_top" style="font-size:18px">打開 VoC 作戰台 →</a></p></div>')
+      .setTitle(DASH_TITLE);
+  }
   return HtmlService.createHtmlOutputFromFile('DashboardUI')
     .setTitle(DASH_TITLE)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');

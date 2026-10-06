@@ -1,0 +1,58 @@
+# VoC 作戰台（單一儀表板）
+
+把直播原話（STT）、Slack＋表單的聲音、Jira Roadmap 放在同一個頁面。只有允許名單上的人打得開；頁面只讀資料，不寫任何東西。
+
+## 部署（5 步，約 10 分鐘）
+
+1. 打開 https://script.google.com → **新專案**，專案名稱改成「VoC 作戰台」。把 `dashboard/gas/Dashboard.gs` 的**全文**貼進去，取代預設的 `程式碼.gs` 內容，然後按儲存。
+   這是新專案，**不要**貼進「STT Export」。
+2. 左側「**服務**」按 ＋ → 選 **BigQuery API** → 新增。
+3. 上方函數選單選 `testDashboard` → **執行** → 第一次會跳出授權視窗，全部允許（需要 BigQuery、試算表、外部網址的讀取權）。下方紀錄**每一行都是 ✅** 才繼續。
+4. 右上角「**部署 → 新增部署作業**」→ 類型選「網頁應用程式」：
+   - 執行身分：**我**
+   - 誰可以存取：**17.media 網域內的任何使用者**（實際能看的人另由程式裡的允許名單控制）
+
+   按部署，複製網址，打開確認畫面正常。
+5. 舊 VoC Console 改轉址：打開「VoC Daily Bot」專案的 `Dashboard.gs`，找到 `var NEW_DASHBOARD_URL = '';`，把第 4 步的網址貼進兩個引號中間 → 儲存 → **部署 → 管理部署作業 → 編輯（鉛筆）→ 版本選「新版本」→ 部署**。
+
+## 之後怎麼改
+
+| 想做的事 | 怎麼做 |
+|---|---|
+| 加一位 PM 看得到 | `Dashboard.gs` 最上面 `ALLOWED_EMAILS` 加一行 email → 儲存 → 部署 → 管理部署作業 → 新版本 |
+| 想馬上看到最新數字 | 資料每 6 小時自動重抓；急的話在編輯器執行 `refreshNow` |
+| 介面改版 | Claude 改 `dashboard/app/` → 跑 `python3 dashboard/build_gas.py` → Cross 重新貼上全文並部署新版本 |
+
+## 安全設計（第 3 輪審查要求）
+
+- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`refreshNow`、`testDashboard`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
+- **原話顯示**：頁面一律用 `textContent` 放文字，不把字串當 HTML；不載入任何外部腳本或樣式。`build_gas.py` 打包時會掃描並拒絕違規寫法。
+- **BigQuery**：SQL 寫死，只吃具名參數 `@code`（必須是 25 痛點清單內的代碼）與 `@since`（伺服器算的日期）。
+- **不顯示 userID**：查詢結果不選 userID；Slack＋表單不帶發話者姓名；連結只保留 `https://`。
+- **不寫任何東西**：專案內沒有 GitHub token（repo 是公開的，直接讀統計檔）、沒有寫入函數、不建試算表。原話只存在伺服器端 6 小時快取。
+- **頁面打包在專案內**：不從 repo 動態讀頁面，改版必須 Cross 重新部署。
+
+## 時間段規則（每個痛點各自計算，最近 12 週）
+
+| 類型 | 規則 |
+|---|---|
+| 🔥 新興高熱 | 最近 2 週**每週平均** ≥ 10 位，且 ≥ 前 4 週每週平均 × 2（前 4 週平均 < 2 位時不看倍數） |
+| 🔁 持續高熱 | 最近 6 週中至少 4 週 ≥ 20 位 |
+| 📉 消退 | 最近 3 週**每週都比前一週低**（需要 4 個週點） |
+
+## 檔案
+
+| 檔案 | 用途 |
+|---|---|
+| `gas/Dashboard.gs` | **貼進 Apps Script 的唯一檔案**（由 `build_gas.py` 產生，不要手改） |
+| `app/Code.template.gs` | 伺服器端原始碼 |
+| `app/Page.html` | 頁面原始碼 |
+| `build_gas.py` | 打包＋安全掃描 |
+| `test/harness.js` | 本機模擬 Apps Script 跑 31 項檢查：`node dashboard/test/harness.js` |
+| `prototype.html` / `build_prototype.py` | 10/06 給 Cross 確認版面的原型（假原話） |
+
+## 已知坑
+
+- [Apps Script] 改了程式畫面不會變 — 一定要「部署 → 管理部署作業 → 新版本」。
+- [Apps Script] 名單外的人「直接呼叫函數」也擋得住，是因為每個公開函數都呼叫 `assertAllowed_()`；新增公開函數時第一行一定要加。
+- [BigQuery] 週人數讀不到時，畫面會改用 repo 的 7 週備援資料，並在最上方與「資料來源狀態」寫明原因。
