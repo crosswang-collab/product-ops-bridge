@@ -226,7 +226,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       el("span", { class: "ttl" }, [el("span", { class: "t", text: p.title }), el("span", { class: "chips" }, chipsFor(p))]),
       el("span", { class: "num" }, [String(p.latest), el("small", { text: "位／上週" })])
     ]);
-    function pick() { state.sel = p.code; onPick(); }
+    function pick() { state.sel = p.code; state.jump = true; onPick(); }
     r.addEventListener("click", pick);
     r.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
     return r;
@@ -287,7 +287,17 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     box.appendChild(el("h3", { text: "細分類（最近 4 週）" }));
     var subBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
     box.appendChild(subBox);
-    box.appendChild(el("h3", { text: "代表原話（每位主播最多 1 則，sTop 優先）" }));
+    var qHead = el("h3", { id: "quotes", text: "代表原話（每位主播最多 1 則，sTop 優先）" });
+    box.appendChild(qHead);
+    /* 點了痛點就直接帶到原話（窄螢幕時細節排在清單下面，不帶過去會像沒反應） */
+    var jumpHere = !!state.jump;
+    state.jump = false;
+    function jump() {
+      if (!jumpHere) return;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      qHead.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    }
+    setTimeout(jump, 0);
     var qBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
     box.appendChild(qBox);
     box.appendChild(el("h3", { text: "Slack＋表單裡對到這個痛點的聲音" }));
@@ -297,6 +307,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       if (state.sel !== p.code) return;
       try {
         fillDetail(det, subBox, qBox, vBox);
+        jump();   // 細分類填進來會把原話往下推，載入完再對齊一次
       } catch (err) {
         if (window.console) console.error(err);
         [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "這個痛點的細節整理時出錯。" + HELP })); });
