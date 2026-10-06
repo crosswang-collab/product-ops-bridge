@@ -201,6 +201,13 @@ check('原話結構含 userID／liveStreamID／時間：這些值不輸出', () 
   const t = ctx.jsonText_(JSON.stringify([{ userID: 'U123456', liveStreamID: 'L999', speaker_name: '王小明', ts: 1700000000, text: '鍵盤卡住' },
                                           { user_id: 'U2', utterance: '又閃退' }]));
   assert.strictEqual(t, '鍵盤卡住\n又閃退');
+  const t2 = ctx.jsonText_(JSON.stringify([{ sender: 'U777', host: 'H1', text: '留言A' }, '{"from":"U888","message":"留言B"}']));
+  assert.strictEqual(t2, '留言A\n留言B');
+});
+check('讀取失敗的結果只快取 5 分鐘', () => {
+  const puts = []; const op = cache.put; cache.put = (k, v, ttl) => { puts.push(ttl); op(k, v); };
+  ctx.cachePut_('x', { a: 1 }, true); ctx.cachePut_('y', { a: 1 }, false);
+  cache.put = op; same(puts, [300, 21600]);
 });
 
 // 錯誤訊息：畫面只看到中文

@@ -117,6 +117,12 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 (function () {
   "use strict";
   var D = null;
+  var HELP = "請重新整理；一直失敗的話，在 Apps Script 編輯器執行 testDashboard，把紀錄貼給 Claude。";
+  /* 伺服器或 Apps Script 本身的英文錯誤不直接給人看，改成中文說明 */
+  function errText(e) {
+    var m = String(e && e.message ? e.message : e).replace(/^\s*(Error|Exception|ScriptError)\s*:\s*/i, "");
+    return /[A-Za-z]{3,}/.test(m.replace(/Roadmap|Slack|sTop/g, "")) ? "暫時讀不到" : m;
+  }
   var detailCache = {};
 
   /* ---- 安全的 DOM 小工具：只用 createElement / textContent 放文字，不把字串當 HTML 解析 ---- */
@@ -204,7 +210,13 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       document.getElementById("tab-" + t[0]).setAttribute("aria-selected", t[0] === tab ? "true" : "false");
     });
     clear(view);
-    ({ today: viewToday, pains: viewPains, roadmap: viewRoadmap, slack: viewSlack, health: viewHealth })[tab]();
+    try {
+      ({ today: viewToday, pains: viewPains, roadmap: viewRoadmap, slack: viewSlack, health: viewHealth })[tab]();
+    } catch (err) {
+      if (window.console) console.error(err);
+      clear(view);
+      view.appendChild(el("div", { class: "panel" }, [el("div", { class: "empty", text: "這一頁整理資料時出錯。" + HELP })]));
+    }
   }
 
   /* ---- 清單列 ---- */
@@ -283,7 +295,12 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     box.appendChild(vBox);
     loadDetail(p.code, function (det) {
       if (state.sel !== p.code) return;
-      fillDetail(det, subBox, qBox, vBox);
+      try {
+        fillDetail(det, subBox, qBox, vBox);
+      } catch (err) {
+        if (window.console) console.error(err);
+        [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "這個痛點的細節整理時出錯。" + HELP })); });
+      }
     }, function (msg) {
       [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: msg })); });
     });
@@ -552,12 +569,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   /* ---- 跟伺服器拿資料 ---- */
   var statusEl = document.getElementById("status");
   function showStatus(text) { statusEl.textContent = text; statusEl.hidden = !text; }
-  /* 伺服器或 Apps Script 本身的英文錯誤不直接給人看，改成中文說明 */
-  function errText(e) {
-    var m = String(e && e.message ? e.message : e);
-    return /[A-Za-z]{3,}/.test(m.replace(/Roadmap|Slack|sTop/g, "")) ? "暫時讀不到" : m;
-  }
-  var HELP = "請重新整理；一直失敗的話，在 Apps Script 編輯器執行 testDashboard，把紀錄貼給 Claude。";
+
   function load() {
     google.script.run
       .withSuccessHandler(function (d) {

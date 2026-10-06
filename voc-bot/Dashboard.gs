@@ -44,6 +44,11 @@ var DASH_RAW_HARD_MAX = 30000;
 var DASH_BODY_MAX = 420;
 var DASH_WHY_MAX = 240;
 
+/** 填了新網址＝已搬家：網頁只顯示轉址頁，資料函數也不再回傳任何東西。 */
+function dashMoved_() {
+  return /^https:\/\/script\.google\.com\/[\w\/.\-]+$/.test(String(NEW_DASHBOARD_URL).trim());
+}
+
 // ===========================================================================
 // 網頁進入點
 // ===========================================================================
@@ -54,11 +59,6 @@ var DASH_WHY_MAX = 240;
  * 一個是 HTML。這支檔案已經叫 Dashboard.gs，所以 HTML 只能換個名字。
  * 改了這裡的字串，Apps Script 裡的 HTML 檔名就要跟著改，兩邊必須一致。
  */
-/** 填了新網址＝已搬家：網頁只顯示轉址頁，資料函數也不再回傳任何東西。 */
-function dashMoved_() {
-  return /^https:\/\/script\.google\.com\/[\w\/.\-]+$/.test(String(NEW_DASHBOARD_URL).trim());
-}
-
 function doGet(e) {
   // 已併入「VoC 作戰台」：填了新網址就只顯示轉址頁（見 dashboard/README.md 第 5 步）
   if (dashMoved_()) {
@@ -333,6 +333,7 @@ function apiDetail(id) {
  * 這支是唯一會寫入的函式（只寫 VoC_Bot_Log）。
  */
 function testDashboard() {
+  if (dashMoved_()) return 'VoC Console 已搬到 VoC 作戰台，這裡不用再測。';
   var ss = null;
   try { ss = openTarget_(); } catch (e) { /* 下面 logRow_ 會被跳過，改丟例外 */ }
 

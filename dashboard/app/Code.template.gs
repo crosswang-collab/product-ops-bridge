@@ -37,6 +37,7 @@ var SERIES_WEEKS = 12;          // 時間段分析抓幾週（規則最長用 6 
 var DETAIL_WEEKS = 4;           // 細分類與原話看最近幾週
 var QUOTES_PER_PAIN = 5;
 var CACHE_SECONDS = 6 * 60 * 60;
+var CACHE_SECONDS_DEGRADED = 5 * 60;   // 有部分資料讀不到時只存 5 分鐘，重新整理很快就會重試
 var CACHE_VER = 'v1';
 var RAW_TAIL_ROWS = 4000;       // Slack＋表單只讀最新幾列
 var TZ = 'Asia/Tokyo';
@@ -80,7 +81,7 @@ function getDashboard() {
     } catch (e) {
       throw new Error(friendly_(e));
     }
-    cachePut_('dash', d);
+    cachePut_('dash', d, d.sttSource !== 'bigquery' || !d.slack.ok);
   }
   d.canEdit = (who === OWNER_EMAIL.toLowerCase());
   if (!d.canEdit) d.editorUrl = '';
@@ -103,7 +104,7 @@ function getPainDetail(code) {
   var hit = cacheGet_(key);
   if (hit) return hit;
   var res = buildPainDetail_(code, dash.detailSince);
-  cachePut_(key, res);
+  cachePut_(key, res, !res.ok || !!res.voicesProblem);
   return res;
 }
 
@@ -124,7 +125,7 @@ function refreshNow() {
 function testDashboard() {
   var who = viewer_();
   if (!isAllowed_(who)) throw new Error('沒有權限');
-  console.log((isAllowed_(who) ? '✅' : '❌') + ' 你的帳號 ' + who + (isAllowed_(who) ? ' 在允許名單內' : ' 不在允許名單內 → 改 ALLOWED_EMAILS'));
+  console.log('✅ 你的帳號 ' + who + ' 在允許名單內');
   var d = buildDashboard_();
   console.log('✅ Roadmap：' + d.cards.length + ' 張卡（' + d.jiraAsOf + '），近 7 天變差 ' + d.worse.length + ' 件');
   console.log((d.sttSource === 'bigquery' ? '✅' : '⚠️') + ' 週人數來源：' + (d.sttSource === 'bigquery' ? 'BigQuery' : 'repo 備援（' + d.sttProblem + '）') +
@@ -132,9 +133,12 @@ function testDashboard() {
   var em = d.pains.filter(function (p) { return p.rule.emerging; }).map(function (p) { return p.code; });
   var pe = d.pains.filter(function (p) { return p.rule.persistent; }).map(function (p) { return p.code; });
   var fa = d.pains.filter(function (p) { return p.rule.fading; }).map(function (p) { return p.code; });
+  console.log((d.missingWeeks.length ? '⚠️ 週報缺 ' + d.missingWeeks.join('、') + ' 的資料' : '✅ 週報 ' + d.weeks.length + ' 週都有資料'));
+  console.log((d.jiraAgeDays > 2 ? '⚠️ Roadmap 資料已 ' + d.jiraAgeDays + ' 天沒更新' : '✅ Roadmap 資料是最新的'));
   console.log('   新興：' + (em.join('、') || '無') + '／持續：' + (pe.join('、') || '無') + '／消退：' + (fa.join('、') || '無'));
   console.log((d.slack.ok ? '✅' : '❌') + ' Slack＋表單：' + (d.slack.ok ? '最新 ' + d.slack.latest.length + ' 筆、bot 最後成功 ' + (d.slack.lastRun || '未知') : d.slack.problem));
   var top = d.pains.slice().sort(function (a, b) { return b.latest - a.latest; })[0];
+  if (!top) { console.log('❌ 讀不到任何痛點'); return; }
   var det = buildPainDetail_(top.code, d.detailSince);
   console.log((det.ok ? '✅' : '❌') + ' ' + top.code + ' 細分類 ' + det.groups.length + ' 組、原話 ' + det.quotes.length + ' 則' +
     '（判定過的主播 ' + det.judgedStreamers + ' 位）' + (det.ok ? '' : '：' + det.problem));
@@ -286,7 +290,7 @@ function painSeries_() {
     '  AND window_start >= @since',
     'QUALIFY ROW_NUMBER() OVER (PARTITION BY window_start, metric_key ORDER BY loaded_at DESC) = 1'
   ].join('\n');
-  var since = addDays_(today_(), -(SERIES_WEEKS + 2) * 7);
+  var since = addDays_(today_(), -(SERIES_WEEKS + 8) * 7);   // 多抓 8 週：週報晚到時也不會誤報缺週
   var rows = bqQuery_(sql, [dateParam_('since', since)], '25 痛點週人數');
   if (!rows.length) throw new Error('週報最近 ' + SERIES_WEEKS + ' 週沒有痛點人數');
   var seen = {};
@@ -375,10 +379,10 @@ function buildPainDetail_(code, since) {
   return out;
 }
 
-/** 原話／前後文若是結構資料，這些欄位一律不輸出（主播 ID、帳號、時間戳之類）。 */
-var ID_KEY_RE = /(^|_)(id|uid)$|Id$|ID$|user|liver|streamer|liveStream|account|mail|phone|name|time|^ts$|^at$/i;
+/** 原話／前後文若是結構資料，只輸出「文字類」欄位（白名單），其他欄位（主播 ID、發話者、時間…）一律不輸出。 */
+var TEXT_KEY_RE = /^(text|texts|stt|utterance|utterances|content|contents|message|messages|comment|comments|body|sentence|sentences|transcript|line|lines|before|after|context|prev|next)$/i;
 
-/** TO_JSON_STRING 的結果 → 純文字。字串、陣列都轉成文字；物件只輸出非 ID 類欄位。 */
+/** TO_JSON_STRING 的結果 → 純文字。字串、陣列轉成文字；物件只輸出白名單欄位；字串本身若是 JSON 物件就再拆一次。 */
 function jsonText_(j) {
   if (j === null || j === undefined || j === 'null') return '';
   var v;
@@ -386,10 +390,15 @@ function jsonText_(j) {
   var parts = [];
   (function walk(x) {
     if (x === null || x === undefined) return;
-    if (typeof x === 'string') { if (x.trim()) parts.push(x.trim()); return; }
+    if (typeof x === 'string') {
+      var t = x.trim();
+      if (/^[\[{]/.test(t)) { try { walk(JSON.parse(t)); return; } catch (e) { /* 不是 JSON，當一般文字 */ } }
+      if (t) parts.push(t);
+      return;
+    }
     if (typeof x === 'number' || typeof x === 'boolean') { parts.push(String(x)); return; }
     if (Array.isArray(x)) { x.forEach(walk); return; }
-    Object.keys(x).forEach(function (k) { if (!ID_KEY_RE.test(k)) walk(x[k]); });
+    Object.keys(x).forEach(function (k) { if (TEXT_KEY_RE.test(k)) walk(x[k]); });
   })(v);
   return parts.join('\n');
 }
@@ -558,17 +567,18 @@ function cacheGet_(key) {
   }
 }
 
-function cachePut_(key, obj) {
+function cachePut_(key, obj, degraded) {
+  var ttl = degraded ? CACHE_SECONDS_DEGRADED : CACHE_SECONDS;
   var c = CacheService.getScriptCache();
   var k = CACHE_VER + ':' + key;
   var s = JSON.stringify(obj);
   var SIZE = 30000;   // CacheService 每個值上限 100KB（位元組）；中文 1 字約 3 bytes
   try {
-    if (s.length < SIZE) { c.put(k, '=' + s, CACHE_SECONDS); return; }
+    if (s.length < SIZE) { c.put(k, '=' + s, ttl); return; }
     var m = {}, n = Math.ceil(s.length / SIZE);
     for (var i = 0; i < n; i++) m[k + ':' + i] = s.slice(i * SIZE, (i + 1) * SIZE);
-    c.putAll(m, CACHE_SECONDS);
-    c.put(k, String(n), CACHE_SECONDS);
+    c.putAll(m, ttl);
+    c.put(k, String(n), ttl);
   } catch (e) {
     console.log('[WARN] 快取寫入失敗（不影響畫面，只是下次會比較慢）：' + e);
   }
