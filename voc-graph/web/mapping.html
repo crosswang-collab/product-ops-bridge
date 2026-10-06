@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>痛點對應編輯</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Ctext y=%2714%27 font-size=%2714%27%3E%E2%9C%8F%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   痛點 ↔ Jira 卡 對應表編輯頁（寫入 voc-graph/mapping.json）
+
+   設計前提：
+   1. 讀者 = 編輯者 = Cross。一次通常只改幾個痛點，所以「改哪裡」要一眼看到，
+      未儲存的變更固定在畫面底部，不會忘記存。
+   2. 頁面是公開網址：任何人都看得到，但沒有 GitHub token 就存不了。
+      token 只存在編輯者自己的瀏覽器（localStorage），不進 repo、不進頁面原始碼。
+   3. 沒有 token 也能用：改完「複製 JSON → 開 GitHub 編輯頁 → 貼上」。
+   4. 儲存前先比對 GitHub 上的最新版，被別人改過就停下，不蓋掉別人的修改。
+   5. 存檔後 voc-graph-daily 會自動重算對照圖（約 2–3 分鐘）。
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0b0e14; --s1:#141a24; --s2:#10151f; --s3:#1b2331; --bd:#232c3a;
+  --tx:#e6ebf4; --mut:#8b96a8; --dim:#5a6577;
+  --red:#ff6b6b; --amb:#ffc233; --grn:#5fd39a; --acc:#5fd3e6;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:22px 16px 110px;
+  background:radial-gradient(1200px 600px at 50% -10%,#121826,#0b0e14);color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans TC","Noto Sans JP",sans-serif;
+  line-height:1.6}
+.wrap{max-width:920px;margin:0 auto}
+a{color:var(--acc)}
+h1{font-size:21px;margin:0 0 4px}
+.sub{color:var(--mut);font-size:12.5px;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:13px}
+.pill{font-size:12px;background:var(--s2);border:1px solid var(--bd);border-radius:999px;padding:3px 11px;color:var(--mut);cursor:pointer}
+.pill.ok{border-color:var(--grn);color:var(--grn)}
+.pill.warn{border-color:var(--amb);color:var(--amb)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 10px;align-items:center}
+input[type=search],input[type=text],input[type=password]{background:var(--s2);border:1px solid var(--bd);color:var(--tx);
+  border-radius:9px;padding:7px 11px;font:inherit;font-size:13px;min-width:0}
+input:focus{outline:none;border-color:var(--acc)}
+label.tg{font-size:12.5px;color:var(--mut);display:flex;gap:6px;align-items:center;cursor:pointer}
+.list{background:var(--s1);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
+.pain{border-top:1px solid var(--bd);padding:11px 14px}
+.pain:first-child{border-top:none}
+.pain.dirty{background:rgba(255,194,51,.06);box-shadow:inset 3px 0 0 var(--amb)}
+.ph{display:flex;gap:12px;align-items:flex-start}
+.code{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--acc);min-width:40px;padding-top:2px}
+.main{flex:1;min-width:0}
+.t{font-size:14px}
+.meta{font-size:12px;color:var(--mut)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;font-size:13px}
+.chips{margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;border:1px solid var(--bd);background:var(--s2);border-radius:7px;
+  padding:1px 4px 1px 8px;margin:3px 4px 0 0;color:var(--tx);max-width:100%}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip.left{border-style:dashed;color:var(--mut)}
+.chip.new{border-color:var(--amb)}
+.chip button{appearance:none;border:none;background:none;color:var(--mut);cursor:pointer;font-size:13px;padding:0 4px;line-height:1}
+.chip button:hover{color:var(--red)}
+.btn{appearance:none;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:9px;padding:6px 13px;
+  font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#0b0e14;font-weight:600}
+.btn.small{padding:2px 10px;font-size:12px;margin-top:4px}
+.btn:disabled{opacity:.5;cursor:default}
+.picker{margin-top:10px;background:var(--s2);border:1px solid var(--bd);border-radius:11px;padding:10px}
+.picker input[type=search]{width:100%}
+.opts{max-height:300px;overflow-y:auto;margin-top:8px}
+.grp{font-size:11.5px;color:var(--dim);margin:8px 2px 2px}
+.opt{display:flex;gap:9px;align-items:flex-start;padding:5px 4px;border-radius:7px;cursor:pointer;font-size:13px}
+.opt:hover{background:var(--s3)}
+.opt input{margin-top:4px}
+.opt .k{font:600 11.5px ui-monospace,Menlo,monospace;color:var(--mut);min-width:36px;padding-top:2px}
+.manual{display:flex;gap:6px;margin-top:8px}
+.manual input{flex:1}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(20,26,36,.97);border-top:1px solid var(--amb);
+  padding:12px 16px;display:none;z-index:5}
+.bar.on{display:block}
+.bar .in{max-width:920px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar .msg{flex:1;font-size:13px;min-width:180px}
+.toast{margin:12px 0;padding:11px 14px;border-radius:11px;font-size:13px;display:none}
+.toast.on{display:block}
+.toast.ok{background:rgba(95,211,154,.1);border:1px solid var(--grn);color:var(--grn)}
+.toast.err{background:rgba(255,107,107,.1);border:1px solid var(--red);color:var(--red)}
+.toast.info{background:var(--s2);border:1px solid var(--bd);color:var(--tx)}
+dialog{background:var(--s1);color:var(--tx);border:1px solid var(--bd);border-radius:14px;padding:20px;max-width:480px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h3{margin:0 0 8px;font-size:16px}
+dialog p,dialog li{font-size:13px;color:var(--mut)}
+dialog input{width:100%;margin:8px 0}
+.row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px}
+.empty{padding:14px;color:var(--dim);font-size:13px}
+.err{background:var(--s1);border:1px solid var(--red);border-radius:14px;padding:18px;color:var(--red)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a href="./">← 回對照頁</a>
+    <span id="conn" class="pill" role="button" tabindex="0">GitHub：檢查中…</span>
+  </div>
+  <h1>✏️ 痛點 ↔ Jira 卡 對應</h1>
+  <p class="sub">勾選每個 VoC 痛點由哪幾張卡在處理。存檔寫入 repo 的 <code>voc-graph/mapping.json</code>，對照圖約 2–3 分鐘後自動重算。</p>
+  <div id="toast" class="toast"></div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="搜尋痛點（代碼或文字）" aria-label="搜尋痛點" style="flex:1;min-width:180px">
+    <label class="tg"><input id="onlyVoice" type="checkbox"> 只看有聲音（≥10 人）</label>
+    <label class="tg"><input id="onlyEmpty" type="checkbox"> 只看沒卡</label>
+  </div>
+  <div id="app"><p class="meta">載入中…</p></div>
+</div>
+
+<div id="bar" class="bar"><div class="in">
+  <div class="msg" id="barMsg"></div>
+  <button class="btn" id="discard">放棄變更</button>
+  <button class="btn pri" id="save">儲存</button>
+</div></div>
+
+<dialog id="tokenDlg">
+  <h3>連線 GitHub（只需設定一次）</h3>
+  <p>貼上 GitHub token 後，這個頁面就能直接存檔。token <b>只存在這台電腦的這個瀏覽器</b>，不會進 repo，也不會傳給別人。</p>
+  <ul>
+    <li>可以直接用 Apps Script 那個 token（只限 product-ops-bridge、Contents 讀寫）</li>
+    <li>或到 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 新建一個</a>，權限設定相同</li>
+  </ul>
+  <input id="tokenIn" type="password" placeholder="github_pat_…" autocomplete="off" aria-label="GitHub token">
+  <p id="tokenMsg"></p>
+  <div class="row">
+    <button class="btn" id="tokenClear">清除 token</button>
+    <button class="btn" id="tokenCancel">取消</button>
+    <button class="btn pri" id="tokenSave">測試並儲存</button>
+  </div>
+</dialog>
+
+<dialog id="manualDlg">
+  <h3>沒有連線 GitHub：改用手動存檔</h3>
+  <p>1. 按「複製並開啟 GitHub」：新的對應表會複製到剪貼簿，同時開啟 GitHub 的編輯頁。<br>
+     2. 在 GitHub 編輯頁<b>全選、貼上</b>，按右上角「Commit changes」。</p>
+  <p>或者先連線 GitHub，之後就能一鍵存檔。</p>
+  <div class="row">
+    <button class="btn" id="manualCancel">取消</button>
+    <button class="btn" id="manualToken">改成連線 GitHub</button>
+    <button class="btn pri" id="manualGo">複製並開啟 GitHub</button>
+  </div>
+</dialog>
+
+<script>
+const OWNER = 'crosswang-collab', REPO = 'product-ops-bridge', BRANCH = 'main', PATH = 'voc-graph/mapping.json';
+const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
+const EDIT_URL = `https://github.com/${OWNER}/${REPO}/edit/${BRANCH}/${PATH}`;
+const TOKEN_KEY = 'vg_github_token';
+const KEY_RE = /^APPIDEAS-\d+$/;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const short = k => k.replace('APPIDEAS-', '');
+const STATUS = {'On track':'正常','Warning':'注意','Off track':'落後','At risk':'有風險','At Risk':'有風險'};
+
+function getToken(){ try { return localStorage.getItem(TOKEN_KEY) || ''; } catch(e) { return ''; } }
+function setToken(t){ try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch(e) {} }
+
+function b64encode(str){ const bytes = new TextEncoder().encode(str); let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
+function b64decode(b64){ return new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, '')), c => c.charCodeAt(0))); }
+
+let G = null;            // 對照圖（latest.json）
+let fileDoc = null;      // mapping.json 整份（保留 _how_to_edit 等欄位）
+let fileSha = null;      // GitHub 上的版本，用來防止蓋掉別人的修改
+let base = {};           // 載入時的 pain_to_cards
+let work = {};           // 編輯中的 pain_to_cards
+let openPicker = null;   // 正在展開選卡的痛點代碼
+let cardInfo = {};       // key → {key, summary, stage, project_status, active, last_seen}
+
+function toast(kind, html){ const t = $('toast'); t.className = 'toast on ' + kind; t.innerHTML = html; t.scrollIntoView({block:'nearest'}); }
+function clearToast(){ $('toast').className = 'toast'; }
+function norm(m){ const o = {}; Object.keys(m || {}).sort().forEach(k => { const v = [...new Set(m[k] || [])].sort(); if (v.length) o[k] = v; }); return o; }
+function same(a, b){ return JSON.stringify(norm(a)) === JSON.stringify(norm(b)); }
+function dirtyCodes(){ const codes = new Set([...Object.keys(base), ...Object.keys(work)]);
+  return [...codes].filter(c => JSON.stringify((base[c]||[]).slice().sort()) !== JSON.stringify((work[c]||[]).slice().sort())); }
+
+async function gh(method, body){
+  const r = await fetch(API + (method === 'GET' ? `?ref=${BRANCH}&t=${Date.now()}` : ''), {
+    method, cache: 'no-store',
+    headers: { Authorization: 'Bearer ' + getToken(), Accept: 'application/vnd.github+json',
+               ...(body ? {'Content-Type': 'application/json'} : {}) },
+    body: body ? JSON.stringify(body) : undefined });
+  const text = await r.text();
+  let json = null; try { json = JSON.parse(text); } catch(e) {}
+  return { status: r.status, json };
+}
+function ghError(status){
+  if (status === 401) return 'GitHub token 錯誤或已過期 → 按右上角重新設定';
+  if (status === 403 || status === 404) return 'token 沒有這個 repo 的 Contents 讀寫權限';
+  if (status === 409 || status === 422) return 'GitHub 上的對應表剛被改過 → 重新整理頁面再改';
+  return 'GitHub 回應 ' + status;
+}
+
+async function loadMapping(){
+  if (getToken()){
+    const r = await gh('GET');
+    if (r.status === 200){
+      fileSha = r.json.sha; fileDoc = JSON.parse(b64decode(r.json.content));
+      setConn('ok'); return;
+    }
+    setConn('bad', ghError(r.status));
+  } else setConn('none');
+  const r = await fetch('/voc-graph/mapping.json?t=' + Date.now(), {cache:'no-store'});
+  if (!r.ok) throw new Error('讀不到 mapping.json（HTTP ' + r.status + '）');
+  fileDoc = await r.json(); fileSha = null;
+}
+
+function setConn(state, msg){
+  const c = $('conn');
+  c.className = 'pill ' + (state === 'ok' ? 'ok' : 'warn');
+  c.textContent = state === 'ok' ? 'GitHub：已連線（可直接存檔）' : state === 'bad' ? 'GitHub：連線失敗 → 重設' : 'GitHub：未連線 → 設定';
+  c.title = msg || '';
+}
+
+function buildCardInfo(){
+  cardInfo = {};
+  (G.nodes.left_cards || []).forEach(c => cardInfo[c.key] = {...c, active:false});
+  G.nodes.cards.forEach(c => cardInfo[c.key] = {...c, active:true});
+}
+
+function chip(code, key){
+  const c = cardInfo[key];
+  const isNew = !(base[code] || []).includes(key);
+  const label = c ? `${short(key)} · ${c.active ? (c.stage + ' · ' + (STATUS[c.project_status] || c.project_status || '未標')) : '已離開 active'}` : `${short(key)} · 不在近 120 天的 roadmap`;
+  const title = c ? c.summary : '這張卡不在 roadmap 的母體裡，請確認卡號';
+  return `<span class="chip ${c && c.active ? '' : 'left'} ${isNew ? 'new' : ''}" title="${esc(title)}"><span>${esc(label)}</span>` +
+         `<button aria-label="移除 ${esc(key)}" data-rm="${esc(code)}|${esc(key)}">×</button></span>`;
+}
+
+function pickerHTML(code){
+  const sel = new Set(work[code] || []);
+  const q = ($('pq_' + code)?.value || '').trim().toLowerCase();
+  const match = c => !q || c.key.toLowerCase().includes(q) || short(c.key).includes(q) || (c.summary || '').toLowerCase().includes(q);
+  const act = G.nodes.cards.filter(match);
+  const left = (G.nodes.left_cards || []).filter(match);
+  const opt = c => `<label class="opt"><input type="checkbox" data-tg="${esc(code)}|${esc(c.key)}" ${sel.has(c.key) ? 'checked' : ''}>` +
+    `<span class="k">${esc(short(c.key))}</span><span>${esc(c.summary)}<div class="meta">${c.active === false || c.last_seen
+      ? '已離開 active（最後出現 ' + esc(c.last_seen) + '，' + esc(c.last_stage) + '）'
+      : esc(c.stage) + ' · ' + esc(STATUS[c.project_status] || c.project_status || '未標') + ' · ' + esc(c.domain || '')}</div></span></label>`;
+  return `<div class="grp">進行中（${act.length}）</div>${act.map(opt).join('') || '<div class="meta">沒有符合的卡</div>'}` +
+         `<div class="grp">最近 120 天離開 active（多半已發布，${left.length}）</div>${left.map(c => opt({...c, active:false})).join('') || '<div class="meta">沒有符合的卡</div>'}`;
+}
+
+function render(){
+  const q = $('q').value.trim().toLowerCase();
+  const onlyVoice = $('onlyVoice').checked, onlyEmpty = $('onlyEmpty').checked;
+  const dirty = new Set(dirtyCodes());
+  const rows = [...G.nodes.pains]
+    .sort((a, b) => b.stt.latest - a.stt.latest || b.voc_score - a.voc_score)
+    .filter(p => !q || p.code.toLowerCase().includes(q) || p.title.toLowerCase().includes(q))
+    .filter(p => !onlyVoice || p.stt.readable)
+    .filter(p => !onlyEmpty || !(work[p.code] || []).length);
+  $('app').innerHTML = `<div class="list">` + (rows.map(p => {
+    const keys = work[p.code] || [];
+    return `<div class="pain ${dirty.has(p.code) ? 'dirty' : ''}" id="row_${esc(p.code)}"><div class="ph">
+      <span class="code">${esc(p.code)}</span>
+      <div class="main"><div class="t">${esc(p.title)}</div>
+        <div class="chips">${keys.map(k => chip(p.code, k)).join('') || '<span class="meta">沒有對應卡</span>'}</div>
+        <button class="btn small" data-open="${esc(p.code)}">${openPicker === p.code ? '收起' : '＋ 選卡'}</button>
+      </div>
+      <div class="num"><b>${p.stt.latest}</b> 人<div class="meta">VoC 分數 ${p.voc_score}</div></div>
+    </div>
+        ${openPicker === p.code ? `<div class="picker">
+          <input type="search" id="pq_${esc(p.code)}" placeholder="搜尋卡號或卡名（例：2251、ticker）" aria-label="搜尋卡片">
+          <div class="opts" id="opts_${esc(p.code)}">${pickerHTML(p.code)}</div>
+          <div class="manual"><input type="text" id="mk_${esc(p.code)}" placeholder="清單裡沒有？輸入卡號，例：APPIDEAS-1234" aria-label="手動輸入卡號">
+          <button class="btn" data-add="${esc(p.code)}">加入</button></div></div>` : ''}
+    </div>`;
+  }).join('') || '<div class="empty">沒有符合條件的痛點。</div>') + `</div>`;
+  if (openPicker){ const inp = $('pq_' + openPicker); if (inp){ inp.addEventListener('input', () => { $('opts_' + openPicker).innerHTML = pickerHTML(openPicker); }); } }
+  updateBar();
+}
+
+function updateBar(){
+  const d = dirtyCodes();
+  $('bar').className = 'bar' + (d.length ? ' on' : '');
+  $('barMsg').innerHTML = d.length ? `<b>${d.length}</b> 個痛點有未儲存的變更：${d.map(esc).join('、')}` : '';
+}
+
+function toggle(code, key, on){
+  const s = new Set(work[code] || []);
+  on ? s.add(key) : s.delete(key);
+  work[code] = [...s];
+  if (!work[code].length) delete work[code];
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-open],[data-rm],[data-add]');
+  if (!t) return;
+  if (t.dataset.open){ openPicker = openPicker === t.dataset.open ? null : t.dataset.open; render();
+    if (openPicker) $('pq_' + openPicker)?.focus(); }
+  else if (t.dataset.rm){ const [code, key] = t.dataset.rm.split('|'); toggle(code, key, false); render(); }
+  else if (t.dataset.add){
+    const code = t.dataset.add, inp = $('mk_' + code);
+    let key = inp.value.trim().toUpperCase();
+    if (/^\d+$/.test(key)) key = 'APPIDEAS-' + key;
+    if (!KEY_RE.test(key)){ inp.setCustomValidity('格式：APPIDEAS-1234 或 1234'); inp.reportValidity(); return; }
+    toggle(code, key, true); render();
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.tg){ const [code, key] = t.dataset.tg.split('|'); toggle(code, key, t.checked);
+    // 只更新該列的卡片與底部列，不重畫整頁（避免搜尋框失焦）
+    const row = $('row_' + code); row.classList.toggle('dirty', dirtyCodes().includes(code));
+    row.querySelector('.chips').innerHTML = (work[code] || []).map(k => chip(code, k)).join('') || '<span class="meta">沒有對應卡</span>';
+    updateBar(); }
+});
+['q', 'onlyVoice', 'onlyEmpty'].forEach(id => $(id).addEventListener('input', () => { openPicker = null; render(); }));
+
+function outputDoc(){
+  const doc = {...fileDoc};
+  doc.pain_to_cards = norm(work);
+  doc._owner = 'Cross 維護（網頁編輯：/voc-graph/web/mapping）';
+  return JSON.stringify(doc, null, 1) + '\n';
+}
+
+async function save(){
+  clearToast();
+  if (!getToken()){ $('manualDlg').showModal(); return; }
+  $('save').disabled = true; $('save').textContent = '儲存中…';
+  try {
+    const cur = await gh('GET');
+    if (cur.status !== 200) throw new Error(ghError(cur.status));
+    const remote = JSON.parse(b64decode(cur.json.content));
+    if (fileSha && cur.json.sha !== fileSha && !same(remote.pain_to_cards, base)){
+      throw new Error('GitHub 上的對應表在你編輯期間被改過。為了不蓋掉那次修改，這次沒有存。請重新整理頁面再改一次。');
+    }
+    const d = dirtyCodes();
+    const r = await gh('PUT', { message: `mapping: 更新 ${d.length} 個痛點（${d.join('、')}）— 網頁編輯`,
+                               content: b64encode(outputDoc()), sha: cur.json.sha, branch: BRANCH });
+    if (r.status !== 200 && r.status !== 201) throw new Error(ghError(r.status));
+    fileSha = r.json.content.sha; fileDoc = JSON.parse(outputDoc());
+    base = JSON.parse(JSON.stringify(norm(work))); work = JSON.parse(JSON.stringify(base));
+    render();
+    toast('ok', `✅ 已存檔（${d.length} 個痛點）。對照圖約 2–3 分鐘後自動重算，之後回<a href="./">對照頁</a>重新整理即可。`);
+  } catch(err){
+    toast('err', '❌ ' + esc(err.message));
+  } finally {
+    $('save').disabled = false; $('save').textContent = '儲存';
+  }
+}
+
+$('save').addEventListener('click', save);
+$('discard').addEventListener('click', () => { if (confirm('放棄所有未儲存的變更？')){ work = JSON.parse(JSON.stringify(base)); openPicker = null; render(); clearToast(); } });
+const openTokenDlg = () => { $('tokenIn').value = ''; $('tokenMsg').textContent = getToken() ? '目前已有 token；貼新的會取代它。' : ''; $('tokenDlg').showModal(); };
+$('conn').addEventListener('click', openTokenDlg);
+$('conn').addEventListener('keydown', e => { if (e.key === 'Enter') openTokenDlg(); });
+$('tokenCancel').addEventListener('click', () => $('tokenDlg').close());
+$('tokenClear').addEventListener('click', () => { setToken(''); setConn('none'); fileSha = null; $('tokenDlg').close(); });
+$('tokenSave').addEventListener('click', async () => {
+  const t = $('tokenIn').value.trim();
+  if (!t){ $('tokenMsg').textContent = '請先貼上 token'; return; }
+  const prev = getToken(); setToken(t); $('tokenMsg').textContent = '測試中…';
+  const r = await gh('GET');
+  if (r.status === 200){ fileSha = r.json.sha; setConn('ok'); $('tokenDlg').close(); toast('ok', '✅ 已連線 GitHub，之後可以直接存檔。'); }
+  else { setToken(prev); $('tokenMsg').textContent = '❌ ' + ghError(r.status); }
+});
+$('manualCancel').addEventListener('click', () => $('manualDlg').close());
+$('manualToken').addEventListener('click', () => { $('manualDlg').close(); openTokenDlg(); });
+$('manualGo').addEventListener('click', async () => {
+  const text = outputDoc();
+  try { await navigator.clipboard.writeText(text); toast('info', '已複製到剪貼簿。在 GitHub 編輯頁全選、貼上，再按「Commit changes」。'); }
+  catch(e){ toast('err', '瀏覽器不允許自動複製。請改用「連線 GitHub」一鍵存檔。'); return; }
+  window.open(EDIT_URL, '_blank', 'noopener'); $('manualDlg').close();
+});
+window.addEventListener('beforeunload', e => { if (dirtyCodes().length){ e.preventDefault(); e.returnValue = ''; } });
+
+(async () => {
+  try {
+    const r = await fetch('/voc-graph/out/latest.json', {cache:'no-store'});
+    if (!r.ok) throw new Error('讀不到對照圖（HTTP ' + r.status + '）');
+    G = await r.json();
+    await loadMapping();
+    base = norm(fileDoc.pain_to_cards); work = JSON.parse(JSON.stringify(base));
+    buildCardInfo(); render();
+  } catch(err){
+    $('app').innerHTML = `<div class="err">${esc(err.message)}</div>`;
+  }
+})();
+</script>
+</body>
+</html>
