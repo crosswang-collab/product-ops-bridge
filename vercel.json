@@ -12,5 +12,13 @@
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     }
+  ],
+  "redirects": [
+    { "source": "/voc-graph/web", "destination": "https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec", "permanent": false },
+    { "source": "/voc-graph/web/index", "destination": "https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec", "permanent": false },
+    { "source": "/voc-graph/web/index.html", "destination": "https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec", "permanent": false },
+    { "source": "/roadmap-bot/web", "destination": "https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec", "permanent": false },
+    { "source": "/roadmap-bot/web/index", "destination": "https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec", "permanent": false },
+    { "source": "/roadmap-bot/web/index.html", "destination": "https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec", "permanent": false }
   ]
 }
