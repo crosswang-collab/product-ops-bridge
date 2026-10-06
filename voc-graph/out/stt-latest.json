@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
- "fetched_at": "2026-10-05T09:43:37+00:00",
- "fetched_date": "2026-10-05",
+ "fetched_at": "2026-10-06T23:33:12+00:00",
+ "fetched_date": "2026-10-06",
  "fetched_by": "apps-script",
  "source_table": "media17-1119.DataLab_Ayana.stt_voc_judgments",
  "lookback_days": 63,
@@ -103,6 +103,20 @@
    "true_pain_rows": 1169,
    "board_rows": 600,
    "board_streamers": 363,
+   "prompt_versions": [
+    "v6"
+   ],
+   "dict_versions": [
+    "v6.5"
+   ]
+  },
+  {
+   "window_start": "2026-09-28",
+   "window_end": "2026-10-04",
+   "judged_rows": 2846,
+   "true_pain_rows": 1189,
+   "board_rows": 531,
+   "board_streamers": 338,
    "prompt_versions": [
     "v6"
    ],
@@ -2100,6 +2114,291 @@
     "H20260921_00903"
    ],
    "rows": 1
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F01",
+   "streamers": 110,
+   "stop_streamers": 6,
+   "top_streamers": 14,
+   "sample_hit_ids": [
+    "H20260928_00100",
+    "H20260928_00132",
+    "H20260928_00133"
+   ],
+   "rows": 176
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F05",
+   "streamers": 108,
+   "stop_streamers": 12,
+   "top_streamers": 24,
+   "sample_hit_ids": [
+    "H20260928_00002",
+    "H20260928_00010",
+    "H20260928_00051"
+   ],
+   "rows": 142
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F04",
+   "streamers": 51,
+   "stop_streamers": 1,
+   "top_streamers": 5,
+   "sample_hit_ids": [
+    "H20260928_00140",
+    "H20260928_00233",
+    "H20260928_00409"
+   ],
+   "rows": 70
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F06",
+   "streamers": 38,
+   "stop_streamers": 9,
+   "top_streamers": 5,
+   "sample_hit_ids": [
+    "H20260928_00092",
+    "H20260928_00162",
+    "H20260928_00384"
+   ],
+   "rows": 48
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F09",
+   "streamers": 38,
+   "stop_streamers": 3,
+   "top_streamers": 5,
+   "sample_hit_ids": [
+    "H20260928_00383",
+    "H20260928_00705",
+    "H20260928_00880"
+   ],
+   "rows": 47
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F16",
+   "streamers": 33,
+   "stop_streamers": 9,
+   "top_streamers": 7,
+   "sample_hit_ids": [
+    "H20260928_00008",
+    "H20260928_00009",
+    "H20260928_00010"
+   ],
+   "rows": 45
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F03",
+   "streamers": 21,
+   "stop_streamers": 1,
+   "top_streamers": 2,
+   "sample_hit_ids": [
+    "H20260928_00140",
+    "H20260928_00150",
+    "H20260928_00228"
+   ],
+   "rows": 21
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F07",
+   "streamers": 21,
+   "stop_streamers": 4,
+   "top_streamers": 7,
+   "sample_hit_ids": [
+    "H20260928_00051",
+    "H20260928_00601",
+    "H20260928_01113"
+   ],
+   "rows": 24
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F18",
+   "streamers": 19,
+   "stop_streamers": 5,
+   "top_streamers": 5,
+   "sample_hit_ids": [
+    "H20260928_00251",
+    "H20260928_00269",
+    "H20260928_00307"
+   ],
+   "rows": 23
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F15",
+   "streamers": 17,
+   "stop_streamers": 2,
+   "top_streamers": 2,
+   "sample_hit_ids": [
+    "H20260928_00300",
+    "H20260928_01228",
+    "H20260928_01229"
+   ],
+   "rows": 18
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "E01",
+   "streamers": 16,
+   "stop_streamers": 3,
+   "top_streamers": 5,
+   "sample_hit_ids": [
+    "H20260928_00100",
+    "H20260928_00220",
+    "H20260928_00307"
+   ],
+   "rows": 17
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F17",
+   "streamers": 16,
+   "stop_streamers": 6,
+   "top_streamers": 6,
+   "sample_hit_ids": [
+    "H20260928_00596",
+    "H20260928_00769",
+    "H20260928_01274"
+   ],
+   "rows": 18
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F20",
+   "streamers": 11,
+   "stop_streamers": 0,
+   "top_streamers": 0,
+   "sample_hit_ids": [
+    "H20260928_01382",
+    "H20260928_02038",
+    "H20260928_02149"
+   ],
+   "rows": 11
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F11",
+   "streamers": 8,
+   "stop_streamers": 0,
+   "top_streamers": 1,
+   "sample_hit_ids": [
+    "H20260928_01196",
+    "H20260928_01228",
+    "H20260928_01229"
+   ],
+   "rows": 10
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F21",
+   "streamers": 7,
+   "stop_streamers": 2,
+   "top_streamers": 1,
+   "sample_hit_ids": [
+    "H20260928_00479",
+    "H20260928_00515",
+    "H20260928_01943"
+   ],
+   "rows": 10
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F14",
+   "streamers": 7,
+   "stop_streamers": 3,
+   "top_streamers": 3,
+   "sample_hit_ids": [
+    "H20260928_00307",
+    "H20260928_00414",
+    "H20260928_00705"
+   ],
+   "rows": 8
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F02",
+   "streamers": 5,
+   "stop_streamers": 3,
+   "top_streamers": 1,
+   "sample_hit_ids": [
+    "H20260928_00009",
+    "H20260928_01113",
+    "H20260928_04117"
+   ],
+   "rows": 6
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F19",
+   "streamers": 4,
+   "stop_streamers": 0,
+   "top_streamers": 0,
+   "sample_hit_ids": [
+    "H20260928_01667",
+    "H20260928_01668",
+    "H20260928_01669"
+   ],
+   "rows": 8
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F13",
+   "streamers": 3,
+   "stop_streamers": 0,
+   "top_streamers": 1,
+   "sample_hit_ids": [
+    "H20260928_01885",
+    "H20260928_02418",
+    "H20260928_04168"
+   ],
+   "rows": 3
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F08",
+   "streamers": 3,
+   "stop_streamers": 1,
+   "top_streamers": 0,
+   "sample_hit_ids": [
+    "H20260928_02059",
+    "H20260928_02406",
+    "H20260928_04701"
+   ],
+   "rows": 3
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "NEW",
+   "streamers": 2,
+   "stop_streamers": 0,
+   "top_streamers": 2,
+   "sample_hit_ids": [
+    "H20260928_03023",
+    "H20260928_03107"
+   ],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "F12",
+   "streamers": 2,
+   "stop_streamers": 0,
+   "top_streamers": 0,
+   "sample_hit_ids": [
+    "H20260928_05602",
+    "H20260928_05603",
+    "H20260928_05737"
+   ],
+   "rows": 3
   }
  ],
  "pains": [
@@ -2771,7 +3070,7 @@
   },
   {
    "window_start": "2026-08-31",
-   "code": "U4.2",
+   "code": "U2.0",
    "streamers": 15,
    "stop_streamers": null,
    "top_streamers": null,
@@ -2780,7 +3079,7 @@
   },
   {
    "window_start": "2026-08-31",
-   "code": "U2.0",
+   "code": "U4.2",
    "streamers": 15,
    "stop_streamers": null,
    "top_streamers": null,
@@ -3488,6 +3787,195 @@
    "top_streamers": null,
    "sample_hit_ids": [],
    "rows": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "X1.0",
+   "streamers": 287,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 486
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.1",
+   "streamers": 244,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 432
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.0",
+   "streamers": 230,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 455
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U4.1",
+   "streamers": 89,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 111
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U4.4",
+   "streamers": 79,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 87
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U6.0",
+   "streamers": 30,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 43
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U4.2",
+   "streamers": 17,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 18
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U4.0",
+   "streamers": 14,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 20
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U2.0",
+   "streamers": 11,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 12
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U2.1",
+   "streamers": 8,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 8
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U2.2",
+   "streamers": 6,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 7
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U2.3",
+   "streamers": 6,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 6
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U5.0",
+   "streamers": 4,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U5.4",
+   "streamers": 4,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.2",
+   "streamers": 3,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U2.4",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U5.2",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U6.3",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U4.3",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U5.1",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U5.3",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
   }
  ],
  "theme_pain": [
@@ -4166,6 +4654,102 @@
   {
    "window_start": "2026-09-21",
    "theme": "F17",
+   "pain": "S2.1",
+   "streamers": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F05",
+   "pain": "S2.1",
+   "streamers": 138
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F01",
+   "pain": "X1.0",
+   "streamers": 82
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F16",
+   "pain": "U6.0",
+   "streamers": 7
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F06",
+   "pain": "S2.1",
+   "streamers": 7
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F04",
+   "pain": "S2.1",
+   "streamers": 6
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F07",
+   "pain": "S2.1",
+   "streamers": 5
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F06",
+   "pain": "S2.0",
+   "streamers": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F17",
+   "pain": "U6.0",
+   "streamers": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F20",
+   "pain": "S2.1",
+   "streamers": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F05",
+   "pain": "U6.0",
+   "streamers": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F17",
+   "pain": "S2.1",
+   "streamers": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F06",
+   "pain": "X1.0",
+   "streamers": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F21",
+   "pain": "X1.0",
+   "streamers": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F20",
+   "pain": "X1.0",
+   "streamers": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F03",
+   "pain": "X1.0",
+   "streamers": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "theme": "F09",
    "pain": "S2.1",
    "streamers": 2
   }
