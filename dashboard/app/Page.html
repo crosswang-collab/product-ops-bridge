@@ -416,13 +416,14 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   /* ---- 全部原話：輸出 CSV、Gemini 中文摘要與逐則翻譯（原話只在公司 GCP 內處理） ---- */
   function exportPanel(p) {
     var wrap = el("div", {});
-    var status = el("div", { class: "note", text: "抓這個痛點最近 4 週的全部原話，用公司 GCP 的 Gemini 做中文摘要和逐則翻譯，可下載 CSV。原話多的痛點（上千則）全部翻完要 10–20 分鐘，途中隨時可以先下載。" });
+    var status = el("div", { class: "note", text: "抓這個痛點最近 4 週的全部原話，用公司 GCP 的 Gemini 做中文摘要和逐則翻譯，可下載 CSV。翻譯每 1,000 則約 10–20 分鐘，途中隨時可以先下載。" });
     var go = el("button", { class: "btn primary", type: "button", text: "開始整理" });
     var out = el("div", {});
     wrap.appendChild(go); wrap.appendChild(status); wrap.appendChild(out);
+    function busy(on) { go.disabled = on; }           // 整理或補翻進行中，不能再開一輪
     go.addEventListener("click", function () {
-      go.disabled = true;
-      runExport(p.code, status, out, function () { go.disabled = false; });
+      busy(true);
+      runExport(p.code, status, out, busy);
     });
     return wrap;
   }
@@ -432,8 +433,9 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     r[fn].apply(r, args);
   }
 
-  function runExport(code, status, out, done) {
-    var ex = null, sum = null, zh = {}, failed = 0;
+  function runExport(code, status, out, busy) {
+    var ex = null, sum = null, zh = {}, lastErr = "";
+    function done() { busy(false); }
     clear(out);
     var sumMsg = el("div", { class: "note" });
     function say(t) { status.textContent = t; }
@@ -443,18 +445,20 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       if (!ex.rows.length) { say("最近 4 週沒有原話。"); done(); return; }
       say("共 " + ex.rows.length + " 則" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "，Gemini 整理摘要中…（原話已可先下載）");
       renderButtons();
-      call("summarizeQuotes", [ex.rows.map(function (q) { return { id: q.id, text: q.text }; })], function (sm) {
+      // 伺服器每則只用前 250 字，先截好再送，避免一次送幾 MB
+      call("summarizeQuotes", [ex.rows.map(function (q) { return { id: q.id, text: q.text.slice(0, 250) }; })], function (sm) {
         sum = sm;
         if (sm.used < ex.rows.length) sumMsg.textContent = "摘要依據前 " + sm.used + " 則（原話太多，超過 Gemini 一次能讀的量）。";
-        renderSummary(); translateAll();
-      }, function (m) { sumMsg.textContent = "摘要沒做成（" + m + "）。可以稍後再按一次「開始整理」。"; translateAll(); });
+        renderSummary(); translateAll(ex.batch || 20);
+      }, function (m) { sumMsg.textContent = "摘要沒做成（" + m + "）。可以稍後再按一次「開始整理」。"; translateAll(ex.batch || 20); });
     }, function (m) { say("讀不到原話（" + m + "）。" + HELP); done(); });
 
     function missing() { return ex.rows.filter(function (q) { return !zh[q.id]; }); }
 
-    function translateAll() {
-      var todo = missing(), i = 0, n = ex.batch || 20;
-      failed = 0;
+    function translateAll(n) {
+      var todo = missing(), i = 0;
+      lastErr = "";
+      busy(true);
       (function next() {
         if (i >= todo.length) { finish(); return; }
         var batch = todo.slice(i, i + n);
@@ -462,13 +466,20 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         call("translateQuotes", [batch.map(function (q) { return { id: q.id, text: q.text }; })], function (m) {
           for (var k in m) zh[k] = m[k];
           i += n; renderSummary(); next();
-        }, function () { failed += batch.length; i += n; next(); });   // 這批失敗就跳過，繼續下一批
+        }, function (m) {
+          lastErr = m;
+          // 權限類問題每一批都會一樣失敗，直接停下說原因；其他問題跳過這批繼續
+          if (/沒有權限|第 2 步|Vertex AI|管理員/.test(m)) { finish(); return; }
+          i += n; next();
+        });
       })();
     }
 
     function finish() {
       var miss = missing().length;
-      say("完成：" + ex.rows.length + " 則原話、" + (ex.rows.length - miss) + " 則有中文翻譯。" + (miss ? "有 " + miss + " 則沒翻到，可以按「補翻」。" : ""));
+      say("完成：" + ex.rows.length + " 則原話" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "、" +
+        (ex.rows.length - miss) + " 則有中文翻譯。" +
+        (miss ? "有 " + miss + " 則沒翻到" + (lastErr ? "（" + lastErr + "）" : "") + "，可以按「補翻」。" : ""));
       renderButtons();
       done();
     }
@@ -493,7 +504,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       var miss = ex ? missing().length : 0;
       if (miss && status.textContent.indexOf("完成") === 0) {
         btnBox.appendChild(el("button", { class: "btn", type: "button", text: "補翻沒翻到的 " + miss + " 則",
-          onclick: function (e) { e.target.disabled = true; translateAll(); } }));
+          onclick: function (e) { e.target.disabled = true; translateAll(5); } }));   // 補翻用小批，避免同樣太長又失敗
       }
     }
 

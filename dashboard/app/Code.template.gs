@@ -518,7 +518,7 @@ function exportRows_(code) {
       return { id: 'Q' + (i + 1), week: r.week, tier: r.tier || '一般',
                kind: r.issue_kind || '（未分類）', layer: r.failure_layer || '（未分類）',
                summary: clip_(jsonText_(r.summary_j), 300), text: clip_(jsonText_(r.stt_j), 1500),
-               context: clip_(jsonText_(r.context_j), 1500) };
+               context: clip_(jsonText_(r.context_j), 800) };
     }),
     batch: TRANSLATE_BATCH
   };

@@ -23,10 +23,10 @@
 
 ## 原話輸出＋中文摘要＋翻譯（2026-10-06 新增）
 
-在痛點細節的「全部原話」按「開始整理」：抓最近 4 週全部原話 → Gemini 做中文摘要 → 每 20 則一批翻成繁中（上千則約 10–20 分鐘，途中可先下載；失敗的批次會跳過，最後可按「補翻」）→ 可下載 CSV 與摘要。Gemini 走公司 GCP（media17-1119）的 Vertex AI，以 Cross 身分呼叫，原話不出公司的 Google 雲。
+在痛點細節的「全部原話」按「開始整理」：抓最近 4 週全部原話 → Gemini 做中文摘要 → 每 20 則一批翻成繁中（每 1,000 則約 10–20 分鐘，途中可先下載；失敗的批次會跳過，最後可按「補翻」；權限類問題會直接停下說原因）→ 可下載 CSV 與摘要。Gemini 走公司 GCP（media17-1119）的 Vertex AI，以 Cross 身分呼叫，原話不出公司的 Google 雲。
 
 **更新步驟（第一次，約 3 分鐘）**
-1. 打開 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/Dashboard.gs → Ctrl+A、Ctrl+C → 在 Apps Script 的 `Code.gs` 裡 Ctrl+A、Ctrl+V → 儲存。
+1. 打開 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/Dashboard.gs → Ctrl+A、Ctrl+C → 在 Apps Script 的程式檔（`程式碼.gs`）裡 Ctrl+A、Ctrl+V → 儲存。
 2. 左側齒輪「專案設定」→ 勾選「在編輯器中顯示『appsscript.json』資訊清單檔案」→ 回到編輯器打開 `appsscript.json` → 用 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/appsscript.json 的內容整份取代 → 儲存。（這一步是讓程式可以呼叫 Gemini。）
 3. 函數選單選 `testGemini` → 執行 → 會再跳一次授權，全部允許。看到「✅ Gemini 可以用」才繼續；看到 ❌ 就把那行貼給 Claude（多半是要請 GCP 管理員開權限）。
 4. 部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署。
@@ -43,7 +43,7 @@
 
 ## 安全設計（第 3 輪審查要求）
 
-- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`refreshNow`、`testDashboard`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
+- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`getPainExport`、`summarizeQuotes`、`translateQuotes`、`refreshNow`、`testDashboard`、`testGemini`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
 - **原話顯示**：頁面一律用 `textContent` 放文字，不把字串當 HTML；不載入任何外部腳本或樣式。`build_gas.py` 打包時會掃描並拒絕違規寫法。
 - **BigQuery**：SQL 寫死，只吃具名參數 `@code`（必須是 25 痛點清單內的代碼）與 `@since`（伺服器算的日期）。
 - **不顯示 userID**：查詢結果不選 userID；Slack＋表單不帶發話者姓名；連結只保留 `https://`。
