@@ -23,7 +23,7 @@
 
 ## 原話輸出＋中文摘要＋翻譯（2026-10-06 新增）
 
-在痛點細節的「全部原話」按「開始整理」：抓最近 4 週全部原話（最多 300 則）→ Gemini 做中文摘要 → 逐則翻成繁中 → 可下載 CSV 與摘要。Gemini 走公司 GCP（media17-1119）的 Vertex AI，以 Cross 身分呼叫，原話不出公司的 Google 雲。
+在痛點細節的「全部原話」按「開始整理」：抓最近 4 週全部原話 → Gemini 做中文摘要 → 每 20 則一批翻成繁中（上千則約 10–20 分鐘，途中可先下載；失敗的批次會跳過，最後可按「補翻」）→ 可下載 CSV 與摘要。Gemini 走公司 GCP（media17-1119）的 Vertex AI，以 Cross 身分呼叫，原話不出公司的 Google 雲。
 
 **更新步驟（第一次，約 3 分鐘）**
 1. 打開 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/Dashboard.gs → Ctrl+A、Ctrl+C → 在 Apps Script 的 `Code.gs` 裡 Ctrl+A、Ctrl+V → 儲存。
@@ -31,7 +31,7 @@
 3. 函數選單選 `testGemini` → 執行 → 會再跳一次授權，全部允許。看到「✅ Gemini 可以用」才繼續；看到 ❌ 就把那行貼給 Claude（多半是要請 GCP 管理員開權限）。
 4. 部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署。
 
-下載沒反應時，按「下載沒反應？顯示全文自己複製」，把框裡的內容貼到試算表。
+下載沒反應時，按「下載沒反應？顯示全文自己複製」，全選複製後貼到 Google 試算表的 A1，會自動分成欄。
 
 ## 之後怎麼改
 
