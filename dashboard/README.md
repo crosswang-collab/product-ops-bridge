@@ -7,7 +7,7 @@
 1. 打開 https://script.google.com → **新專案**，專案名稱改成「VoC 作戰台」。把 `dashboard/gas/Dashboard.gs` 的**全文**貼進去，取代預設的 `程式碼.gs` 內容，然後按儲存。
    這是新專案，**不要**貼進「STT Export」。
 2. 左側「**服務**」按 ＋ → 選 **BigQuery API** → 新增。
-3. 上方函數選單選 `testDashboard` → **執行** → 第一次會跳出授權視窗，全部允許（需要 BigQuery、試算表、外部網址的讀取權）。下方紀錄**每一行都是 ✅** 才繼續。
+3. 上方函數選單選 `testDashboard` → **執行** → 第一次會跳出授權視窗，全部允許（需要 BigQuery、試算表、外部網址的讀取權）。下方紀錄打勾的行都要是 ✅（「新興／持續／消退」那行是數字摘要，沒有勾）。**看到 ⚠️ 或 ❌ 就先停，把整段紀錄貼給 Claude**，不用自己判斷。
 4. 右上角「**部署 → 新增部署作業**」→ 類型選「網頁應用程式」：
    - 執行身分：**我**
    - 誰可以存取：**17.media 網域內的任何使用者**（實際能看的人另由程式裡的允許名單控制）
@@ -48,7 +48,7 @@
 | `app/Code.template.gs` | 伺服器端原始碼 |
 | `app/Page.html` | 頁面原始碼 |
 | `build_gas.py` | 打包＋安全掃描 |
-| `test/harness.js` | 本機模擬 Apps Script 跑 31 項檢查：`node dashboard/test/harness.js` |
+| `test/harness.js` | 本機模擬 Apps Script 跑全部檢查：`node dashboard/test/harness.js` |
 | `prototype.html` / `build_prototype.py` | 10/06 給 Cross 確認版面的原型（假原話） |
 
 ## 已知坑

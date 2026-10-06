@@ -140,7 +140,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     return n;
   }
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
-  function md(iso) { var p = iso.split("-"); return (+p[1]) + "/" + (+p[2]); }
+  function md(iso) { var p = String(iso || "").split("-"); return p.length === 3 ? (+p[1]) + "/" + (+p[2]) : "—"; }
   function safeUrl(u) { return /^https:\/\//.test(u || "") ? u : null; }
   function link(href, text) {
     var u = safeUrl(href);
@@ -227,8 +227,9 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     todo.forEach(function (p) { list.appendChild(painRow(p, function () { go("today"); })); });
     left.appendChild(list);
 
-    left.appendChild(el("h3", { text: "ROADMAP 卡變差（近 7 天，與 " + md(D.worseSince) + " 相比）" }));
-    if (!D.worse.length) left.appendChild(el("div", { class: "empty", text: "沒有卡變差。" }));
+    left.appendChild(el("h3", { text: "ROADMAP 卡變差" + (D.worseSince ? "（近 7 天，與 " + md(D.worseSince) + " 相比）" : "") }));
+    if (!D.worseSince) left.appendChild(el("div", { class: "empty", text: "找不到 7–10 天前的 Roadmap 紀錄，暫時無法比較。" }));
+    else if (!D.worse.length) left.appendChild(el("div", { class: "empty", text: "沒有卡變差。" }));
     D.worse.forEach(function (w) {
       left.appendChild(el("div", { class: "row", style: "cursor:default" }, [
         el("span", { class: "code", text: w.key.replace("APPIDEAS-", "#") }),
@@ -295,7 +296,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         box.appendChild(el("div", { class: "row", style: "cursor:default" }, [
           el("span", { class: "code", text: k.replace("APPIDEAS-", "#") }),
           el("span", { class: "ttl" }, [c ? link(c.url, c.summary) : el("span", { text: k }),
-            c ? el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: c.stage }), statusChip(c.project_status)]) : null]),
+            c ? el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: stageZh(c.stage) }), statusChip(c.project_status)]) : null]),
           el("span")]));
       });
     } else {
@@ -309,11 +310,21 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     return box;
   }
 
+  var pending = {};
   function loadDetail(code, ok, fail) {
     if (detailCache[code]) { ok(detailCache[code]); return; }
+    if (pending[code]) { pending[code].push([ok, fail]); return; }
+    pending[code] = [[ok, fail]];
     google.script.run
-      .withSuccessHandler(function (det) { detailCache[code] = det; ok(det); })
-      .withFailureHandler(function (e) { fail("讀不到：" + (e && e.message ? e.message : e)); })
+      .withSuccessHandler(function (det) {
+        detailCache[code] = det;
+        var w = pending[code]; delete pending[code];
+        w.forEach(function (x) { x[0](det); });
+      })
+      .withFailureHandler(function (e) {
+        var w = pending[code]; delete pending[code];
+        w.forEach(function (x) { x[1]("讀不到（" + errText(e) + "）。" + HELP); });
+      })
       .getPainDetail(code);
   }
 
@@ -322,7 +333,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     if (!det.ok) {
       subBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.problem }));
     } else if (!det.groups.length) {
-      subBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近 4 週沒有經過 Gemini 判定的聲音。" }));
+      subBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近 4 週沒有經過 AI 判定的聲音。" }));
     } else {
       subBox.appendChild(el("div", { class: "sub" }, [el("span", { class: "code", text: "問題類型 × 發生位置" }), el("span", { class: "code", text: "主播" })]));
       det.groups.forEach(function (g) {
@@ -330,7 +341,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
           el("span", { text: g.kind + " × " + g.layer + (g.stop ? "（含 sTop " + g.stop + " 位）" : "") }),
           el("span", { class: "n", text: g.n + " 位" })]));
       });
-      subBox.appendChild(el("div", { class: "note", text: "細分類依據：Gemini 判定過的 " + det.judgedStreamers + " 位主播（" +
+      subBox.appendChild(el("div", { class: "note", text: "細分類依據：AI 判定過的 " + det.judgedStreamers + " 位主播（" +
         md(det.since) + " 起）。和上面週報人數的來源不同，數字不會一樣；一位主播可能同時出現在多組。" }));
     }
 
@@ -356,7 +367,8 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       qBox.appendChild(el("div", { class: "quote" }, kids));
     });
 
-    if (!det.voices.length) vBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近沒有對到這個痛點的 Slack／表單聲音。" }));
+    if (det.voicesProblem) vBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.voicesProblem }));
+    else if (!det.voices.length) vBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近沒有對到這個痛點的 Slack／表單聲音。" }));
     det.voices.forEach(function (v) { vBox.appendChild(voiceEl(v)); });
   }
 
@@ -435,10 +447,10 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     var sb = el("div", { class: "stagebar" });
     order.forEach(function (s) {
       var n = D.stages[s] || 0; if (!n) return;
-      sb.appendChild(el("div", { style: "flex:" + n, title: s + " " + n, text: n >= 3 ? s + " " + n : String(n) }));
+      sb.appendChild(el("div", { style: "flex:" + n, title: stageZh(s) + " " + n, text: n >= 3 ? stageZh(s) + " " + n : String(n) }));
     });
     var top = el("div", { class: "panel" }, [el("h2", { text: "進行中 " + total + " 張卡，各階段張數" }), sb,
-      el("div", { class: "legend", text: order.map(function (s) { return s + " " + (D.stages[s] || 0); }).join("　·　") })]);
+      el("div", { class: "legend", text: order.map(function (s) { return stageZh(s) + " " + (D.stages[s] || 0); }).join("　·　") })]);
 
     var lt = el("table", {}, [el("thead", {}, [el("tr", {}, ["團隊", "卡", "點數", "手上工作量（月）", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
     var tb = el("tbody");
@@ -464,7 +476,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     var ub2 = el("div", { class: "panel" }, [el("h2", { text: "標了 VoC 但還沒對到痛點的卡（" + D.unbacked.length + "）" })]);
     D.unbacked.forEach(function (c) {
       ub2.appendChild(el("div", { class: "row", style: "cursor:default" }, [el("span", { class: "code", text: c.key.replace("APPIDEAS-", "#") }),
-        el("span", { class: "ttl" }, [link(c.url, c.summary), el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: c.stage }), statusChip(c.project_status)])]), el("span")]));
+        el("span", { class: "ttl" }, [link(c.url, c.summary), el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: stageZh(c.stage) }), statusChip(c.project_status)])]), el("span")]));
     });
 
     var all = el("div", { class: "panel" }, [el("h2", { text: "全部卡片" })]);
@@ -472,16 +484,18 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     var ab = el("tbody");
     D.cards.slice().sort(function (a, b) { return (b.project_status !== "On track") - (a.project_status !== "On track") || (a.release_date || "9").localeCompare(b.release_date || "9"); })
       .forEach(function (c) {
-        ab.appendChild(el("tr", {}, [el("td", {}, [link(c.url, c.summary)]), el("td", { text: c.stage }), el("td", {}, [statusChip(c.project_status)]),
+        ab.appendChild(el("tr", {}, [el("td", {}, [link(c.url, c.summary)]), el("td", { text: stageZh(c.stage) }), el("td", {}, [statusChip(c.project_status)]),
           el("td", { text: c.domain || "—" }), el("td", { text: c.release_date ? md(c.release_date) : "未定" })]));
       });
     at.appendChild(ab); all.appendChild(el("div", { class: "tbl" }, [at]));
 
     view.appendChild(el("div", { style: "display:grid;gap:16px" }, [top, el("div", { class: "grid2" }, [loadP, up]), ub2, all]));
   }
+  var STAGE_ZH = { Discovery: "探索", Design: "設計", Develop: "開發", Impact: "上線觀察" };
+  function stageZh(s) { return STAGE_ZH[s] || s || "—"; }
   function statusChip(s) {
     var c = s === "On track" ? "c-ok" : s === "Warning" ? "c-warn" : "c-hot";
-    var t = s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s;
+    var t = s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s === "Off track" ? "落後" : (s || "未填");
     return el("span", { class: "chip " + c, text: t });
   }
 
@@ -515,8 +529,8 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     var S = D.slack;
     var sttOk = D.sttSource === "bigquery" && D.sttAgeDays <= 10;
     var rows = [
-      ["Jira Roadmap", "每天 09:00 自動更新", md(D.jiraAsOf), "c-ok", "正常"],
-      ["直播原話（STT）週統計", "週報每週一批", md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那週", sttOk ? "c-ok" : "c-warn", sttOk ? "正常" : "注意"],
+      ["Jira Roadmap", "每天 09:00 自動更新", md(D.jiraAsOf), D.jiraAgeDays > 2 ? "c-warn" : "c-ok", D.jiraAgeDays > 2 ? "注意" : "正常"],
+      ["直播原話週統計", "週報每週一批", md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那週", sttOk ? "c-ok" : "c-warn", sttOk ? "正常" : "注意"],
       ["Slack＋表單", "每天 08:10", S.ok ? (S.lastRun || "未知") : "讀不到", S.ok && S.lastRun ? "c-ok" : "c-warn", S.ok && S.lastRun ? "正常" : "注意"],
       ["客服工單、聊天機器人", "—", "—", "c-mute", "還沒納入"]
     ];
@@ -525,7 +539,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     rows.forEach(function (r) { b.appendChild(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] }), el("td", { text: r[2] }), el("td", {}, [el("span", { class: "chip " + r[3], text: r[4] })])])); });
     t.appendChild(b);
     var p = el("div", { class: "panel" }, [el("h2", { text: "資料來源狀態" }), el("div", { class: "tbl" }, [t])]);
-    if (D.sttSource !== "bigquery") p.appendChild(el("div", { class: "note", text: "週人數目前用備援資料（只有 7 週）。原因：" + D.sttProblem }));
+    if (D.sttSource !== "bigquery") p.appendChild(el("div", { class: "note", text: "週人數目前用備援資料。原因：" + D.sttProblem }));
     var zero = D.pains.filter(function (x) { return x.allZero; }).map(function (x) { return x.code; });
     if (zero.length) p.appendChild(el("div", { class: "note", text: "數字可能不準：" + zero.join("、") + " 這 " + D.weeks.length + " 週都是 0 位，可能是週報沒有統計這幾個痛點，不代表沒人抱怨。" }));
     p.appendChild(el("div", { class: "note", text: "時間段分析用最近 " + D.weeks.length + " 週。畫面資料產生於 " + D.generatedAt + "，6 小時內重新打開會沿用同一份。" }));
@@ -538,16 +552,29 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   /* ---- 跟伺服器拿資料 ---- */
   var statusEl = document.getElementById("status");
   function showStatus(text) { statusEl.textContent = text; statusEl.hidden = !text; }
+  /* 伺服器或 Apps Script 本身的英文錯誤不直接給人看，改成中文說明 */
+  function errText(e) {
+    var m = String(e && e.message ? e.message : e);
+    return /[A-Za-z]{3,}/.test(m.replace(/Roadmap|Slack|sTop/g, "")) ? "暫時讀不到" : m;
+  }
+  var HELP = "請重新整理；一直失敗的話，在 Apps Script 編輯器執行 testDashboard，把紀錄貼給 Claude。";
   function load() {
     google.script.run
       .withSuccessHandler(function (d) {
         D = d;
-        showStatus(D.sttSource === "bigquery" ? "" :
-          "注意：BigQuery 暫時讀不到，週人數改用備援資料（只有 7 週）。原因：" + D.sttProblem);
-        init();
+        var warn = [];
+        if (D.sttSource !== "bigquery") warn.push("週人數資料暫時讀不到（" + D.sttProblem + "），先用備援資料（只有 " + D.weeks.length + " 週）。");
+        if (D.missingWeeks && D.missingWeeks.length) warn.push("週報少了 " + D.missingWeeks.map(md).join("、") + " 那週的資料，那幾週先當 0 位算，新興／持續／消退可能不準。");
+        showStatus(warn.length ? "注意：" + warn.join(" ") : "");
+        try {
+          init();
+        } catch (err) {
+          if (window.console) console.error(err);
+          showStatus("畫面整理資料時出錯。" + HELP);
+        }
       })
       .withFailureHandler(function (e) {
-        showStatus("讀不到資料：" + (e && e.message ? e.message : e) + "。請重新整理；一直失敗就把這行字貼給 Claude。");
+        showStatus("讀不到資料（" + errText(e) + "）。" + HELP);
       })
       .getDashboard();
   }

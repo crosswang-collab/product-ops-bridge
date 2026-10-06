@@ -75,7 +75,11 @@ function getDashboard() {
   var who = assertAllowed_();
   var d = cacheGet_('dash');
   if (!d) {
-    d = buildDashboard_();
+    try {
+      d = buildDashboard_();
+    } catch (e) {
+      throw new Error(friendly_(e));
+    }
     cachePut_('dash', d);
   }
   d.canEdit = (who === OWNER_EMAIL.toLowerCase());
@@ -87,7 +91,10 @@ function getDashboard() {
 function getPainDetail(code) {
   assertAllowed_();
   code = String(code || '');
-  var dash = cacheGet_('dash') || buildDashboard_();
+  var dash = cacheGet_('dash');
+  if (!dash) {
+    try { dash = buildDashboard_(); } catch (e) { throw new Error(friendly_(e)); }
+  }
   var known = dash.pains.map(function (p) { return p.code; });
   if (!/^[SU][0-9]\.[0-9]$/.test(code) || known.indexOf(code) < 0) {
     throw new Error('不認得的痛點代碼');
@@ -146,6 +153,16 @@ function isAllowed_(email) {
   return ALLOWED_EMAILS.map(function (e) { return e.toLowerCase(); }).indexOf(email) >= 0;
 }
 
+/** 給畫面看的錯誤訊息只用中文；原始訊息（可能含技術名詞）只寫進伺服器紀錄。 */
+function friendly_(e) {
+  var msg = String(e && e.message || e);
+  console.log('[ERROR] ' + msg + '\n' + (e && e.stack || ''));
+  if (/^[^A-Za-z]*$/.test(msg.replace(/Roadmap|Slack/g, ''))) return msg;   // 本來就是中文訊息
+  if (/Access Denied|permission|forbidden|403/i.test(msg)) return '沒有讀取權限';
+  if (/404/.test(msg)) return '找不到資料檔';
+  return '暫時讀不到';
+}
+
 function assertAllowed_() {
   var who = viewer_();
   if (!isAllowed_(who)) throw new Error('沒有權限');
@@ -166,11 +183,11 @@ function buildDashboard_() {
     series = painSeries_();
   } catch (e) {
     sttSource = 'repo';
-    sttProblem = String(e && e.message || e).slice(0, 200);
-    console.log('[WARN] BigQuery 週人數失敗，改用 repo：' + sttProblem);
+    sttProblem = friendly_(e);
     series = {
       weeks: g.windows.slice(),
-      byCode: {}
+      byCode: {},
+      missing: []
     };
     g.nodes.pains.forEach(function (p) { series.byCode[p.code] = p.stt.series.map(function (x) { return x.streamers; }); });
   }
@@ -220,10 +237,11 @@ function buildDashboard_() {
     generatedAt: Utilities.formatDate(new Date(), TZ, 'yyyy/MM/dd HH:mm'),
     weeks: weeks,
     latestWeek: { start: lastStart, end: endDate },
-    detailSince: weeks[Math.max(0, weeks.length - DETAIL_WEEKS)],
-    sttSource: sttSource, sttProblem: sttProblem,
+    detailSince: addDays_(today_(), -DETAIL_WEEKS * 7),
+    sttSource: sttSource, sttProblem: sttProblem, missingWeeks: series.missing,
     sttAgeDays: daysBetween_(endDate, today_()),
     jiraAsOf: rm.as_of_date,
+    jiraAgeDays: daysBetween_(rm.as_of_date, today_()),
     pains: pains,
     outside: g.views.outside_catalog || [],
     unbacked: g.views.unbacked_voc_cards || [],
@@ -258,7 +276,7 @@ function classify_(s) {
   };
 }
 
-/** 25 痛點週人數（週報定点）。同一窗重建過取最新 loaded_at。缺週補 0。 */
+/** 25 痛點週人數（週報定点）。同一窗重建過取最新 loaded_at。某痛點在某週沒有列＝0 位。 */
 function painSeries_() {
   var sql = [
     'SELECT CAST(window_start AS STRING) AS window_start,',
@@ -270,10 +288,13 @@ function painSeries_() {
   ].join('\n');
   var since = addDays_(today_(), -(SERIES_WEEKS + 2) * 7);
   var rows = bqQuery_(sql, [dateParam_('since', since)], '25 痛點週人數');
-  if (!rows.length) throw new Error('weekly_metrics 最近 ' + SERIES_WEEKS + ' 週沒有 pain25');
-  var weeks = {};
-  rows.forEach(function (r) { weeks[r.window_start] = true; });
-  var wl = Object.keys(weeks).sort().slice(-SERIES_WEEKS);
+  if (!rows.length) throw new Error('週報最近 ' + SERIES_WEEKS + ' 週沒有痛點人數');
+  var seen = {};
+  rows.forEach(function (r) { seen[r.window_start] = true; });
+  var latest = Object.keys(seen).sort().pop();
+  var wl = [];
+  for (var w = SERIES_WEEKS - 1; w >= 0; w--) wl.push(addDays_(latest, -7 * w));   // 連續 12 個週一
+  var missing = wl.filter(function (x) { return !seen[x]; });
   var byCode = {};
   rows.forEach(function (r) {
     var i = wl.indexOf(r.window_start);
@@ -281,7 +302,7 @@ function painSeries_() {
     if (!byCode[r.code]) byCode[r.code] = wl.map(function () { return 0; });
     byCode[r.code][i] += Number(r.streamers) || 0;
   });
-  return { weeks: wl, byCode: byCode };
+  return { weeks: wl, byCode: byCode, missing: missing };
 }
 
 /** 找 7 天前（找不到就往前到 10 天）的 Jira 快照，給「變差」比較用。 */
@@ -346,14 +367,18 @@ function buildPainDetail_(code, since) {
     });
   } catch (e) {
     out.ok = false;
-    out.problem = '讀不到直播原話：' + String(e && e.message || e).slice(0, 200);
-    console.log('[WARN] ' + out.problem);
+    out.problem = '讀不到直播原話：' + friendly_(e);
   }
-  out.voices = slackVoicesFor_(code);
+  var sv = slackVoicesFor_(code);
+  out.voices = sv.list;
+  out.voicesProblem = sv.problem;
   return out;
 }
 
-/** TO_JSON_STRING 的結果 → 純文字。字串、陣列、物件都轉成可讀文字。 */
+/** 原話／前後文若是結構資料，這些欄位一律不輸出（主播 ID、帳號、時間戳之類）。 */
+var ID_KEY_RE = /(^|_)(id|uid)$|Id$|ID$|user|liver|streamer|liveStream|account|mail|phone|name|time|^ts$|^at$/i;
+
+/** TO_JSON_STRING 的結果 → 純文字。字串、陣列都轉成文字；物件只輸出非 ID 類欄位。 */
 function jsonText_(j) {
   if (j === null || j === undefined || j === 'null') return '';
   var v;
@@ -364,7 +389,7 @@ function jsonText_(j) {
     if (typeof x === 'string') { if (x.trim()) parts.push(x.trim()); return; }
     if (typeof x === 'number' || typeof x === 'boolean') { parts.push(String(x)); return; }
     if (Array.isArray(x)) { x.forEach(walk); return; }
-    Object.keys(x).forEach(function (k) { walk(x[k]); });
+    Object.keys(x).forEach(function (k) { if (!ID_KEY_RE.test(k)) walk(x[k]); });
   })(v);
   return parts.join('\n');
 }
@@ -387,10 +412,10 @@ function slackSummary_() {
     rows = rawTail_();
   } catch (e) {
     out.ok = false;
-    out.problem = '讀不到 VoC Daily Bot 的試算表：' + String(e && e.message || e).slice(0, 200);
+    out.problem = '讀不到收集機器人的試算表：' + friendly_(e);
     return out;
   }
-  var today = today_(), yest = addDays_(today, -1), wk = addDays_(today, -7);
+  var today = today_(), yest = addDays_(today, -1), wk = addDays_(today, -6);
   var src = {};
   rows.forEach(function (r) {
     var d = ymd_(r[RAW.ingested]);
@@ -412,10 +437,10 @@ function slackSummary_() {
 
 function slackVoicesFor_(code) {
   try {
-    return rawTail_().filter(function (r) { return collapse_(r[RAW.code]) === code; })
-      .reverse().slice(0, 5).map(voice_);
+    return { problem: '', list: rawTail_().filter(function (r) { return collapse_(r[RAW.code]) === code; })
+      .reverse().slice(0, 5).map(voice_) };
   } catch (e) {
-    return [];
+    return { problem: '讀不到收集機器人的試算表：' + friendly_(e), list: [] };
   }
 }
 
@@ -496,11 +521,20 @@ function repoJson_(path, optional) {
     return { code: c, text: x.getContentText('UTF-8') };
   }, '讀取 ' + path);
   if (r.code === 404 && optional) return null;
-  if (r.code !== 200) throw new Error('讀不到 ' + path + '（' + r.code + '）');
+  if (r.code !== 200) {
+    console.log('[ERROR] 讀取 ' + path + ' 回 ' + r.code);
+    throw new Error('讀不到' + repoLabel_(path) + '（代碼 ' + r.code + '）');
+  }
   return JSON.parse(r.text);
 }
 
-// ═══════════════ 快取（伺服器端；超過 90KB 自動分段） ═══════════════
+function repoLabel_(path) {
+  if (/roadmap-bot/.test(path)) return ' Roadmap 每日紀錄';
+  if (/mapping/.test(path)) return '「誰負責哪個痛點」的設定';
+  return '痛點統計';
+}
+
+// ═══════════════ 快取（伺服器端；超過 30000 字自動分段） ═══════════════
 
 function cacheGet_(key) {
   var c = CacheService.getScriptCache();
@@ -528,7 +562,7 @@ function cachePut_(key, obj) {
   var c = CacheService.getScriptCache();
   var k = CACHE_VER + ':' + key;
   var s = JSON.stringify(obj);
-  var SIZE = 90000;
+  var SIZE = 30000;   // CacheService 每個值上限 100KB（位元組）；中文 1 字約 3 bytes
   try {
     if (s.length < SIZE) { c.put(k, '=' + s, CACHE_SECONDS); return; }
     var m = {}, n = Math.ceil(s.length / SIZE);

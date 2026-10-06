@@ -191,15 +191,66 @@ store.clear();
 const orig = ctx.BigQuery.Jobs.query;
 ctx.BigQuery.Jobs.query = () => { throw new Error('Access Denied'); };
 const d2 = ctx.getDashboard();
-check('BigQuery 失敗：改用 repo 7 週並標示原因', () => { assert.strictEqual(d2.sttSource, 'repo'); assert.strictEqual(d2.weeks.length, 7); assert.ok(d2.sttProblem.includes('Access Denied')); });
+check('BigQuery 失敗：改用 repo 7 週並標示原因', () => { assert.strictEqual(d2.sttSource, 'repo'); assert.strictEqual(d2.weeks.length, 7); assert.strictEqual(d2.sttProblem, '沒有讀取權限'); });
 const det2 = ctx.getPainDetail('U6.0');
-check('BigQuery 失敗：痛點細節回 ok:false＋原因，不會整頁壞掉', () => { assert.strictEqual(det2.ok, false); assert.ok(det2.problem.includes('Access Denied')); });
+check('BigQuery 失敗：痛點細節回 ok:false＋原因，不會整頁壞掉', () => { assert.strictEqual(det2.ok, false); assert.strictEqual(det2.problem, '讀不到直播原話：沒有讀取權限'); });
 ctx.BigQuery.Jobs.query = orig;
 
+// 原話／前後文是結構資料時，ID 類欄位不能出現在畫面上
+check('原話結構含 userID／liveStreamID／時間：這些值不輸出', () => {
+  const t = ctx.jsonText_(JSON.stringify([{ userID: 'U123456', liveStreamID: 'L999', speaker_name: '王小明', ts: 1700000000, text: '鍵盤卡住' },
+                                          { user_id: 'U2', utterance: '又閃退' }]));
+  assert.strictEqual(t, '鍵盤卡住\n又閃退');
+});
+
+// 錯誤訊息：畫面只看到中文
+store.clear();
+const origFetch = ctx.UrlFetchApp.fetch;
+ctx.UrlFetchApp.fetch = url => /mapping/.test(url) ? { getResponseCode: () => 404, getContentText: () => '' } : origFetch(url);
+check('repo 檔讀不到：錯誤訊息是中文、沒有 mapping／JSON 字樣', () => {
+  try { ctx.getDashboard(); assert.fail('應該丟錯'); } catch (e) {
+    assert.ok(!/mapping|json/i.test(e.message), e.message); assert.ok(/讀不到/.test(e.message), e.message);
+  }
+});
+ctx.UrlFetchApp.fetch = origFetch;
+check('BigQuery 英文錯誤轉成中文', () => {
+  assert.strictEqual(ctx.friendly_(new Error('Access Denied: Table x')), '沒有讀取權限');
+  assert.strictEqual(ctx.friendly_(new Error('Exceeded maximum execution time')), '暫時讀不到');
+  assert.strictEqual(ctx.friendly_(new Error('讀不到 Roadmap 每日紀錄（代碼 500）')), '讀不到 Roadmap 每日紀錄（代碼 500）');
+});
+
+// 整週缺資料：週數仍是連續 12 週，並列出缺的週
+store.clear();
+const origQ = ctx.BigQuery.Jobs.query;
+ctx.BigQuery.Jobs.query = req => {
+  const r = origQ(req);
+  if (/stt_voc_weekly_metrics/.test(req.query)) r.rows = r.rows.filter(x => x.f[0].v !== '2026-09-14');
+  return r;
+};
+const dg = ctx.getDashboard();
+check('整週缺資料：12 個連續週一、標出缺 9/14', () => {
+  assert.strictEqual(dg.weeks.length, 12);
+  same(dg.missingWeeks, ['2026-09-14']);
+  assert.strictEqual(dg.weeks[10], '2026-09-14');
+});
+ctx.BigQuery.Jobs.query = origQ;
+
+// 試算表讀不到：痛點細節要說讀不到，不能裝作沒有聲音
+store.clear();
+const origSS = ctx.SpreadsheetApp.openById;
+ctx.SpreadsheetApp.openById = () => { throw new Error('You do not have permission'); };
+const ds = ctx.getPainDetail('S2.1');
+check('試算表讀不到：細節標示原因、主資料 slack.ok=false', () => {
+  assert.ok(/讀不到/.test(ds.voicesProblem)); assert.strictEqual(ds.voices.length, 0);
+  assert.strictEqual(ctx.getDashboard().slack.ok, false);
+});
+ctx.SpreadsheetApp.openById = origSS;
+
 // 大資料快取分段
-check('快取超過 90KB 會分段且讀得回來', () => {
-  const big = { s: 'x'.repeat(250000) };
+check('快取超過 30000 字會分段（每段 ≤ 100KB）且讀得回來', () => {
+  const big = { s: '中'.repeat(100000) };
   ctx.cachePut_('big', big);
+  for (const [k, v] of store) assert.ok(Buffer.byteLength(String(v)) <= 100 * 1024, k + ' 超過 100KB');
   same(ctx.cacheGet_('big'), big);
 });
 
