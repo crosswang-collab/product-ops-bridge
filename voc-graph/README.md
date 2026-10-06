@@ -10,7 +10,7 @@ out/stt-latest.json ───────────────┐
 VoC roadmap 25 痛點（catalog.json）─┼─▶ build.py ─▶ check.py ─▶ Vercel 頁面
 Jira active 卡（roadmap-bot，每天）─┘   （組圖）    （驗收，沒過就不更新）
           ▲
-   mapping.json（痛點 → Jira 卡，Cross 在 /voc-graph/web/mapping 編輯，唯一的人工輸入）
+   mapping.json（痛點 → Jira 卡，Cross 在 Apps Script 編輯頁維護，唯一的人工輸入）
 ```
 
 頁面只回答三件事：**哪些聲音在變多、哪些痛點有聲音沒有卡、哪些 [VoC] 卡對不到痛點。**
@@ -47,13 +47,10 @@ commit 自己的 `out/`（Apps Script 推 `stt-latest.json` 前先比對 repo �
 2. 跑完後 Actions → roadmap-daily → Run workflow，voc-graph-daily 會自動接著跑
 3. 綠燈後打開 `https://<你的 vercel 網址>/voc-graph/web/`
 
-## 編輯對應表
+## 編輯對應表（誰在處理這個痛點）
 
-1. 打開 `https://<vercel 網址>/voc-graph/web/mapping`（對照頁上方也有「✏️ 編輯痛點↔卡對應」）
-2. 第一次：按右上「GitHub：未連線」→ 貼上 Apps Script 用的那個 token（只限這個 repo、Contents 讀寫）。token 只存在這個瀏覽器
-3. 每個痛點按「＋ 選卡」勾卡（進行中的卡 ＋ 最近 120 天離開 active 的卡；清單沒有可手動輸入卡號）
-4. 底部「儲存」→ 直接 commit `mapping.json` → voc-graph-daily 以當天 Jira 快照重算 → 約 2–3 分鐘後對照頁更新
-5. 存檔前會比對 GitHub 最新版；編輯期間被別人改過就不存，請重新整理再改
+打開書籤「誰在處理這個痛點」（Apps Script 網頁，只有 Cross 能開，用 Google 帳號，不用 token）。
+左邊選痛點、右邊點卡；停手 3 秒自動儲存，存完約 2–3 分鐘對照頁更新。設定步驟見 [`gas/README.md`](gas/README.md) 後半段。
 
 ## 紅燈對照
 
@@ -70,8 +67,9 @@ commit 自己的 `out/`（Apps Script 推 `stt-latest.json` 前先比對 repo �
 | 檔案 | 用途 |
 |---|---|
 | `catalog.json` | 25 痛點（取自 `JP_Needs_Heatmap_ZH.html` 的 RANK）＋ F 主題（取自 ayana pipeline 的 CATALOG）。痛點改版時重抽 |
-| `mapping.json` | 痛點 → Jira 卡。Cross 在編輯頁 `web/mapping.html` 維護；存檔後 voc-graph-daily 自動重算 |
-| `web/mapping.html` | 對應表編輯頁。勾卡 → 存檔直接 commit 到 main（需在瀏覽器設一次 GitHub token，只存在該瀏覽器）；沒 token 時改為複製 JSON 到 GitHub 編輯頁 |
+| `mapping.json` | 痛點 → Jira 卡。Cross 在 Apps Script 編輯頁維護；存檔後 voc-graph-daily 自動重算 |
+| `gas/Editor.gs` ＋ `gas/Editor.html` | 編輯頁（Apps Script 網頁版）。Editor.html 每次開啟時從 repo 讀，介面改版不用重新部署 |
+| `web/mapping.html` | 舊入口，只負責轉到 Apps Script 編輯頁 |
 | `gas/SttExport.gs` | Apps Script：BigQuery → `out/stt-latest.json`。聚合在 BigQuery 內完成，userID 與原話不離開 BigQuery |
 | `build.py` | 組圖 → `out/latest.json`、`out/graph-<日期>.json`、`out/brief-<日期>.md` |
 | `check.py` | 驗收 C1–C10。只讀不改 |
