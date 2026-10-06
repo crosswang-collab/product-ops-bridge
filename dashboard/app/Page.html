@@ -1,0 +1,595 @@
+<title>VoC 作戰台</title>
+<style>
+/* 版面：左側「要處理的清單」、右側「選中那一項的細節」；手機改成上下堆疊 */
+:root{
+  --bg:#f5f6f4; --panel:#ffffff; --ink:#1d2421; --muted:#5d6863; --line:#dde2df; --soft:#eef1ef;
+  --accent:#1f5f8b; --accent-ink:#ffffff;
+  --hot:#c2410c; --hot-bg:#fde9dc; --keep:#a16207; --keep-bg:#fbf0d2; --fade:#4b6b80; --fade-bg:#e2ecf2;
+  --gap:#9d174d; --gap-bg:#fbe3ee; --ok:#2f6f3e; --ok-bg:#e1f0e4; --warn:#a16207; --warn-bg:#fbf0d2;
+  --bar:#9fb3c2; --bar-hi:#1f5f8b;
+  --font:"PingFang TC","Noto Sans TC","Microsoft JhengHei","Hiragino Sans",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --ink:#e6ebe8; --muted:#9aa6a0; --line:#2e3633; --soft:#232a27;
+  --accent:#7fb6dc; --accent-ink:#0e1a22;
+  --hot:#fb923c; --hot-bg:#3a2216; --keep:#e7b84a; --keep-bg:#33290f; --fade:#9cc0d6; --fade-bg:#1f2c35;
+  --gap:#f472b6; --gap-bg:#3a1a2a; --ok:#7ccf8e; --ok-bg:#1a2f20; --warn:#e7b84a; --warn-bg:#33290f;
+  --bar:#4f6573; --bar-hi:#7fb6dc; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --ink:#e6ebe8; --muted:#9aa6a0; --line:#2e3633; --soft:#232a27;
+  --accent:#7fb6dc; --accent-ink:#0e1a22;
+  --hot:#fb923c; --hot-bg:#3a2216; --keep:#e7b84a; --keep-bg:#33290f; --fade:#9cc0d6; --fade-bg:#1f2c35;
+  --gap:#f472b6; --gap-bg:#3a1a2a; --ok:#7ccf8e; --ok-bg:#1a2f20; --warn:#e7b84a; --warn-bg:#33290f;
+  --bar:#4f6573; --bar-hi:#7fb6dc; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.55;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:14px 40px}
+.proto{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn);border-radius:6px;padding:8px 12px;font-size:13px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin:14px 0 8px}
+header.top h1{font-size:22px;margin:0;letter-spacing:.02em}
+header.top .asof{color:var(--muted);font-size:13px}
+.bluf{font-size:16px;margin:4px 0 14px;text-wrap:balance}
+.bluf b{font-variant-numeric:tabular-nums}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;margin-bottom:14px}
+nav.tabs button{font:inherit;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 12px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+nav.tabs button:focus-visible,.row:focus-visible,.btn:focus-visible,.chipf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.panel h2{font-size:15px;margin:0 0 10px}
+.panel h3{font-size:13px;margin:16px 0 8px;color:var(--muted);letter-spacing:.04em}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:4px 10px;padding:10px 8px;border-top:1px solid var(--line);cursor:pointer;align-items:center;border-left:3px solid transparent}
+.row:first-child{border-top:0}
+.row:hover{background:var(--soft)}
+.row[aria-current="true"]{background:var(--soft);border-left-color:var(--accent)}
+.code{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.ttl{min-width:0}
+.ttl .t{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.chip{font-size:11.5px;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.c-hot{background:var(--hot-bg);color:var(--hot)}
+.c-keep{background:var(--keep-bg);color:var(--keep)}
+.c-fade{background:var(--fade-bg);color:var(--fade)}
+.c-gap{background:var(--gap-bg);color:var(--gap)}
+.c-ok{background:var(--ok-bg);color:var(--ok)}
+.c-warn{background:var(--warn-bg);color:var(--warn)}
+.c-mute{background:var(--soft);color:var(--muted)}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-size:18px;font-weight:600}
+.num small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.empty{color:var(--muted);padding:10px 8px;font-size:13px}
+.d-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.d-head h2{font-size:19px;margin:0}
+.d-big{font-size:13px;color:var(--muted);margin-top:4px}
+.d-big b{font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;max-width:620px;height:auto}
+.rules{display:grid;gap:6px;margin-top:6px}
+.rule{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:13px}
+.rule .mk{font-weight:700;text-align:center}
+.rule.yes .mk{color:var(--ok)} .rule.no .mk{color:var(--muted)}
+.ph{border:1px dashed var(--line);border-radius:6px;padding:10px;background:repeating-linear-gradient(135deg,transparent 0 8px,var(--soft) 8px 9px)}
+.ph-tag{font-size:11px;color:var(--warn);font-weight:600;letter-spacing:.04em}
+.sub{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:4px 10px;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
+.sub:first-of-type{border-top:0}
+.quote{border-top:1px solid var(--line);padding:8px 0}
+.quote:first-of-type{border-top:0}
+.quote .sum{font-weight:600}
+.quote .txt{margin:4px 0;color:var(--ink)}
+.quote .meta{font-size:12px;color:var(--muted)}
+.ctx{margin-top:6px;padding:8px;background:var(--soft);border-radius:6px;font-size:13px}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+a{color:var(--accent)}
+.note{font-size:12px;color:var(--muted);margin-top:6px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chipf{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+.chipf[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;border-top:0}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+.stagebar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:6px 0}
+.stagebar div{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--accent-ink);background:var(--accent);min-width:0;overflow:hidden;white-space:nowrap}
+.stagebar div:nth-child(2){opacity:.8}.stagebar div:nth-child(3){opacity:.62}.stagebar div:nth-child(4){opacity:.45}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
+</style>
+
+<div class="wrap">
+  <div class="proto" id="status" role="status">資料讀取中…（第一次打開約 20–40 秒，之後 6 小時內會很快）</div>
+
+  <header class="top">
+    <h1>VoC 作戰台</h1>
+    <span class="asof" id="asof"></span>
+  </header>
+  <p class="bluf" id="bluf"></p>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="view"></main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var D = null;
+  var HELP = "請重新整理；一直失敗的話，在 Apps Script 編輯器執行 testDashboard，把紀錄貼給 Claude。";
+  /* 伺服器或 Apps Script 本身的英文錯誤不直接給人看，改成中文說明 */
+  function errText(e) {
+    var m = String(e && e.message ? e.message : e).replace(/^\s*(Error|Exception|ScriptError)\s*:\s*/i, "");
+    return /[A-Za-z]{3,}/.test(m.replace(/Roadmap|Slack|sTop/g, "")) ? "暫時讀不到" : m;
+  }
+  var detailCache = {};
+
+  /* ---- 安全的 DOM 小工具：只用 createElement / textContent 放文字，不把字串當 HTML 解析 ---- */
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "text") n.textContent = attrs[k];
+      else if (k === "class") n.className = attrs[k];
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) {
+      if (c == null) return;
+      n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return n;
+  }
+  function svg(tag, attrs) {
+    var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function md(iso) { var p = String(iso || "").split("-"); return p.length === 3 ? (+p[1]) + "/" + (+p[2]) : "—"; }
+  function safeUrl(u) { return /^https:\/\//.test(u || "") ? u : null; }
+  function link(href, text) {
+    var u = safeUrl(href);
+    return u ? el("a", { href: u, target: "_blank", rel: "noopener", text: text }) : el("span", { text: text });
+  }
+
+  function init() {
+  var R = D.rules;
+  var weekLbl = D.weeks.map(md);
+
+  /* ---- 痛點排序：🔥 → 🔁 且沒人負責 → 其他沒人負責；同組內依上週人數 ---- */
+  function prio(p) {
+    if (p.rule.emerging) return 0;
+    if (p.rule.persistent && p.noOwner) return 1;
+    if (p.rule.persistent) return 2;
+    if (p.noOwner) return 3;
+    if (p.rule.fading) return 4;
+    return 9;
+  }
+  var pains = D.pains.slice().sort(function (a, b) {
+    return prio(a) - prio(b) || b.latest - a.latest;
+  });
+  var todo = pains.filter(function (p) { return prio(p) < 9; });
+
+  function chipsFor(p) {
+    var c = [];
+    if (p.rule.emerging) c.push(el("span", { class: "chip c-hot", text: "🔥 新興高熱" }));
+    if (p.rule.persistent) c.push(el("span", { class: "chip c-keep", text: "🔁 持續高熱" }));
+    if (p.rule.fading) c.push(el("span", { class: "chip c-fade", text: "📉 消退" }));
+    if (p.noOwner) c.push(el("span", { class: "chip c-gap", text: "沒人負責" }));
+    if (p.allZero) c.push(el("span", { class: "chip c-mute", text: D.weeks.length + " 週都是 0 位" }));
+    return c;
+  }
+
+  /* ---- 頂端：資料日期＋一句話結論 ---- */
+  document.getElementById("asof").textContent =
+    "聲音資料：" + md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那一週　·　Roadmap：" + md(D.jiraAsOf);
+  var nE = D.pains.filter(function (p) { return p.rule.emerging; }).length;
+  var nP = D.pains.filter(function (p) { return p.rule.persistent; }).length;
+  var nF = D.pains.filter(function (p) { return p.rule.fading; }).length;
+  var nG = D.pains.filter(function (p) { return p.noOwner; }).length;
+  var bl = document.getElementById("bluf");
+  [["本週 ", ""], [nE, "b"], [" 個新興高熱、", ""], [nP, "b"], [" 個持續高熱、", ""], [nF, "b"],
+   [" 個消退；", ""], [nG, "b"], [" 個有聲音的痛點還沒人負責；Roadmap 近 7 天有 ", ""], [D.worse.length, "b"], [" 件變差。", ""]]
+    .forEach(function (x) { bl.appendChild(x[1] ? el("b", { text: String(x[0]) }) : document.createTextNode(String(x[0]))); });
+
+  /* ---- 分頁 ---- */
+  var TABS = [
+    ["today", "今天要處理"], ["pains", "痛點（" + D.pains.length + "）"], ["roadmap", "Roadmap"],
+    ["slack", "Slack＋表單"], ["health", "資料來源狀態"]
+  ];
+  var state = { tab: "today", sel: todo.length ? todo[0].code : pains[0].code, filter: "all" };
+  var tabsEl = document.getElementById("tabs"), view = document.getElementById("view");
+  TABS.forEach(function (t) {
+    tabsEl.appendChild(el("button", { role: "tab", id: "tab-" + t[0], "aria-selected": "false", text: t[1],
+      onclick: function () { go(t[0]); } }));
+  });
+  function go(tab) {
+    state.tab = tab;
+    TABS.forEach(function (t) {
+      document.getElementById("tab-" + t[0]).setAttribute("aria-selected", t[0] === tab ? "true" : "false");
+    });
+    clear(view);
+    try {
+      ({ today: viewToday, pains: viewPains, roadmap: viewRoadmap, slack: viewSlack, health: viewHealth })[tab]();
+    } catch (err) {
+      if (window.console) console.error(err);
+      clear(view);
+      view.appendChild(el("div", { class: "panel" }, [el("div", { class: "empty", text: "這一頁整理資料時出錯。" + HELP })]));
+    }
+  }
+
+  /* ---- 清單列 ---- */
+  function painRow(p, onPick) {
+    var r = el("div", { class: "row", role: "button", tabindex: "0", "aria-current": p.code === state.sel ? "true" : "false" }, [
+      el("span", { class: "code", text: p.code }),
+      el("span", { class: "ttl" }, [el("span", { class: "t", text: p.title }), el("span", { class: "chips" }, chipsFor(p))]),
+      el("span", { class: "num" }, [String(p.latest), el("small", { text: "位／上週" })])
+    ]);
+    function pick() { state.sel = p.code; onPick(); }
+    r.addEventListener("click", pick);
+    r.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    return r;
+  }
+
+  /* ---- 首頁：今天要處理 ---- */
+  function viewToday() {
+    var left = el("div", { class: "panel" }, [el("h2", { text: "要處理的痛點（最急的在最上面）" })]);
+    var list = el("div", { class: "list" });
+    todo.forEach(function (p) { list.appendChild(painRow(p, function () { go("today"); })); });
+    left.appendChild(list);
+
+    left.appendChild(el("h3", { text: "ROADMAP 卡變差" + (D.worseSince ? "（近 7 天，與 " + md(D.worseSince) + " 相比）" : "") }));
+    if (!D.worseSince) left.appendChild(el("div", { class: "empty", text: "找不到 7–10 天前的 Roadmap 紀錄，暫時無法比較。" }));
+    else if (!D.worse.length) left.appendChild(el("div", { class: "empty", text: "沒有卡變差。" }));
+    D.worse.forEach(function (w) {
+      left.appendChild(el("div", { class: "row", style: "cursor:default" }, [
+        el("span", { class: "code", text: w.key.replace("APPIDEAS-", "#") }),
+        el("span", { class: "ttl" }, [link(w.url, w.summary),
+          el("span", { class: "chips" }, [el("span", { class: "chip " + (w.what === "狀態變差" ? "c-hot" : "c-warn"),
+            text: w.what + "：" + w.from + " → " + w.to })])]),
+        el("span")
+      ]));
+    });
+    view.appendChild(el("div", { class: "split" }, [left, detail(find(state.sel))]));
+  }
+
+  function find(code) { for (var i = 0; i < D.pains.length; i++) if (D.pains[i].code === code) return D.pains[i]; return D.pains[0]; }
+
+  /* ---- 痛點細節（右欄） ---- */
+  function detail(p) {
+    var r = p.rule;
+    var box = el("section", { class: "panel", "aria-label": "痛點細節" });
+    box.appendChild(el("div", { class: "d-head" }, [el("span", { class: "code", text: p.code }), el("h2", { text: p.title })]));
+    box.appendChild(el("div", { class: "chips" }, chipsFor(p)));
+    var big = el("div", { class: "d-big" });
+    big.appendChild(el("b", { text: String(p.latest) }));
+    big.appendChild(document.createTextNode(" 位主播在 " + md(D.latestWeek.start) + " 那週提到（週報固定統計）　·　VoC 分數 " + p.vocScore));
+    box.appendChild(big);
+
+    box.appendChild(el("h3", { text: "每週主播人數（最近 2 週用深色標出）" }));
+    box.appendChild(el("div", { class: "chart" }, [chart(p.series)]));
+    box.appendChild(el("div", { class: "rules" }, [
+      ruleLine(r.emerging, "新興高熱：最近 2 週平均 " + r.recent2 + " 位（門檻 ≥ " + R.emergeMin + "），前 4 週平均 " + r.prior4 + " 位" +
+        (r.prior4 >= 2 ? "，是 " + (r.prior4 ? (r.recent2 / r.prior4).toFixed(1) : "—") + " 倍（門檻 ≥ 2 倍）" : "（< 2 位，不看倍數）")),
+      ruleLine(r.persistent, "持續高熱：最近 6 週有 " + r.hotWeeks + " 週 ≥ " + R.persistMin + " 位（門檻 ≥ 4 週）"),
+      ruleLine(r.fading, "消退：最近 3 週每週都比前一週低（" + p.series.slice(-4).join(" → ") + "）")
+    ]));
+
+    if (p.themes.length) {
+      box.appendChild(el("h3", { text: "同時被歸到的主題（上週，同一位主播）" }));
+      box.appendChild(el("div", { class: "chips" }, p.themes.map(function (t) {
+        return el("span", { class: "chip c-mute", text: t.code + " " + t.name + "　" + t.n + " 位" });
+      })));
+    }
+
+    /* 細分類＋代表原話：伺服器以固定查詢取回，這裡只當純文字放進畫面 */
+    box.appendChild(el("h3", { text: "細分類（最近 4 週）" }));
+    var subBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
+    box.appendChild(subBox);
+    box.appendChild(el("h3", { text: "代表原話（每位主播最多 1 則，sTop 優先）" }));
+    var qBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
+    box.appendChild(qBox);
+    box.appendChild(el("h3", { text: "Slack＋表單裡對到這個痛點的聲音" }));
+    var vBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
+    box.appendChild(vBox);
+    loadDetail(p.code, function (det) {
+      if (state.sel !== p.code) return;
+      try {
+        fillDetail(det, subBox, qBox, vBox);
+      } catch (err) {
+        if (window.console) console.error(err);
+        [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "這個痛點的細節整理時出錯。" + HELP })); });
+      }
+    }, function (msg) {
+      [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: msg })); });
+    });
+
+    /* 負責的卡：由 Cross 自己指定（D3），連到既有編輯頁 */
+    box.appendChild(el("h3", { text: "負責的 Roadmap 卡" }));
+    if (p.cards.length) {
+      p.cards.forEach(function (k) {
+        var c = D.cards.filter(function (x) { return x.key === k; })[0];
+        box.appendChild(el("div", { class: "row", style: "cursor:default" }, [
+          el("span", { class: "code", text: k.replace("APPIDEAS-", "#") }),
+          el("span", { class: "ttl" }, [c ? link(c.url, c.summary) : el("span", { text: k }),
+            c ? el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: stageZh(c.stage) }), statusChip(c.project_status)]) : null]),
+          el("span")]));
+      });
+    } else {
+      box.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "還沒有指定。" }));
+    }
+    var ed = safeUrl(D.editorUrl);
+    if (ed) {
+      box.appendChild(el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "去指定負責的卡 ↗" }));
+      box.appendChild(el("div", { class: "note", text: "會開啟你現有的「誰在處理這個痛點」頁面，存檔後隔天這裡會自動更新。" }));
+    }
+    return box;
+  }
+
+  var pending = {};
+  function loadDetail(code, ok, fail) {
+    if (detailCache[code]) { ok(detailCache[code]); return; }
+    if (pending[code]) { pending[code].push([ok, fail]); return; }
+    pending[code] = [[ok, fail]];
+    google.script.run
+      .withSuccessHandler(function (det) {
+        detailCache[code] = det;
+        var w = pending[code]; delete pending[code];
+        w.forEach(function (x) { x[0](det); });
+      })
+      .withFailureHandler(function (e) {
+        var w = pending[code]; delete pending[code];
+        w.forEach(function (x) { x[1]("讀不到（" + errText(e) + "）。" + HELP); });
+      })
+      .getPainDetail(code);
+  }
+
+  function fillDetail(det, subBox, qBox, vBox) {
+    clear(subBox); clear(qBox); clear(vBox);
+    if (!det.ok) {
+      subBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.problem }));
+    } else if (!det.groups.length) {
+      subBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近 4 週沒有經過 AI 判定的聲音。" }));
+    } else {
+      subBox.appendChild(el("div", { class: "sub" }, [el("span", { class: "code", text: "問題類型 × 發生位置" }), el("span", { class: "code", text: "主播" })]));
+      det.groups.forEach(function (g) {
+        subBox.appendChild(el("div", { class: "sub" }, [
+          el("span", { text: g.kind + " × " + g.layer + (g.stop ? "（含 sTop " + g.stop + " 位）" : "") }),
+          el("span", { class: "n", text: g.n + " 位" })]));
+      });
+      subBox.appendChild(el("div", { class: "note", text: "細分類依據：AI 判定過的 " + det.judgedStreamers + " 位主播（" +
+        md(det.since) + " 起）。和上面週報人數的來源不同，數字不會一樣；一位主播可能同時出現在多組。" }));
+    }
+
+    if (det.ok && !det.quotes.length) qBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近 4 週沒有原話。" }));
+    if (!det.ok) qBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.problem }));
+    det.quotes.forEach(function (q) {
+      var kids = [];
+      if (q.summary) kids.push(el("div", { class: "sum", text: q.summary }));
+      kids.push(el("div", { class: "txt", text: "「" + q.text + "」" }));
+      kids.push(el("div", { class: "meta", text: (q.tier || "一般") + " 主播 · " + md(q.week) + " 那週 · " + q.kind + " × " + q.layer }));
+      if (q.context) {
+        var ctx = el("div", { class: "ctx", text: q.context });
+        ctx.style.whiteSpace = "pre-wrap";
+        ctx.hidden = true;
+        var b = el("button", { class: "btn", type: "button", text: "看前後文", "aria-expanded": "false" });
+        b.addEventListener("click", function () {
+          ctx.hidden = !ctx.hidden;
+          b.setAttribute("aria-expanded", ctx.hidden ? "false" : "true");
+          b.textContent = ctx.hidden ? "看前後文" : "收起前後文";
+        });
+        kids.push(b); kids.push(ctx);
+      }
+      qBox.appendChild(el("div", { class: "quote" }, kids));
+    });
+
+    if (det.voicesProblem) vBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.voicesProblem }));
+    else if (!det.voices.length) vBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近沒有對到這個痛點的 Slack／表單聲音。" }));
+    det.voices.forEach(function (v) { vBox.appendChild(voiceEl(v)); });
+  }
+
+  function voiceEl(v) {
+    var meta = (v.source || "來源不明") + " · " + (v.date ? md(v.date) : "日期不明") + (v.verdict ? " · " + v.verdict : "") + (v.code ? "（" + v.code + "）" : "");
+    var kids = [];
+    if (v.summary) kids.push(el("div", { class: "sum", text: v.summary }));
+    kids.push(el("div", { class: "txt", text: v.body }));
+    var m = el("div", { class: "meta", text: meta + "　" });
+    if (v.link) m.appendChild(link(v.link, "原始連結 ↗"));
+    kids.push(m);
+    return el("div", { class: "quote" }, kids);
+  }
+
+  function ruleLine(ok, text) {
+    return el("div", { class: "rule " + (ok ? "yes" : "no") }, [el("span", { class: "mk", text: ok ? "✓" : "—" }), el("span", { text: text })]);
+  }
+
+  /* ---- 週柱狀圖：同一把尺畫柱、刻度、門檻線 ---- */
+  function chart(s) {
+    var W = 620, H = 190, L = 34, Rr = 70, T = 14, B = 26;
+    var max = Math.max(R.persistMin + 5, Math.max.apply(null, s)) * 1.1;
+    var y = function (v) { return T + (H - T - B) * (1 - v / max); };
+    var bw = (W - L - Rr) / s.length;
+    var g = svg("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "每週主播人數：" + s.join("、") });
+    [0, Math.round(max / 2)].forEach(function (v) {
+      g.appendChild(svg("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: "var(--line)" }));
+      var t = svg("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--muted)" });
+      t.textContent = String(v); g.appendChild(t);
+    });
+    s.forEach(function (v, i) {
+      var x = L + i * bw + bw * 0.18, w = bw * 0.64, hi = i >= s.length - 2;
+      g.appendChild(svg("rect", { x: x, y: y(v), width: w, height: Math.max(0, y(0) - y(v)), rx: 2, fill: hi ? "var(--bar-hi)" : "var(--bar)" }));
+      var t = svg("text", { x: x + w / 2, y: y(v) - 4, "text-anchor": "middle", "font-size": 11, fill: "var(--ink)" });
+      t.textContent = String(v); g.appendChild(t);
+      var d = svg("text", { x: x + w / 2, y: H - 8, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)" });
+      d.textContent = weekLbl[i]; g.appendChild(d);
+    });
+    [[R.emergeMin, "新興門檻 " + R.emergeMin], [R.persistMin, "持續門檻 " + R.persistMin]].forEach(function (m) {
+      if (m[0] > max) return;
+      g.appendChild(svg("line", { x1: L, x2: W - Rr, y1: y(m[0]), y2: y(m[0]), stroke: "var(--muted)", "stroke-dasharray": "4 4" }));
+      var t = svg("text", { x: W - Rr + 6, y: y(m[0]) + 4, "text-anchor": "start", "font-size": 10, fill: "var(--muted)" });
+      t.textContent = m[1]; g.appendChild(t);
+    });
+    return g;
+  }
+
+  /* ---- 痛點分頁：全部 25 個＋篩選 ---- */
+  function viewPains() {
+    var F = [["all", "全部"], ["emerging", "🔥 新興"], ["persistent", "🔁 持續"], ["fading", "📉 消退"], ["noOwner", "沒人負責"]];
+    var left = el("div", { class: "panel" });
+    var fl = el("div", { class: "filters" });
+    F.forEach(function (f) {
+      fl.appendChild(el("button", { class: "chipf", type: "button", "aria-pressed": state.filter === f[0] ? "true" : "false", text: f[1],
+        onclick: function () { state.filter = f[0]; go("pains"); } }));
+    });
+    left.appendChild(fl);
+    var rows = pains.filter(function (p) {
+      return state.filter === "all" || (state.filter === "noOwner" ? p.noOwner : p.rule[state.filter]);
+    });
+    var list = el("div", { class: "list" });
+    if (!rows.length) list.appendChild(el("div", { class: "empty", text: "這一週沒有符合的痛點。" }));
+    rows.forEach(function (p) { list.appendChild(painRow(p, function () { go("pains"); })); });
+    left.appendChild(list);
+    if (D.outside.length) {
+      left.appendChild(el("div", { class: "note", text: "不在 25 個痛點清單內但聲量高：" +
+        D.outside.map(function (o) { return o.code + "（上週 " + o.latest + " 位）"; }).join("、") + "。" }));
+    }
+    view.appendChild(el("div", { class: "split" }, [left, detail(find(state.sel))]));
+  }
+
+  /* ---- Roadmap 分頁 ---- */
+  function viewRoadmap() {
+    var total = D.cards.length;
+    var order = ["Discovery", "Design", "Develop", "Impact"];
+    var sb = el("div", { class: "stagebar" });
+    order.forEach(function (s) {
+      var n = D.stages[s] || 0; if (!n) return;
+      sb.appendChild(el("div", { style: "flex:" + n, title: stageZh(s) + " " + n, text: n >= 3 ? stageZh(s) + " " + n : String(n) }));
+    });
+    var top = el("div", { class: "panel" }, [el("h2", { text: "進行中 " + total + " 張卡，各階段張數" }), sb,
+      el("div", { class: "legend", text: order.map(function (s) { return stageZh(s) + " " + (D.stages[s] || 0); }).join("　·　") })]);
+
+    var lt = el("table", {}, [el("thead", {}, [el("tr", {}, ["團隊", "卡", "點數", "手上工作量（月）", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
+    var tb = el("tbody");
+    D.load.forEach(function (r) {
+      var v = r.verdict === "overload" ? ["c-hot", "過載"] : r.verdict === "healthy" ? ["c-ok", "正常"] : ["c-mute", "沒有基準"];
+      tb.appendChild(el("tr", {}, [el("td", { text: r.domain }), el("td", { class: "n", text: String(r.cards) }),
+        el("td", { class: "n", text: String(r.points) }), el("td", { class: "n", text: r.months == null ? "—" : r.months.toFixed(1) }),
+        el("td", {}, [el("span", { class: "chip " + v[0], text: v[1] })])]));
+    });
+    lt.appendChild(tb);
+    var loadP = el("div", { class: "panel" }, [el("h2", { text: "團隊負荷" }), el("div", { class: "tbl" }, [lt])]);
+    if (D.baselineExpired) loadP.appendChild(el("div", { class: "note", text: "注意：產能基準 " + md(D.baselineExpiresAt) + " 已過期，等 PMT 給新一季的數字；目前沿用上一季。" }));
+
+    var up = el("div", { class: "panel" }, [el("h2", { text: "接下來要上線" })]);
+    var ut = el("table", {}, [el("thead", {}, [el("tr", {}, ["日期", "卡", "團隊", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
+    var ub = el("tbody");
+    D.upcoming.forEach(function (u) {
+      ub.appendChild(el("tr", {}, [el("td", { text: md(u.date) }), el("td", {}, [link("https://17media.atlassian.net/browse/" + u.key, u.summary)]),
+        el("td", { text: u.domain }), el("td", {}, [statusChip(u.project_status)])]));
+    });
+    ut.appendChild(ub); up.appendChild(el("div", { class: "tbl" }, [ut]));
+
+    var ub2 = el("div", { class: "panel" }, [el("h2", { text: "標了 VoC 但還沒對到痛點的卡（" + D.unbacked.length + "）" })]);
+    D.unbacked.forEach(function (c) {
+      ub2.appendChild(el("div", { class: "row", style: "cursor:default" }, [el("span", { class: "code", text: c.key.replace("APPIDEAS-", "#") }),
+        el("span", { class: "ttl" }, [link(c.url, c.summary), el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: stageZh(c.stage) }), statusChip(c.project_status)])]), el("span")]));
+    });
+
+    var all = el("div", { class: "panel" }, [el("h2", { text: "全部卡片" })]);
+    var at = el("table", {}, [el("thead", {}, [el("tr", {}, ["卡", "階段", "狀態", "團隊", "預計上線"].map(function (h) { return el("th", { text: h }); }))])]);
+    var ab = el("tbody");
+    D.cards.slice().sort(function (a, b) { return (b.project_status !== "On track") - (a.project_status !== "On track") || (a.release_date || "9").localeCompare(b.release_date || "9"); })
+      .forEach(function (c) {
+        ab.appendChild(el("tr", {}, [el("td", {}, [link(c.url, c.summary)]), el("td", { text: stageZh(c.stage) }), el("td", {}, [statusChip(c.project_status)]),
+          el("td", { text: c.domain || "—" }), el("td", { text: c.release_date ? md(c.release_date) : "未定" })]));
+      });
+    at.appendChild(ab); all.appendChild(el("div", { class: "tbl" }, [at]));
+
+    view.appendChild(el("div", { style: "display:grid;gap:16px" }, [top, el("div", { class: "grid2" }, [loadP, up]), ub2, all]));
+  }
+  var STAGE_ZH = { Discovery: "探索", Design: "設計", Develop: "開發", Impact: "上線觀察" };
+  function stageZh(s) { return STAGE_ZH[s] || s || "—"; }
+  function statusChip(s) {
+    var c = s === "On track" ? "c-ok" : s === "Warning" ? "c-warn" : "c-hot";
+    var t = s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s === "Off track" ? "落後" : (s || "未填");
+    return el("span", { class: "chip " + c, text: t });
+  }
+
+  /* ---- Slack＋表單（取代舊的 VoC Console）---- */
+  function viewSlack() {
+    var S = D.slack;
+    var p1 = el("div", { class: "panel" }, [el("h2", { text: "每日新增聲音（Slack ＋ 表單）" })]);
+    if (!S.ok) {
+      p1.appendChild(el("div", { class: "empty", text: S.problem }));
+      view.appendChild(p1); return;
+    }
+    var t = el("table", {}, [el("thead", {}, [el("tr", {}, ["來源", "昨天", "近 7 天", "已對到痛點", "新痛點候選"].map(function (h) { return el("th", { text: h }); }))])]);
+    var b = el("tbody");
+    S.bySource.forEach(function (r) {
+      b.appendChild(el("tr", {}, [el("td", { text: r.source }), el("td", { class: "n", text: String(r.yesterday) }), el("td", { class: "n", text: String(r.week) }),
+        el("td", { class: "n", text: String(r.matched) }), el("td", { class: "n", text: String(r.cand) })]));
+    });
+    if (!S.bySource.length) b.appendChild(el("tr", {}, [el("td", { colspan: "5", text: "最近沒有新聲音。" })]));
+    t.appendChild(b); p1.appendChild(el("div", { class: "tbl" }, [t]));
+    p1.appendChild(el("div", { class: "note", text: "收集機器人最後一次成功：" + (S.lastRun || "未知") + "。每天 08:10 自動跑。" }));
+
+    var p2 = el("div", { class: "panel" }, [el("h2", { text: "最新聲音（" + S.latest.length + " 則）" })]);
+    S.latest.forEach(function (v) { p2.appendChild(voiceEl(v)); });
+    if (!S.latest.length) p2.appendChild(el("div", { class: "empty", text: "還沒有資料。" }));
+    p2.appendChild(el("div", { class: "note", text: "對到痛點的聲音也會出現在「痛點」頁該痛點的下方。" }));
+    view.appendChild(el("div", { class: "grid2" }, [p1, p2]));
+  }
+
+  /* ---- 資料來源狀態 ---- */
+  function viewHealth() {
+    var S = D.slack;
+    var sttOk = D.sttSource === "bigquery" && D.sttAgeDays <= 10;
+    var rows = [
+      ["Jira Roadmap", "每天 09:00 自動更新", md(D.jiraAsOf), D.jiraAgeDays > 2 ? "c-warn" : "c-ok", D.jiraAgeDays > 2 ? "注意" : "正常"],
+      ["直播原話週統計", "週報每週一批", md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那週", sttOk ? "c-ok" : "c-warn", sttOk ? "正常" : "注意"],
+      ["Slack＋表單", "每天 08:10", S.ok ? (S.lastRun || "未知") : "讀不到", S.ok && S.lastRun ? "c-ok" : "c-warn", S.ok && S.lastRun ? "正常" : "注意"],
+      ["客服工單、聊天機器人", "—", "—", "c-mute", "還沒納入"]
+    ];
+    var t = el("table", {}, [el("thead", {}, [el("tr", {}, ["來源", "更新頻率", "最新資料", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
+    var b = el("tbody");
+    rows.forEach(function (r) { b.appendChild(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] }), el("td", { text: r[2] }), el("td", {}, [el("span", { class: "chip " + r[3], text: r[4] })])])); });
+    t.appendChild(b);
+    var p = el("div", { class: "panel" }, [el("h2", { text: "資料來源狀態" }), el("div", { class: "tbl" }, [t])]);
+    if (D.sttSource !== "bigquery") p.appendChild(el("div", { class: "note", text: "週人數目前用備援資料。原因：" + D.sttProblem }));
+    var zero = D.pains.filter(function (x) { return x.allZero; }).map(function (x) { return x.code; });
+    if (zero.length) p.appendChild(el("div", { class: "note", text: "數字可能不準：" + zero.join("、") + " 這 " + D.weeks.length + " 週都是 0 位，可能是週報沒有統計這幾個痛點，不代表沒人抱怨。" }));
+    p.appendChild(el("div", { class: "note", text: "時間段分析用最近 " + D.weeks.length + " 週。畫面資料產生於 " + D.generatedAt + "，6 小時內重新打開會沿用同一份。" }));
+    view.appendChild(p);
+  }
+
+  go("today");
+  }
+
+  /* ---- 跟伺服器拿資料 ---- */
+  var statusEl = document.getElementById("status");
+  function showStatus(text) { statusEl.textContent = text; statusEl.hidden = !text; }
+
+  function load() {
+    google.script.run
+      .withSuccessHandler(function (d) {
+        D = d;
+        var warn = [];
+        if (D.sttSource !== "bigquery") warn.push("週人數資料暫時讀不到（" + D.sttProblem + "），先用備援資料（只有 " + D.weeks.length + " 週）。");
+        if (D.missingWeeks && D.missingWeeks.length) warn.push("週報少了 " + D.missingWeeks.map(md).join("、") + " 那週的資料，那幾週先當 0 位算，新興／持續／消退可能不準。");
+        showStatus(warn.length ? "注意：" + warn.join(" ") : "");
+        try {
+          init();
+        } catch (err) {
+          if (window.console) console.error(err);
+          showStatus("畫面整理資料時出錯。" + HELP);
+        }
+      })
+      .withFailureHandler(function (e) {
+        showStatus("讀不到資料（" + errText(e) + "）。" + HELP);
+      })
+      .getDashboard();
+  }
+  load();
+})();
+</script>

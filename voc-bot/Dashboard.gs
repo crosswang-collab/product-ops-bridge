@@ -30,6 +30,9 @@
 
 var DASH_TITLE = 'VoC Console';
 
+/** 「VoC 作戰台」的網址（部署後貼上）。填了之後，舊的 Console 只會顯示一個連過去的頁面。留空＝照舊。 */
+var NEW_DASHBOARD_URL = '';
+
 /** 每次 apiRaw() 回傳幾列。壓在千位數是因為 google.script.run 的回傳要序列化，
  *  一次塞太多列在網路慢的時候會整包逾時重來。分頁失敗只損失一頁，會自動重試。 */
 var DASH_PAGE = 1200;
@@ -40,6 +43,11 @@ var DASH_RAW_HARD_MAX = 30000;
 /** 傳到前端的文字截斷長度。完整原文由 apiDetail() 按需求單筆取回。 */
 var DASH_BODY_MAX = 420;
 var DASH_WHY_MAX = 240;
+
+/** 填了新網址＝已搬家：網頁只顯示轉址頁，資料函數也不再回傳任何東西。 */
+function dashMoved_() {
+  return /^https:\/\/script\.google\.com\/[\w\/.\-]+$/.test(String(NEW_DASHBOARD_URL).trim());
+}
 
 // ===========================================================================
 // 網頁進入點
@@ -52,6 +60,14 @@ var DASH_WHY_MAX = 240;
  * 改了這裡的字串，Apps Script 裡的 HTML 檔名就要跟著改，兩邊必須一致。
  */
 function doGet(e) {
+  // 已併入「VoC 作戰台」：填了新網址就只顯示轉址頁（見 dashboard/README.md 第 5 步）
+  if (dashMoved_()) {
+    return HtmlService.createHtmlOutput(
+      '<meta charset="utf-8"><div style="font-family:sans-serif;padding:32px;line-height:1.7">' +
+      '<h2>VoC Console 已搬家</h2><p>Slack＋表單的聲音現在和直播原話、Roadmap 放在同一個頁面。</p>' +
+      '<p><a href="' + String(NEW_DASHBOARD_URL).trim() + '" target="_top" style="font-size:18px">打開 VoC 作戰台 →</a></p></div>')
+      .setTitle(DASH_TITLE);
+  }
   return HtmlService.createHtmlOutputFromFile('DashboardUI')
     .setTitle(DASH_TITLE)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -66,6 +82,8 @@ function doGet(e) {
  * roadmap 掛掉時 problems 會帶訊息，介面照常顯示 raw，只是「是否已在 roadmap」標成未知。
  */
 function apiCore() {
+  if (dashMoved_()) return { ok: false, problems: ['VoC Console 已搬到 VoC 作戰台'], roadmap: [], candidates: [] };
+
   var out = {
     ok: true,
     generatedAt: nowStr_(),
@@ -194,6 +212,8 @@ function apiCore() {
  *  16 split     分割（1/3 這種）
  */
 function apiRaw(offset) {
+  if (dashMoved_()) return { ok: false, error: 'VoC Console 已搬到 VoC 作戰台', rows: [], total: 0, done: true };
+
   var start = Math.max(0, Math.floor(Number(offset) || 0));
   var res = { ok: true, offset: start, rows: [], total: 0, done: true, capped: false };
 
@@ -264,6 +284,8 @@ function apiRaw(offset) {
 
 /** 用 TextFinder 直接定位那一列，不整份掃。找不到就誠實回 ok:false。 */
 function apiDetail(id) {
+  if (dashMoved_()) return { ok: false, error: 'VoC Console 已搬到 VoC 作戰台' };
+
   var key = String(id || '').trim();
   var res = { ok: false, id: key, body: '', origin: '', link: '', why: '' };
   if (!key) { res.error = '沒有指定要查哪一筆'; return res; }
@@ -311,6 +333,7 @@ function apiDetail(id) {
  * 這支是唯一會寫入的函式（只寫 VoC_Bot_Log）。
  */
 function testDashboard() {
+  if (dashMoved_()) return 'VoC Console 已搬到 VoC 作戰台，這裡不用再測。';
   var ss = null;
   try { ss = openTarget_(); } catch (e) { /* 下面 logRow_ 會被跳過，改丟例外 */ }
 
