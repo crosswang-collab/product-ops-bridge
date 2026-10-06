@@ -21,6 +21,18 @@
 - 舊頁面轉址：Vercel 的 `/voc-graph/web`（對照頁）、`/roadmap-bot/web`（Roadmap 頁）一律轉到上面網址（`vercel.json` 的 `redirects`）。「誰在處理這個痛點」編輯頁與 JP Needs 熱力圖不轉。
 - 舊 VoC Console：repo 的 `voc-bot/Dashboard.gs` 已填好 `NEW_DASHBOARD_URL`；貼進「VoC Daily Bot」專案並部署新版本後生效。
 
+## 原話輸出＋中文摘要＋翻譯（2026-10-06 新增）
+
+在痛點細節的「全部原話」按「開始整理」：抓最近 4 週全部原話（最多 300 則）→ Gemini 做中文摘要 → 逐則翻成繁中 → 可下載 CSV 與摘要。Gemini 走公司 GCP（media17-1119）的 Vertex AI，以 Cross 身分呼叫，原話不出公司的 Google 雲。
+
+**更新步驟（第一次，約 3 分鐘）**
+1. 打開 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/Dashboard.gs → Ctrl+A、Ctrl+C → 在 Apps Script 的 `Code.gs` 裡 Ctrl+A、Ctrl+V → 儲存。
+2. 左側齒輪「專案設定」→ 勾選「在編輯器中顯示『appsscript.json』資訊清單檔案」→ 回到編輯器打開 `appsscript.json` → 用 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/appsscript.json 的內容整份取代 → 儲存。（這一步是讓程式可以呼叫 Gemini。）
+3. 函數選單選 `testGemini` → 執行 → 會再跳一次授權，全部允許。看到「✅ Gemini 可以用」才繼續；看到 ❌ 就把那行貼給 Claude（多半是要請 GCP 管理員開權限）。
+4. 部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署。
+
+下載沒反應時，按「下載沒反應？顯示全文自己複製」，把框裡的內容貼到試算表。
+
 ## 之後怎麼改
 
 | 想做的事 | 怎麼做 |
@@ -51,6 +63,7 @@
 | 檔案 | 用途 |
 |---|---|
 | `gas/Dashboard.gs` | **貼進 Apps Script 的唯一檔案**（由 `build_gas.py` 產生，不要手改） |
+| `gas/appsscript.json` | Apps Script 權限設定（含呼叫 Gemini 需要的權限） |
 | `app/Code.template.gs` | 伺服器端原始碼 |
 | `app/Page.html` | 頁面原始碼 |
 | `build_gas.py` | 打包＋安全掃描 |

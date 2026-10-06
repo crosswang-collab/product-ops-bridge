@@ -121,7 +121,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   /* 伺服器或 Apps Script 本身的英文錯誤不直接給人看，改成中文說明 */
   function errText(e) {
     var m = String(e && e.message ? e.message : e).replace(/^\s*(Error|Exception|ScriptError)\s*:\s*/i, "");
-    return /[A-Za-z]{3,}/.test(m.replace(/Roadmap|Slack|sTop/g, "")) ? "暫時讀不到" : m;
+    return /[\u4e00-\u9fff]/.test(m) ? m : "暫時讀不到";   // 我們自己的訊息都是中文；純英文的系統錯誤不直接給人看
   }
   var detailCache = {};
 
@@ -300,6 +300,8 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     setTimeout(jump, 0);
     var qBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
     box.appendChild(qBox);
+    box.appendChild(el("h3", { text: "全部原話：輸出、中文摘要、翻譯（最近 4 週）" }));
+    box.appendChild(exportPanel(p));
     box.appendChild(el("h3", { text: "Slack＋表單裡對到這個痛點的聲音" }));
     var vBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
     box.appendChild(vBox);
@@ -409,6 +411,133 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     if (v.link) m.appendChild(link(v.link, "原始連結 ↗"));
     kids.push(m);
     return el("div", { class: "quote" }, kids);
+  }
+
+  /* ---- 全部原話：輸出 CSV、Gemini 中文摘要與逐則翻譯（原話只在公司 GCP 內處理） ---- */
+  function exportPanel(p) {
+    var wrap = el("div", {});
+    var status = el("div", { class: "note", text: "抓這個痛點最近 4 週的全部原話（最多 300 則），用公司 GCP 的 Gemini 做中文摘要和逐則翻譯，可下載 CSV。第一次約 1–3 分鐘。" });
+    var go = el("button", { class: "btn primary", type: "button", text: "開始整理" });
+    var out = el("div", {});
+    wrap.appendChild(go); wrap.appendChild(status); wrap.appendChild(out);
+    go.addEventListener("click", function () {
+      go.disabled = true;
+      runExport(p.code, status, out, function () { go.disabled = false; });
+    });
+    return wrap;
+  }
+
+  function call(fn, args, ok, fail) {
+    var r = google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) { fail(errText(e)); });
+    r[fn].apply(r, args);
+  }
+
+  function runExport(code, status, out, done) {
+    var ex = null, sum = null, zh = {};
+    clear(out);
+    function say(t) { status.textContent = t; }
+    function stop(msg) { say(msg + " " + HELP); done(); }
+    say("讀取原話中…");
+    call("getPainExport", [code], function (r) {
+      ex = r;
+      if (!ex.rows.length) { say("最近 4 週沒有原話。"); done(); return; }
+      say("共 " + ex.rows.length + " 則" + (ex.capped ? "（只取前 300 則）" : "") + "，Gemini 整理摘要中…");
+      renderButtons();
+      call("summarizePain", [code], function (s) {
+        sum = s; renderSummary(); translate(0);
+      }, function (m) { say("摘要沒做成（" + m + "）。原話仍可下載；翻譯繼續進行。"); translate(0); });
+    }, function (m) { stop("讀不到原話（" + m + "）。"); });
+
+    function translate(start) {
+      if (start >= ex.rows.length) { say("完成：" + ex.rows.length + " 則原話、" + Object.keys(zh).length + " 則中文翻譯。可以下載了。"); done(); return; }
+      say("翻譯中 " + start + "／" + ex.rows.length + " 則…（原話已可先下載）");
+      call("translatePainBatch", [code, start], function (m) {
+        for (var k in m) zh[k] = m[k];
+        renderSummary();
+        translate(start + 40);
+      }, function (m) { say("翻譯到第 " + start + " 則時停了（" + m + "）。已翻好的 " + Object.keys(zh).length + " 則會一起下載。"); done(); });
+    }
+
+    var sumBox = el("div", {}), btnBox = el("div", { class: "chips", style: "margin:8px 0" }), copyBox = el("div", {});
+    out.appendChild(btnBox); out.appendChild(sumBox); out.appendChild(copyBox);
+
+    function renderButtons() {
+      clear(btnBox);
+      btnBox.appendChild(el("button", { class: "btn primary", type: "button", text: "下載原話 CSV（含中文翻譯）",
+        onclick: function () { download(fileName("原話") + ".csv", csvText(), "text/csv;charset=utf-8"); } }));
+      btnBox.appendChild(el("button", { class: "btn", type: "button", text: "下載摘要",
+        onclick: function () { download(fileName("摘要") + ".txt", summaryText(), "text/plain;charset=utf-8"); } }));
+      btnBox.appendChild(el("button", { class: "btn", type: "button", text: "下載沒反應？顯示全文自己複製",
+        onclick: function () {
+          clear(copyBox);
+          var ta = el("textarea", { readonly: "readonly", rows: "10", style: "width:100%;font:12px var(--mono)" });
+          ta.value = csvText();
+          copyBox.appendChild(el("div", { class: "note", text: "點進框裡按 Ctrl+A 全選、Ctrl+C 複製，貼到試算表即可。" }));
+          copyBox.appendChild(ta);
+        } }));
+    }
+
+    function byId(id) { for (var i = 0; i < ex.rows.length; i++) if (ex.rows[i].id === id) return ex.rows[i]; return null; }
+
+    function renderSummary() {
+      clear(sumBox);
+      if (!sum) return;
+      sumBox.appendChild(el("div", { class: "sum", text: sum.overview }));
+      sum.points.forEach(function (pt) {
+        var item = el("div", { class: "quote" }, [
+          el("div", { class: "sum", text: pt.title + "（約 " + pt.count + " 則）" }),
+          el("div", { class: "txt", text: pt.detail })
+        ]);
+        pt.examples.forEach(function (id) {
+          var r = byId(id); if (!r) return;
+          item.appendChild(el("div", { class: "meta", text: id + "　" + (zh[id] || r.text) }));
+        });
+        sumBox.appendChild(item);
+      });
+      sumBox.appendChild(el("div", { class: "note", text: "摘要與翻譯由 Gemini 產生，可能有誤；以原話為準。" }));
+    }
+
+    function fileName(kind) { return "VoC_" + code + "_" + (ex.since || "") + "起_" + kind; }
+
+    function cell(v) {
+      var s = String(v == null ? "" : v);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;          // 防止試算表把內容當公式執行
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    function csvText() {
+      var head = ["編號", "週", "主播等級", "問題類型", "發生位置", "AI 一句話摘要", "原話", "中文翻譯", "前後文"];
+      var lines = [head.map(cell).join(",")];
+      ex.rows.forEach(function (r) {
+        lines.push([r.id, r.week, r.tier, r.kind, r.layer, r.summary, r.text, zh[r.id] || "", r.context].map(cell).join(","));
+      });
+      return "\ufeff" + lines.join("\r\n");                // 加 BOM，Excel 開中文不亂碼
+    }
+    function summaryText() {
+      var t = [code + " 原話摘要（" + ex.since + " 起，共 " + ex.rows.length + " 則）", ""];
+      if (!sum) t.push("（摘要沒有完成）");
+      else {
+        t.push(sum.overview, "");
+        sum.points.forEach(function (pt, i) {
+          t.push((i + 1) + ". " + pt.title + "（約 " + pt.count + " 則）", "   " + pt.detail);
+          pt.examples.forEach(function (id) { var r = byId(id); if (r) t.push("   " + id + "：" + (zh[id] || "") + "／" + r.text); });
+          t.push("");
+        });
+      }
+      t.push("摘要與翻譯由 Gemini 產生，可能有誤；以原話為準。");
+      return "\ufeff" + t.join("\r\n");
+    }
+  }
+
+  function download(name, text, type) {
+    try {
+      var url = URL.createObjectURL(new Blob([text], { type: type }));
+      var a = el("a", { href: url, download: name });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+    } catch (err) {
+      if (window.console) console.error(err);
+      showStatus("這個瀏覽器擋下了下載，請用「顯示全文自己複製」。");
+    }
   }
 
   function ruleLine(ok, text) {
