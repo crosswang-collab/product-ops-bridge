@@ -413,10 +413,10 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     return el("div", { class: "quote" }, kids);
   }
 
-  /* ---- 全部原話：輸出 CSV、Gemini 中文摘要與逐則翻譯（原話只在公司 GCP 內處理） ---- */
+  /* ---- 全部原話：輸出 CSV、Claude 中文摘要與逐則翻譯（摘要與翻譯會把原話送到 Anthropic） ---- */
   function exportPanel(p) {
     var wrap = el("div", {});
-    var status = el("div", { class: "note", text: "抓這個痛點最近 4 週的全部原話，用公司 GCP 的 Gemini 做中文摘要和逐則翻譯，可下載 CSV。翻譯每 1,000 則約 10–20 分鐘，途中隨時可以先下載。" });
+    var status = el("div", { class: "note", text: "抓這個痛點最近 4 週的全部原話，用 Claude 做中文摘要和逐則翻譯，可下載 CSV。翻譯每 1,000 則約 15–30 分鐘，途中隨時可以先下載。" });
     var go = el("button", { class: "btn primary", type: "button", text: "開始整理" });
     var out = el("div", {});
     wrap.appendChild(go); wrap.appendChild(status); wrap.appendChild(out);
@@ -443,12 +443,12 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     call("getPainExport", [code], function (r) {
       ex = r;
       if (!ex.rows.length) { say("最近 4 週沒有原話。"); done(); return; }
-      say("共 " + ex.rows.length + " 則" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "，Gemini 整理摘要中…（原話已可先下載）");
+      say("共 " + ex.rows.length + " 則" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "，Claude 整理摘要中…（原話已可先下載）");
       renderButtons();
       // 伺服器每則只用前 250 字，先截好再送，避免一次送幾 MB
       call("summarizeQuotes", [ex.rows.map(function (q) { return { id: q.id, text: q.text.slice(0, 250) }; })], function (sm) {
         sum = sm;
-        if (sm.used < ex.rows.length) sumMsg.textContent = "摘要依據前 " + sm.used + " 則（原話太多，超過 Gemini 一次能讀的量）。";
+        if (sm.used < ex.rows.length) sumMsg.textContent = "摘要依據前 " + sm.used + " 則（原話太多，超過一次能整理的量）。";
         renderSummary(); translateAll(ex.batch || 20);
       }, function (m) { sumMsg.textContent = "摘要沒做成（" + m + "）。可以稍後再按一次「開始整理」。"; translateAll(ex.batch || 20); });
     }, function (m) { say("讀不到原話（" + m + "）。" + HELP); done(); });
@@ -469,7 +469,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         }, function (m) {
           lastErr = m;
           // 權限類問題每一批都會一樣失敗，直接停下說原因；其他問題跳過這批繼續
-          if (/沒有權限|第 2 步|Vertex AI|管理員/.test(m)) { finish(); return; }
+          if (/沒有權限|金鑰|指令碼屬性/.test(m)) { finish(); return; }
           i += n; next();
         });
       })();
@@ -525,7 +525,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         });
         sumBox.appendChild(item);
       });
-      sumBox.appendChild(el("div", { class: "note", text: "摘要與翻譯由 Gemini 產生，可能有誤；以原話為準。" }));
+      sumBox.appendChild(el("div", { class: "note", text: "摘要與翻譯由 Claude 產生，可能有誤；以原話為準。" }));
     }
 
     function fileName(kind) { return "VoC_" + code + "_" + (ex.since || "") + "起_" + kind; }
@@ -557,7 +557,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
           t.push("");
         });
       }
-      t.push("摘要與翻譯由 Gemini 產生，可能有誤；以原話為準。");
+      t.push("摘要與翻譯由 Claude 產生，可能有誤；以原話為準。");
       return "﻿" + t.join("\r\n");
     }
   }

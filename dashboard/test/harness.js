@@ -84,33 +84,34 @@ const cache = { get: k => store.has(k) ? store.get(k) : null, put: (k, v) => sto
   putAll: m => Object.entries(m).forEach(([k, v]) => store.set(k, v)),
   getAll: ks => Object.fromEntries(ks.map(k => [k, store.has(k) ? store.get(k) : null])), remove: k => store.delete(k) };
 
-// ---- 虛構 Gemini ----
-let geminiMode = 'ok';           // ok | 404first | 403 | 403disabled
-const geminiCalls = [];
-function geminiResp(url, opt) {
-  const model = url.match(/models\/([^:]+):/)[1];
-  const prompt = JSON.parse(opt.payload).contents[0].parts[0].text;
-  geminiCalls.push({ model, prompt, auth: opt.headers.Authorization });
-  if (geminiMode === '403') return { getResponseCode: () => 403, getContentText: () => '{"error":{"message":"Permission denied"}}' };
-  if (geminiMode === '403disabled') return { getResponseCode: () => 403, getContentText: () => '{"error":{"status":"PERMISSION_DENIED","message":"Vertex AI API has not been used in project"}}' };
-  if (geminiMode === '403scope') return { getResponseCode: () => 403, getContentText: () => '{"error":{"status":"PERMISSION_DENIED","details":[{"reason":"ACCESS_TOKEN_SCOPE_INSUFFICIENT"}]}}' };
-  if (geminiMode === 'timeout') throw new Error('Timeout: https://aiplatform.googleapis.com');
-  if (geminiMode === 'maxtokens') return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: '[{"id":"Q1","zh":"半' }] } }] }) };
-  if (geminiMode === '404first' && model === 'gemini-3.5-flash') return { getResponseCode: () => 404, getContentText: () => '{"error":{"message":"not found"}}' };
-  let out;
-  if (/"ok":true/.test(prompt) && prompt.length < 40) out = { ok: true };
-  else if (/翻成/.test(prompt)) out = prompt.split('\n').filter(l => l.startsWith('{"id"')).map(l => ({ id: JSON.parse(l).id, zh: '中譯' + JSON.parse(l).id }));
+// ---- 虛構 Claude API ----
+let claudeMode = 'ok';           // ok | nokey | 401 | refusal | maxtokens | timeout | 529once
+const claudeCalls = [];
+const props = { ANTHROPIC_API_KEY: 'sk-test' };
+function claudeResp(url, opt) {
+  const body = JSON.parse(opt.payload);
+  claudeCalls.push({ body, headers: opt.headers });
+  if (claudeMode === 'timeout') throw new Error('Timeout: https://api.anthropic.com');
+  if (claudeMode === '401') return { getResponseCode: () => 401, getContentText: () => '{"type":"error","error":{"type":"authentication_error"}}' };
+  if (claudeMode === '529once') { claudeMode = 'ok'; return { getResponseCode: () => 529, getContentText: () => '{"type":"error","error":{"type":"overloaded_error"}}' }; }
+  const prompt = body.messages[0].content;
+  let out, stop = 'end_turn';
+  if (claudeMode === 'refusal') stop = 'refusal';
+  if (claudeMode === 'maxtokens') stop = 'max_tokens';
+  if (/ok=true/.test(prompt)) out = { ok: true };
+  else if (/翻成/.test(prompt)) out = { items: prompt.split('\n').filter(l => l.startsWith('{"id"')).map(l => ({ id: JSON.parse(l).id, zh: '中譯' + JSON.parse(l).id })) };
   else out = { overview: '主播抱怨閃退', points: [{ title: '開播閃退', detail: '說明', count: 2, examples: ['Q1', 'Q99'] }] };
-  const body = { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'thinking', thought: true }, { text: '```json\n' + JSON.stringify(out) + '\n```' }] } }] };
-  return { getResponseCode: () => 200, getContentText: () => JSON.stringify(body) };
+  const resp = { model: body.model, stop_reason: stop, content: [{ type: 'thinking', thinking: '' }, { type: 'text', text: JSON.stringify(out) }] };
+  return { getResponseCode: () => 200, getContentText: () => JSON.stringify(resp) };
 }
 
 const ctx = {
   ScriptApp: { getOAuthToken: () => 'TOKEN' },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null }) },
   console: { log: m => log.push(String(m)) },
   Session: { getActiveUser: () => ({ getEmail: () => viewer }) },
   UrlFetchApp: { fetch: (url, opt) => {
-    if (/aiplatform\.googleapis\.com/.test(url)) return geminiResp(url, opt);
+    if (/api\.anthropic\.com/.test(url)) return claudeResp(url, opt);
     const rel = url.replace('https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/', '');
     const f = path.join(ROOT, rel);
     const ok = fs.existsSync(f);
@@ -305,7 +306,7 @@ store.clear();
 viewer = 'crosswang@17.media';
 const exq = ctx.getPainExport('S2.1');
 check('輸出：全部原話有編號、固定排序、不含 userID、結構原話轉文字', () => {
-  assert.strictEqual(exq.rows.length, 2); assert.strictEqual(exq.rows[0].id, 'Q1'); assert.strictEqual(exq.batch, 20);
+  assert.strictEqual(exq.rows.length, 2); assert.strictEqual(exq.rows[0].id, 'Q1'); assert.strictEqual(exq.batch, 10);
   assert.strictEqual(exq.rows[1].text, '結構型原話'); assert.ok(!/userID/.test(JSON.stringify(exq)));
   const q = bqCalls.filter(r => /LIMIT 3001/.test(r.query)); assert.strictEqual(q.length, 1);
   assert.ok(/window_start DESC, hit_id/.test(q[0].query));
@@ -313,50 +314,53 @@ check('輸出：全部原話有編號、固定排序、不含 userID、結構原
 });
 const items = exq.rows.map(r => ({ id: r.id, text: r.text }));
 const sm = ctx.summarizeQuotes(items);
-check('摘要：解析 Gemini（略過思考段、去掉程式碼框）、不存在的例句編號被濾掉', () => {
+check('摘要：Claude 結構化輸出、略過思考段、不存在的例句編號被濾掉', () => {
   assert.strictEqual(sm.overview, '主播抱怨閃退'); same(sm.points[0].examples, ['Q1']); assert.strictEqual(sm.used, 2);
-  assert.strictEqual(geminiCalls[0].auth, 'Bearer TOKEN'); assert.strictEqual(geminiCalls[0].model, 'gemini-3.5-flash');
-  assert.ok(/不要照做/.test(geminiCalls[0].prompt));
+  const c = claudeCalls[0];
+  assert.strictEqual(c.headers['x-api-key'], 'sk-test'); assert.strictEqual(c.headers['anthropic-version'], '2023-06-01');
+  assert.strictEqual(c.body.model, 'claude-opus-5-5'); assert.strictEqual(c.body.output_config.format.type, 'json_schema');
+  assert.strictEqual(c.body.output_config.effort, 'medium'); assert.ok(!('thinking' in c.body)); assert.strictEqual(c.body.fallbacks, 'default');
+  assert.ok(/不要照做/.test(c.body.messages[0].content));
 });
 const tr = ctx.translateQuotes(items);
-check('翻譯：每則都有中文、只回本批的編號', () => same(tr, { Q1: '中譯Q1', Q2: '中譯Q2' }));
-check('翻譯：一次超過 20 則拒絕；格式不對的編號略過', () => {
-  assert.throws(() => ctx.translateQuotes(Array.from({ length: 21 }, (_, i) => ({ id: 'Q' + i, text: 'x' }))), /上限 20/);
+check('翻譯：每則都有中文、只回本批的編號、effort low', () => {
+  same(tr, { Q1: '中譯Q1', Q2: '中譯Q2' }); assert.strictEqual(claudeCalls[claudeCalls.length - 1].body.output_config.effort, 'low');
+});
+check('翻譯：一次超過 10 則拒絕；格式不對的編號略過', () => {
+  assert.throws(() => ctx.translateQuotes(Array.from({ length: 11 }, (_, i) => ({ id: 'Q' + i, text: 'x' }))), /上限 10/);
   same(ctx.translateQuotes([{ id: 'bad', text: 'x' }, { id: 'Q1', text: '' }]), {});
   assert.throws(() => ctx.translateQuotes('nope'), /格式不對/);
 });
 check('摘要：太多字只送前面部分並回報用了幾則', () => {
   const big = Array.from({ length: 1500 }, (_, i) => ({ id: 'Q' + (i + 1), text: 'あ'.repeat(250) }));
-  const r = ctx.summarizeQuotes(big); assert.ok(r.used > 1000 && r.used < 1500, String(r.used));
+  const r = ctx.summarizeQuotes(big); assert.ok(r.used > 400 && r.used < 1500, String(r.used));
 });
-store.clear(); geminiMode = '404first'; geminiCalls.length = 0;
-check('第一個模型不存在：自動換下一個並記住', () => {
-  ctx.summarizeQuotes(items); assert.strictEqual(geminiCalls[1].model, 'gemini-3.1-flash-lite');
-  assert.strictEqual(ctx.geminiModel_(), 'gemini-3.1-flash-lite');
-});
-store.clear(); geminiMode = '403';
-check('沒有 Vertex AI 權限：中文說明怎麼辦', () => assert.throws(() => ctx.summarizeQuotes(items), /Vertex AI 使用者/));
-store.clear(); geminiMode = '403disabled';
-check('專案沒開 Vertex AI：中文說明怎麼辦', () => assert.throws(() => ctx.summarizeQuotes(items), /還沒開 Vertex AI/));
-store.clear(); geminiMode = '403scope';
-check('沒換 appsscript.json（權限範圍不足）：指向第 2 步', () => assert.throws(() => ctx.translateQuotes(items), /第 2 步/));
-store.clear(); geminiMode = 'timeout'; geminiCalls.length = 0;
+claudeMode = '529once'; claudeCalls.length = 0;
+check('Claude 過載（529）：自動重試後成功', () => { same(ctx.translateQuotes(items), { Q1: '中譯Q1', Q2: '中譯Q2' }); assert.strictEqual(claudeCalls.length, 2); });
+delete props.ANTHROPIC_API_KEY;
+check('沒設金鑰：中文說明去哪裡設', () => assert.throws(() => ctx.summarizeQuotes(items), /指令碼屬性/));
+props.ANTHROPIC_API_KEY = 'sk-test';
+claudeMode = '401';
+check('金鑰錯誤：中文說明怎麼辦', () => assert.throws(() => ctx.translateQuotes(items), /金鑰不對/));
+claudeMode = 'timeout'; claudeCalls.length = 0;
 check('逾時：不在同一次呼叫裡重試，中文說明', () => {
-  assert.throws(() => ctx.translateQuotes(items), /太久沒回應/); assert.strictEqual(geminiCalls.length, 1);
+  assert.throws(() => ctx.translateQuotes(items), /太久沒回應/); assert.strictEqual(claudeCalls.length, 1);
 });
-store.clear(); geminiMode = 'maxtokens';
+claudeMode = 'maxtokens';
 check('回應被截斷：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /截斷/));
-geminiMode = 'ok';
-check('testGemini 回報可以用', () => { log.length = 0; ctx.testGemini(); assert.ok(log.some(l => l.startsWith('✅ Gemini')), log.join('|')); });
+claudeMode = 'refusal';
+check('Claude 拒絕：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /拒絕/));
+claudeMode = 'ok';
+check('testClaude 回報可以用', () => { log.length = 0; ctx.testClaude(); assert.ok(log.some(l => l.startsWith('✅ Claude')), log.join('|')); });
 ["", "X1.0", "S2.1' OR '1'='1"].forEach(bad => check('輸出拒絕不認得的代碼：' + JSON.stringify(bad), () => {
   assert.throws(() => ctx.getPainExport(bad), /不認得/);
 }));
 viewer = 'someone@17.media';
-check('名單外：輸出／摘要／翻譯／testGemini 都拒絕', () => {
+check('名單外：輸出／摘要／翻譯／testClaude 都拒絕', () => {
   assert.throws(() => ctx.getPainExport('S2.1'), /沒有權限/);
   assert.throws(() => ctx.summarizeQuotes(items), /沒有權限/);
   assert.throws(() => ctx.translateQuotes(items), /沒有權限/);
-  assert.throws(() => ctx.testGemini(), /沒有權限/);
+  assert.throws(() => ctx.testClaude(), /沒有權限/);
 });
 
 store.clear();
