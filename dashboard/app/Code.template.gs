@@ -142,6 +142,10 @@ function testDashboard() {
   var det = buildPainDetail_(top.code, d.detailSince);
   console.log((det.ok ? '✅' : '❌') + ' ' + top.code + ' 細分類 ' + det.groups.length + ' 組、原話 ' + det.quotes.length + ' 則' +
     '（判定過的主播 ' + det.judgedStreamers + ' 位）' + (det.ok ? '' : '：' + det.problem));
+  var blank = det.quotes.filter(function (q) { return !q.text; }).length;
+  var noCtx = det.quotes.filter(function (q) { return !q.context; }).length;
+  console.log((blank ? '⚠️ ' + blank + ' 則原話文字是空的（欄位格式沒對上，把這行貼給 Claude）' : '✅ 原話文字都有內容') +
+    '；前後文有內容 ' + (det.quotes.length - noCtx) + '／' + det.quotes.length + ' 則');
   var leak = JSON.stringify(d).match(/userID|liveStreamID/i);
   console.log((leak ? '❌ 主資料出現 ' + leak[0] : '✅ 主資料沒有 userID'));
 }
@@ -295,10 +299,14 @@ function painSeries_() {
   if (!rows.length) throw new Error('週報最近 ' + SERIES_WEEKS + ' 週沒有痛點人數');
   var seen = {};
   rows.forEach(function (r) { seen[r.window_start] = true; });
-  var latest = Object.keys(seen).sort().pop();
+  var all = Object.keys(seen).sort();
+  var first = all[0], latest = all[all.length - 1];
   var wl = [];
-  for (var w = SERIES_WEEKS - 1; w >= 0; w--) wl.push(addDays_(latest, -7 * w));   // 連續 12 個週一
-  var missing = wl.filter(function (x) { return !seen[x]; });
+  for (var w = SERIES_WEEKS - 1; w >= 0; w--) {
+    var wk = addDays_(latest, -7 * w);
+    if (wk >= first) wl.push(wk);   // 連續週一；週報開始統計之前的週不算缺，直接不列
+  }
+  var missing = wl.filter(function (x) { return !seen[x]; });   // 只有中間斷掉的週才算缺
   var byCode = {};
   rows.forEach(function (r) {
     var i = wl.indexOf(r.window_start);

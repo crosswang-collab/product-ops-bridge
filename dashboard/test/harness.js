@@ -242,6 +242,22 @@ check('整週缺資料：12 個連續週一、標出缺 9/14', () => {
 });
 ctx.BigQuery.Jobs.query = origQ;
 
+// 週報開始統計之前的週：不算缺，週數變少
+store.clear();
+ctx.BigQuery.Jobs.query = req => {
+  const r = origQ(req);
+  if (/stt_voc_weekly_metrics/.test(req.query)) r.rows = r.rows.filter(x => x.f[0].v >= '2026-08-10');
+  return r;
+};
+const dl = ctx.getDashboard();
+check('週報從 8/10 才開始：不報缺週、只列 7 週、判定照常', () => {
+  same(dl.missingWeeks, []);
+  assert.strictEqual(dl.weeks.length, 7);
+  assert.strictEqual(dl.weeks[0], '2026-08-10');
+  same(dl.pains.filter(p => p.rule.emerging).map(p => p.code), ['U6.0']);
+});
+ctx.BigQuery.Jobs.query = origQ;
+
 // 試算表讀不到：痛點細節要說讀不到，不能裝作沒有聲音
 store.clear();
 const origSS = ctx.SpreadsheetApp.openById;
