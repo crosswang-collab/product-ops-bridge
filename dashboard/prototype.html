@@ -1,0 +1,475 @@
+<title>VoC 作戰台</title>
+<style>
+/* 版面：左側「要處理的清單」、右側「選中那一項的細節」；手機改成上下堆疊 */
+:root{
+  --bg:#f5f6f4; --panel:#ffffff; --ink:#1d2421; --muted:#5d6863; --line:#dde2df; --soft:#eef1ef;
+  --accent:#1f5f8b; --accent-ink:#ffffff;
+  --hot:#c2410c; --hot-bg:#fde9dc; --keep:#a16207; --keep-bg:#fbf0d2; --fade:#4b6b80; --fade-bg:#e2ecf2;
+  --gap:#9d174d; --gap-bg:#fbe3ee; --ok:#2f6f3e; --ok-bg:#e1f0e4; --warn:#a16207; --warn-bg:#fbf0d2;
+  --bar:#9fb3c2; --bar-hi:#1f5f8b;
+  --font:"PingFang TC","Noto Sans TC","Microsoft JhengHei","Hiragino Sans",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --ink:#e6ebe8; --muted:#9aa6a0; --line:#2e3633; --soft:#232a27;
+  --accent:#7fb6dc; --accent-ink:#0e1a22;
+  --hot:#fb923c; --hot-bg:#3a2216; --keep:#e7b84a; --keep-bg:#33290f; --fade:#9cc0d6; --fade-bg:#1f2c35;
+  --gap:#f472b6; --gap-bg:#3a1a2a; --ok:#7ccf8e; --ok-bg:#1a2f20; --warn:#e7b84a; --warn-bg:#33290f;
+  --bar:#4f6573; --bar-hi:#7fb6dc; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --ink:#e6ebe8; --muted:#9aa6a0; --line:#2e3633; --soft:#232a27;
+  --accent:#7fb6dc; --accent-ink:#0e1a22;
+  --hot:#fb923c; --hot-bg:#3a2216; --keep:#e7b84a; --keep-bg:#33290f; --fade:#9cc0d6; --fade-bg:#1f2c35;
+  --gap:#f472b6; --gap-bg:#3a1a2a; --ok:#7ccf8e; --ok-bg:#1a2f20; --warn:#e7b84a; --warn-bg:#33290f;
+  --bar:#4f6573; --bar-hi:#7fb6dc; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.55;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:14px 40px}
+.proto{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn);border-radius:6px;padding:8px 12px;font-size:13px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin:14px 0 8px}
+header.top h1{font-size:22px;margin:0;letter-spacing:.02em}
+header.top .asof{color:var(--muted);font-size:13px}
+.bluf{font-size:16px;margin:4px 0 14px;text-wrap:balance}
+.bluf b{font-variant-numeric:tabular-nums}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;margin-bottom:14px}
+nav.tabs button{font:inherit;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 12px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+nav.tabs button:focus-visible,.row:focus-visible,.btn:focus-visible,.chipf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.panel h2{font-size:15px;margin:0 0 10px}
+.panel h3{font-size:13px;margin:16px 0 8px;color:var(--muted);letter-spacing:.04em}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:4px 10px;padding:10px 8px;border-top:1px solid var(--line);cursor:pointer;align-items:center;border-left:3px solid transparent}
+.row:first-child{border-top:0}
+.row:hover{background:var(--soft)}
+.row[aria-current="true"]{background:var(--soft);border-left-color:var(--accent)}
+.code{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.ttl{min-width:0}
+.ttl .t{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.chip{font-size:11.5px;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.c-hot{background:var(--hot-bg);color:var(--hot)}
+.c-keep{background:var(--keep-bg);color:var(--keep)}
+.c-fade{background:var(--fade-bg);color:var(--fade)}
+.c-gap{background:var(--gap-bg);color:var(--gap)}
+.c-ok{background:var(--ok-bg);color:var(--ok)}
+.c-warn{background:var(--warn-bg);color:var(--warn)}
+.c-mute{background:var(--soft);color:var(--muted)}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-size:18px;font-weight:600}
+.num small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.empty{color:var(--muted);padding:10px 8px;font-size:13px}
+.d-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.d-head h2{font-size:19px;margin:0}
+.d-big{font-size:13px;color:var(--muted);margin-top:4px}
+.d-big b{font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;max-width:620px;height:auto}
+.rules{display:grid;gap:6px;margin-top:6px}
+.rule{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:13px}
+.rule .mk{font-weight:700;text-align:center}
+.rule.yes .mk{color:var(--ok)} .rule.no .mk{color:var(--muted)}
+.ph{border:1px dashed var(--line);border-radius:6px;padding:10px;background:repeating-linear-gradient(135deg,transparent 0 8px,var(--soft) 8px 9px)}
+.ph-tag{font-size:11px;color:var(--warn);font-weight:600;letter-spacing:.04em}
+.sub{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:4px 10px;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
+.sub:first-of-type{border-top:0}
+.quote{border-top:1px solid var(--line);padding:8px 0}
+.quote:first-of-type{border-top:0}
+.quote .sum{font-weight:600}
+.quote .txt{margin:4px 0;color:var(--ink)}
+.quote .meta{font-size:12px;color:var(--muted)}
+.ctx{margin-top:6px;padding:8px;background:var(--soft);border-radius:6px;font-size:13px}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+a{color:var(--accent)}
+.note{font-size:12px;color:var(--muted);margin-top:6px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chipf{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+.chipf[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;border-top:0}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+.stagebar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:6px 0}
+.stagebar div{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--accent-ink);background:var(--accent);min-width:0;overflow:hidden;white-space:nowrap}
+.stagebar div:nth-child(2){opacity:.8}.stagebar div:nth-child(3){opacity:.62}.stagebar div:nth-child(4){opacity:.45}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
+</style>
+
+<div class="wrap">
+  <div class="proto" role="note">原型：Jira 卡片與每週主播人數都是真實資料（repo 裡已公開的統計數字）。斜線底、標「佔位」的區塊（原話、前後文、細分類、Slack＋表單）是假資料，正式版上線後才會接真實資料。這一頁不會存任何東西。</div>
+
+  <header class="top">
+    <h1>VoC 作戰台</h1>
+    <span class="asof" id="asof"></span>
+  </header>
+  <p class="bluf" id="bluf"></p>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="view"></main>
+</div>
+
+<script type="application/json" id="data">{"asOf": "2026-10-06", "weeks": ["2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21"], "latestWeek": {"start": "2026-09-21", "end": "2026-09-27"}, "sttFetched": "2026-10-05", "sttAgeDays": 9, "jiraAsOf": "2026-10-06", "pains": [{"code": "U4.0", "title": "抽選被海外 bot 鑽、玩法不公平", "vocScore": 55, "series": [18, 27, 19, 21, 49, 22, 12], "latest": 12, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": false, "persistent": true, "fading": false, "recent2": 17.0, "prior4": 29.0, "hotWeeks": 4}, "themes": []}, {"code": "S2.0", "title": "直播畫面被免費 ticker 蓋住、擋工作", "vocScore": 53, "series": [92, 105, 117, 129, 108, 154, 131], "latest": 131, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": false, "persistent": true, "fading": false, "recent2": 142.5, "prior4": 114.8, "hotWeeks": 6}, "themes": []}, {"code": "U2.0", "title": "畫面被系統元素塞滿又關不掉", "vocScore": 50, "series": [9, 3, 9, 15, 4, 5, 8], "latest": 8, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 6.5, "prior4": 7.8, "hotWeeks": 0}, "themes": []}, {"code": "U4.4", "title": "高額禮物誤送不能取消、送出還閃退", "vocScore": 47, "series": [55, 60, 86, 88, 59, 76, 64], "latest": 64, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": false, "persistent": true, "fading": false, "recent2": 70.0, "prior4": 73.2, "hotWeeks": 6}, "themes": []}, {"code": "U5.0", "title": "徽章太小又擠，成就感看不見", "vocScore": 46, "series": [3, 6, 6, 5, 5, 3, 1], "latest": 1, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 2.0, "prior4": 5.5, "hotWeeks": 0}, "themes": []}, {"code": "U6.1", "title": "PK 玩法太單薄，贏了也沒成就感", "vocScore": 44, "series": [0, 0, 0, 0, 0, 0, 0], "latest": 0, "cards": [], "noOwner": false, "allZero": true, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 0.0, "prior4": 0.0, "hotWeeks": 0}, "themes": []}, {"code": "U4.2", "title": "禮物爆量卻找不到，也擋不掉不想要的 Army", "vocScore": 40, "series": [7, 7, 9, 15, 14, 17, 22], "latest": 22, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 19.5, "prior4": 11.2, "hotWeeks": 1}, "themes": []}, {"code": "U5.1", "title": "Army 想要階級與更強的歸屬感", "vocScore": 38, "series": [1, 1, 1, 2, 3, 1, 1], "latest": 1, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 1.0, "prior4": 1.8, "hotWeeks": 0}, "themes": []}, {"code": "U2.1", "title": "個人檔案改版恐讓實況主一夜失去自介", "vocScore": 34, "series": [5, 15, 12, 7, 5, 6, 6], "latest": 6, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 6.0, "prior4": 9.8, "hotWeeks": 0}, "themes": []}, {"code": "U5.2", "title": "排行邏輯看不懂、想要更多維度", "vocScore": 34, "series": [2, 1, 4, 4, 2, 4, 5], "latest": 5, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 4.5, "prior4": 2.8, "hotWeeks": 0}, "themes": []}, {"code": "U6.0", "title": "VS 模式切換會錯亂、比賽資訊亂掉", "vocScore": 32, "series": [12, 10, 11, 19, 11, 23, 28], "latest": 28, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": true, "persistent": false, "fading": false, "recent2": 25.5, "prior4": 12.8, "hotWeeks": 2}, "themes": [{"code": "F16", "name": "PK・VS/グルコ機能仕様", "n": 8}, {"code": "F05", "name": "配信安定性", "n": 7}, {"code": "F17", "name": "対戦・コラボ中UX", "n": 3}]}, {"code": "U4.1", "title": "課金金額有斷層，中間價位想課也難課", "vocScore": 31, "series": [63, 68, 91, 80, 77, 100, 105], "latest": 105, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": false, "persistent": true, "fading": false, "recent2": 102.5, "prior4": 79.0, "hotWeeks": 6}, "themes": []}, {"code": "U4.3", "title": "VIP 禮物動線繞、看不懂怎麼用", "vocScore": 30, "series": [2, 1, 3, 2, 2, 2, 1], "latest": 1, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 1.5, "prior4": 2.0, "hotWeeks": 0}, "themes": []}, {"code": "U2.2", "title": "重要分頁被藏起來、找不到入口", "vocScore": 30, "series": [0, 5, 9, 9, 4, 4, 9], "latest": 9, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 6.5, "prior4": 6.8, "hotWeeks": 0}, "themes": []}, {"code": "S2.1", "title": "開播中一直閃退、鍵盤還卡", "vocScore": 29, "series": [201, 240, 213, 221, 197, 233, 242], "latest": 242, "cards": [], "noOwner": true, "allZero": false, "rule": {"emerging": false, "persistent": true, "fading": false, "recent2": 237.5, "prior4": 217.8, "hotWeeks": 6}, "themes": [{"code": "F05", "name": "配信安定性", "n": 139}, {"code": "F07", "name": "配信設定・配信モード", "n": 8}, {"code": "F06", "name": "ティッカー/エフェクト表示・制御", "n": 7}, {"code": "F04", "name": "コメント体験", "n": 5}, {"code": "F09", "name": "ギフト送受信・ボックス", "n": 5}, {"code": "F20", "name": "プロフィール保全・表示", "n": 4}, {"code": "F16", "name": "PK・VS/グルコ機能仕様", "n": 3}, {"code": "F02", "name": "アーカイブ・録画・クリップ", "n": 2}, {"code": "F17", "name": "対戦・コラボ中UX", "n": 2}]}, {"code": "U5.3", "title": "等級被強制顯示、想自己控制", "vocScore": 29, "series": [3, 2, 3, 1, 2, 0, 1], "latest": 1, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 0.5, "prior4": 2.0, "hotWeeks": 0}, "themes": []}, {"code": "U2.3", "title": "看實況/回放沒有快轉，像沒遙控器", "vocScore": 28, "series": [2, 5, 5, 3, 8, 5, 4], "latest": 4, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 4.5, "prior4": 5.2, "hotWeeks": 0}, "themes": []}, {"code": "U6.2", "title": "好友戰能刷勝、封鎖了還是被配對", "vocScore": 28, "series": [0, 0, 0, 0, 0, 0, 0], "latest": 0, "cards": [], "noOwner": false, "allZero": true, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 0.0, "prior4": 0.0, "hotWeeks": 0}, "themes": []}, {"code": "U5.4", "title": "稱號與認證徽章想要能客製", "vocScore": 24, "series": [1, 2, 1, 6, 7, 2, 6], "latest": 6, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 4.0, "prior4": 4.0, "hotWeeks": 0}, "themes": []}, {"code": "U6.4", "title": "線上線下賽制脫節、規則不清", "vocScore": 19, "series": [0, 0, 0, 0, 0, 0, 0], "latest": 0, "cards": [], "noOwner": false, "allZero": true, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 0.0, "prior4": 0.0, "hotWeeks": 0}, "themes": []}, {"code": "S2.4", "title": "BC 達標里程碑想要有 ticker 提示", "vocScore": 18, "series": [0, 2, 2, 0, 1, 0, 1], "latest": 1, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 0.5, "prior4": 1.2, "hotWeeks": 0}, "themes": []}, {"code": "U6.3", "title": "比賽中看不到留言、待機又乾等", "vocScore": 16, "series": [1, 1, 3, 1, 4, 3, 3], "latest": 3, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 3.0, "prior4": 2.2, "hotWeeks": 0}, "themes": [{"code": "F17", "name": "対戦・コラボ中UX", "n": 2}, {"code": "F04", "name": "コメント体験", "n": 2}]}, {"code": "S2.2", "title": "AI 助手有 bug、回應不準", "vocScore": 16, "series": [3, 6, 3, 2, 3, 5, 2], "latest": 2, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 3.5, "prior4": 3.5, "hotWeeks": 0}, "themes": []}, {"code": "U2.4", "title": "以前狂點螢幕出愛心的爽快感被砍了", "vocScore": 14, "series": [4, 4, 4, 5, 1, 1, 3], "latest": 3, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 2.0, "prior4": 3.5, "hotWeeks": 0}, "themes": []}, {"code": "S2.3", "title": "留言太多看不完、想要自動摘要", "vocScore": 7, "series": [2, 1, 1, 0, 1, 2, 0], "latest": 0, "cards": [], "noOwner": false, "allZero": false, "rule": {"emerging": false, "persistent": false, "fading": false, "recent2": 1.0, "prior4": 0.8, "hotWeeks": 0}, "themes": []}], "outside": [{"code": "X1.0", "latest": 292}], "unbacked": [{"key": "APPIDEAS-2251", "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room", "stage": "Develop", "project_status": "On track", "url": "https://17media.atlassian.net/browse/APPIDEAS-2251"}, {"key": "APPIDEAS-2258", "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown", "stage": "Develop", "project_status": "On track", "url": "https://17media.atlassian.net/browse/APPIDEAS-2258"}, {"key": "APPIDEAS-2265", "summary": "[IST][VoC] Make the Gifter Leaderboard visible only to the streamer", "stage": "Design", "project_status": "On track", "url": "https://17media.atlassian.net/browse/APPIDEAS-2265"}, {"key": "APPIDEAS-2281", "summary": "[IST O1O3][VoC] Fix Achievement Score Inflation", "stage": "Design", "project_status": "On track", "url": "https://17media.atlassian.net/browse/APPIDEAS-2281"}], "cards": [{"key": "APPIDEAS-1928", "summary": "Call in - Army only stream", "stage": "Impact", "project_status": "On track", "domain": "17App", "release_date": "2026-09-29", "url": "https://17media.atlassian.net/browse/APPIDEAS-1928"}, {"key": "APPIDEAS-1938", "summary": "2026/10/1 Japan Consumption Tax Reform ph-3", "stage": "Develop", "project_status": "On track", "domain": "Internal Tool", "release_date": "2026-11-01", "url": "https://17media.atlassian.net/browse/APPIDEAS-1938"}, {"key": "APPIDEAS-1986", "summary": "New application flow in JP region ph-4, Auto contract", "stage": "Develop", "project_status": "Warning", "domain": "Internal Tool", "release_date": "2026-11-04", "url": "https://17media.atlassian.net/browse/APPIDEAS-1986"}, {"key": "APPIDEAS-2004", "summary": "Add atone payment gateway in JP region", "stage": "Develop", "project_status": "On track", "domain": "Internal Tool", "release_date": "2026-11-06", "url": "https://17media.atlassian.net/browse/APPIDEAS-2004"}, {"key": "APPIDEAS-2104", "summary": "Content Evaluation Automation Integration", "stage": "Develop", "project_status": "Warning", "domain": "Platform", "release_date": "2026-10-27", "url": "https://17media.atlassian.net/browse/APPIDEAS-2104"}, {"key": "APPIDEAS-2116", "summary": "[IST O1O3][Gift Animation] High-value Gifts Animation Prioritization", "stage": "Impact", "project_status": "On track", "domain": "IST", "release_date": "2026-09-29", "url": "https://17media.atlassian.net/browse/APPIDEAS-2116"}, {"key": "APPIDEAS-2121", "summary": "[AI Cohost] Help Streamer Grow with Real-time Support (Gift Recommendation)", "stage": "Design", "project_status": "On track", "domain": "17App", "release_date": null, "url": "https://17media.atlassian.net/browse/APPIDEAS-2121"}, {"key": "APPIDEAS-2137", "summary": "[Commercial] Gacha Leaderboard", "stage": "Develop", "project_status": "On track", "domain": "Live Commerce", "release_date": "2026-11-16", "url": "https://17media.atlassian.net/browse/APPIDEAS-2137"}, {"key": "APPIDEAS-2161", "summary": "[Mini Event Template]Eventory and cube system integrate to App mini event Phase 1", "stage": "Develop", "project_status": "On track", "domain": "Platform", "release_date": "2026-10-28", "url": "https://17media.atlassian.net/browse/APPIDEAS-2161"}, {"key": "APPIDEAS-2172", "summary": "In-stream discovery: 90sec clips as first impression", "stage": "Develop", "project_status": "On track", "domain": "17App", "release_date": "2026-10-28", "url": "https://17media.atlassian.net/browse/APPIDEAS-2172"}, {"key": "APPIDEAS-2211", "summary": "3rd party payment framework for outsourcing", "stage": "Develop", "project_status": "On track", "domain": "Internal Tool", "release_date": "2026-11-06", "url": "https://17media.atlassian.net/browse/APPIDEAS-2211"}, {"key": "APPIDEAS-2219", "summary": "[Commercial] New Feature Notification", "stage": "Develop", "project_status": "On track", "domain": "Live Commerce", "release_date": "2026-10-19", "url": "https://17media.atlassian.net/browse/APPIDEAS-2219"}, {"key": "APPIDEAS-2224", "summary": "Mini event support target missions with specific gift quantities, and Random Gift Sub-bags", "stage": "Develop", "project_status": "On track", "domain": "Platform", "release_date": "2026-11-01", "url": "https://17media.atlassian.net/browse/APPIDEAS-2224"}, {"key": "APPIDEAS-2226", "summary": "[Mini Event Template]Webview mini event develop 1 game template - phase 2", "stage": "Design", "project_status": "On track", "domain": "Platform", "release_date": null, "url": "https://17media.atlassian.net/browse/APPIDEAS-2226"}, {"key": "APPIDEAS-2238", "summary": "Profile Badge Customization ", "stage": "Develop", "project_status": "On track", "domain": "17App", "release_date": "2026-11-10", "url": "https://17media.atlassian.net/browse/APPIDEAS-2238"}, {"key": "APPIDEAS-2251", "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room", "stage": "Develop", "project_status": "On track", "domain": "IST", "release_date": "2026-10-28", "url": "https://17media.atlassian.net/browse/APPIDEAS-2251"}, {"key": "APPIDEAS-2253", "summary": "Renew contract ph-1,  JP Direct streamer", "stage": "Design", "project_status": "On track", "domain": "Internal Tool", "release_date": null, "url": "https://17media.atlassian.net/browse/APPIDEAS-2253"}, {"key": "APPIDEAS-2258", "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown", "stage": "Develop", "project_status": "On track", "domain": "IST", "release_date": "2026-10-13", "url": "https://17media.atlassian.net/browse/APPIDEAS-2258"}, {"key": "APPIDEAS-2265", "summary": "[IST][VoC] Make the Gifter Leaderboard visible only to the streamer", "stage": "Design", "project_status": "On track", "domain": "IST", "release_date": "2026-10-01", "url": "https://17media.atlassian.net/browse/APPIDEAS-2265"}, {"key": "APPIDEAS-2277", "summary": "Profile Revamp Improvement: Improve Following Navigation ", "stage": "Develop", "project_status": "On track", "domain": "17App", "release_date": "2026-10-13", "url": "https://17media.atlassian.net/browse/APPIDEAS-2277"}, {"key": "APPIDEAS-2281", "summary": "[IST O1O3][VoC] Fix Achievement Score Inflation", "stage": "Design", "project_status": "On track", "domain": "IST", "release_date": null, "url": "https://17media.atlassian.net/browse/APPIDEAS-2281"}, {"key": "APPIDEAS-2284", "summary": "Support Korean Streamer Translation in TW", "stage": "Impact", "project_status": "On track", "domain": "IST", "release_date": "2026-10-05", "url": "https://17media.atlassian.net/browse/APPIDEAS-2284"}, {"key": "APPIDEAS-2286", "summary": "Straight to Highlight content section after the onboarding", "stage": "Design", "project_status": "On track", "domain": "17App", "release_date": null, "url": "https://17media.atlassian.net/browse/APPIDEAS-2286"}, {"key": "APPIDEAS-2287", "summary": "Shorten Viewer Join Notice Delay 30s -> 10s", "stage": "Discovery", "project_status": "At Risk", "domain": "17App", "release_date": null, "url": "https://17media.atlassian.net/browse/APPIDEAS-2287"}], "stages": {"Impact": 3, "Develop": 14, "Design": 6, "Discovery": 1}, "worse": [{"key": "APPIDEAS-2004", "summary": "Add atone payment gateway in JP region", "url": "https://17media.atlassian.net/browse/APPIDEAS-2004", "what": "上線日延後", "from": "2026-10-01", "to": "2026-11-06"}, {"key": "APPIDEAS-2104", "summary": "Content Evaluation Automation Integration", "url": "https://17media.atlassian.net/browse/APPIDEAS-2104", "what": "狀態變差", "from": "On track", "to": "Warning"}, {"key": "APPIDEAS-2104", "summary": "Content Evaluation Automation Integration", "url": "https://17media.atlassian.net/browse/APPIDEAS-2104", "what": "上線日延後", "from": "2026-10-01", "to": "2026-10-27"}, {"key": "APPIDEAS-2211", "summary": "3rd party payment framework for outsourcing", "url": "https://17media.atlassian.net/browse/APPIDEAS-2211", "what": "上線日延後", "from": "2026-09-30", "to": "2026-11-06"}, {"key": "APPIDEAS-2219", "summary": "[Commercial] New Feature Notification", "url": "https://17media.atlassian.net/browse/APPIDEAS-2219", "what": "上線日延後", "from": "2026-09-01", "to": "2026-10-19"}], "worseSince": "2026-09-29", "load": [{"domain": "17App", "cards": 9, "points": 24.0, "months": 2.33, "verdict": "healthy"}, {"domain": "IST", "cards": 7, "points": 18.0, "months": 4.19, "verdict": "overload"}, {"domain": "Internal Tool", "cards": 6, "points": 20.0, "months": 2.41, "verdict": "healthy"}, {"domain": "Platform", "cards": 4, "points": 15.0, "months": null, "verdict": null}, {"domain": "Live Commerce", "cards": 2, "points": 6.0, "months": 2.22, "verdict": "healthy"}], "baselineExpired": true, "baselineExpiresAt": "2026-10-01", "upcoming": [{"date": "2026-10-13", "key": "APPIDEAS-2258", "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown", "domain": "IST", "project_status": "On track", "config_on": "2026-10-15"}, {"date": "2026-10-13", "key": "APPIDEAS-2277", "summary": "Profile Revamp Improvement: Improve Following Navigation ", "domain": "17App", "project_status": "On track", "config_on": null}, {"date": "2026-10-19", "key": "APPIDEAS-2219", "summary": "[Commercial] New Feature Notification", "domain": "Live Commerce", "project_status": "On track", "config_on": null}, {"date": "2026-10-27", "key": "APPIDEAS-2104", "summary": "Content Evaluation Automation Integration", "domain": "Platform", "project_status": "Warning", "config_on": null}, {"date": "2026-10-28", "key": "APPIDEAS-2161", "summary": "[Mini Event Template]Eventory and cube system integrate to App mini event Phase 1", "domain": "Platform", "project_status": "On track", "config_on": null}, {"date": "2026-10-28", "key": "APPIDEAS-2172", "summary": "In-stream discovery: 90sec clips as first impression", "domain": "17App", "project_status": "On track", "config_on": "2026-10-28"}, {"date": "2026-10-28", "key": "APPIDEAS-2251", "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room", "domain": "IST", "project_status": "On track", "config_on": null}, {"date": "2026-11-01", "key": "APPIDEAS-1938", "summary": "2026/10/1 Japan Consumption Tax Reform ph-3", "domain": "Internal Tool", "project_status": "On track", "config_on": "2026-11-01"}], "editorUrl": "https://script.google.com/a/17.media/macros/s/AKfycbyCg2aSAvVXwbzdDyOTox-1_PeajuR_-zIxEtfyxDZv0iLoIYMW-ak7B0H6dTWLj0PC/exec", "rules": {"emergeMin": 10, "persistMin": 20}}</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById("data").textContent);
+
+  /* ---- 安全的 DOM 小工具：只用 createElement / textContent 放文字，不把字串當 HTML 解析 ---- */
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "text") n.textContent = attrs[k];
+      else if (k === "class") n.className = attrs[k];
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) {
+      if (c == null) return;
+      n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return n;
+  }
+  function svg(tag, attrs) {
+    var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function md(iso) { var p = iso.split("-"); return (+p[1]) + "/" + (+p[2]); }
+  function safeUrl(u) { return /^https:\/\//.test(u || "") ? u : null; }
+  function link(href, text) {
+    var u = safeUrl(href);
+    return u ? el("a", { href: u, target: "_blank", rel: "noopener", text: text }) : el("span", { text: text });
+  }
+
+  var R = D.rules;
+  var weekLbl = D.weeks.map(md);
+
+  /* ---- 痛點排序：🔥 → 🔁 且沒人負責 → 其他沒人負責；同組內依上週人數 ---- */
+  function prio(p) {
+    if (p.rule.emerging) return 0;
+    if (p.rule.persistent && p.noOwner) return 1;
+    if (p.rule.persistent) return 2;
+    if (p.noOwner) return 3;
+    if (p.rule.fading) return 4;
+    return 9;
+  }
+  var pains = D.pains.slice().sort(function (a, b) {
+    return prio(a) - prio(b) || b.latest - a.latest;
+  });
+  var todo = pains.filter(function (p) { return prio(p) < 9; });
+
+  function chipsFor(p) {
+    var c = [];
+    if (p.rule.emerging) c.push(el("span", { class: "chip c-hot", text: "🔥 新興高熱" }));
+    if (p.rule.persistent) c.push(el("span", { class: "chip c-keep", text: "🔁 持續高熱" }));
+    if (p.rule.fading) c.push(el("span", { class: "chip c-fade", text: "📉 消退" }));
+    if (p.noOwner) c.push(el("span", { class: "chip c-gap", text: "沒人負責" }));
+    if (p.allZero) c.push(el("span", { class: "chip c-mute", text: "7 週都是 0 位" }));
+    return c;
+  }
+
+  /* ---- 頂端：資料日期＋一句話結論 ---- */
+  document.getElementById("asof").textContent =
+    "聲音資料：" + md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那一週　·　Roadmap：" + md(D.jiraAsOf);
+  var nE = D.pains.filter(function (p) { return p.rule.emerging; }).length;
+  var nP = D.pains.filter(function (p) { return p.rule.persistent; }).length;
+  var nF = D.pains.filter(function (p) { return p.rule.fading; }).length;
+  var nG = D.pains.filter(function (p) { return p.noOwner; }).length;
+  var bl = document.getElementById("bluf");
+  [["本週 ", ""], [nE, "b"], [" 個新興高熱、", ""], [nP, "b"], [" 個持續高熱、", ""], [nF, "b"],
+   [" 個消退；", ""], [nG, "b"], [" 個有聲音的痛點還沒人負責；Roadmap 近 7 天有 ", ""], [D.worse.length, "b"], [" 件變差。", ""]]
+    .forEach(function (x) { bl.appendChild(x[1] ? el("b", { text: String(x[0]) }) : document.createTextNode(String(x[0]))); });
+
+  /* ---- 分頁 ---- */
+  var TABS = [
+    ["today", "今天要處理"], ["pains", "痛點（" + D.pains.length + "）"], ["roadmap", "Roadmap"],
+    ["slack", "Slack＋表單"], ["health", "資料來源狀態"]
+  ];
+  var state = { tab: "today", sel: todo.length ? todo[0].code : pains[0].code, filter: "all" };
+  var tabsEl = document.getElementById("tabs"), view = document.getElementById("view");
+  TABS.forEach(function (t) {
+    tabsEl.appendChild(el("button", { role: "tab", id: "tab-" + t[0], "aria-selected": "false", text: t[1],
+      onclick: function () { go(t[0]); } }));
+  });
+  function go(tab) {
+    state.tab = tab;
+    TABS.forEach(function (t) {
+      document.getElementById("tab-" + t[0]).setAttribute("aria-selected", t[0] === tab ? "true" : "false");
+    });
+    clear(view);
+    ({ today: viewToday, pains: viewPains, roadmap: viewRoadmap, slack: viewSlack, health: viewHealth })[tab]();
+  }
+
+  /* ---- 清單列 ---- */
+  function painRow(p, onPick) {
+    var r = el("div", { class: "row", role: "button", tabindex: "0", "aria-current": p.code === state.sel ? "true" : "false" }, [
+      el("span", { class: "code", text: p.code }),
+      el("span", { class: "ttl" }, [el("span", { class: "t", text: p.title }), el("span", { class: "chips" }, chipsFor(p))]),
+      el("span", { class: "num" }, [String(p.latest), el("small", { text: "位／上週" })])
+    ]);
+    function pick() { state.sel = p.code; onPick(); }
+    r.addEventListener("click", pick);
+    r.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    return r;
+  }
+
+  /* ---- 首頁：今天要處理 ---- */
+  function viewToday() {
+    var left = el("div", { class: "panel" }, [el("h2", { text: "要處理的痛點（最急的在最上面）" })]);
+    var list = el("div", { class: "list" });
+    todo.forEach(function (p) { list.appendChild(painRow(p, function () { go("today"); })); });
+    left.appendChild(list);
+
+    left.appendChild(el("h3", { text: "ROADMAP 卡變差（近 7 天，與 " + md(D.worseSince) + " 相比）" }));
+    if (!D.worse.length) left.appendChild(el("div", { class: "empty", text: "沒有卡變差。" }));
+    D.worse.forEach(function (w) {
+      left.appendChild(el("div", { class: "row", style: "cursor:default" }, [
+        el("span", { class: "code", text: w.key.replace("APPIDEAS-", "#") }),
+        el("span", { class: "ttl" }, [link(w.url, w.summary),
+          el("span", { class: "chips" }, [el("span", { class: "chip " + (w.what === "狀態變差" ? "c-hot" : "c-warn"),
+            text: w.what + "：" + w.from + " → " + w.to })])]),
+        el("span")
+      ]));
+    });
+    view.appendChild(el("div", { class: "split" }, [left, detail(find(state.sel))]));
+  }
+
+  function find(code) { for (var i = 0; i < D.pains.length; i++) if (D.pains[i].code === code) return D.pains[i]; return D.pains[0]; }
+
+  /* ---- 痛點細節（右欄） ---- */
+  function detail(p) {
+    var r = p.rule;
+    var box = el("section", { class: "panel", "aria-label": "痛點細節" });
+    box.appendChild(el("div", { class: "d-head" }, [el("span", { class: "code", text: p.code }), el("h2", { text: p.title })]));
+    box.appendChild(el("div", { class: "chips" }, chipsFor(p)));
+    var big = el("div", { class: "d-big" });
+    big.appendChild(el("b", { text: String(p.latest) }));
+    big.appendChild(document.createTextNode(" 位主播在 " + md(D.latestWeek.start) + " 那週提到（週報固定統計）　·　VoC 分數 " + p.vocScore));
+    box.appendChild(big);
+
+    box.appendChild(el("h3", { text: "每週主播人數（最近 2 週用深色標出）" }));
+    box.appendChild(el("div", { class: "chart" }, [chart(p.series)]));
+    box.appendChild(el("div", { class: "rules" }, [
+      ruleLine(r.emerging, "新興高熱：最近 2 週平均 " + r.recent2 + " 位（門檻 ≥ " + R.emergeMin + "），前 4 週平均 " + r.prior4 + " 位" +
+        (r.prior4 >= 2 ? "，是 " + (r.prior4 ? (r.recent2 / r.prior4).toFixed(1) : "—") + " 倍（門檻 ≥ 2 倍）" : "（< 2 位，不看倍數）")),
+      ruleLine(r.persistent, "持續高熱：最近 6 週有 " + r.hotWeeks + " 週 ≥ " + R.persistMin + " 位（門檻 ≥ 4 週）"),
+      ruleLine(r.fading, "消退：最近 3 週每週都比前一週低（" + p.series.slice(-4).join(" → ") + "）")
+    ]));
+
+    if (p.themes.length) {
+      box.appendChild(el("h3", { text: "同時被歸到的主題（上週，同一位主播）" }));
+      box.appendChild(el("div", { class: "chips" }, p.themes.map(function (t) {
+        return el("span", { class: "chip c-mute", text: t.code + " " + t.name + "　" + t.n + " 位" });
+      })));
+    }
+
+    /* 細分類（佔位） */
+    box.appendChild(el("h3", { text: "細分類" }));
+    var sub = el("div", { class: "ph" }, [el("div", { class: "ph-tag", text: "佔位，正式版改用 Gemini 判定結果" })]);
+    [["問題類型 A × 發生位置 A", "—"], ["問題類型 B × 發生位置 A", "—"], ["問題類型 A × 發生位置 C", "—"]].forEach(function (s) {
+      sub.appendChild(el("div", { class: "sub" }, [el("span", { text: s[0] }), el("span", { class: "n", text: s[1] + " 位" })]));
+    });
+    sub.appendChild(el("div", { class: "note", text: "細分類只算「經過 Gemini 判定的主播」，和上面週報的人數來源不同，加總不會一樣。" }));
+    box.appendChild(sub);
+
+    /* 代表原話（佔位）：正式版由伺服器端依固定痛點代碼查詢、純文字顯示、不含主播 ID */
+    box.appendChild(el("h3", { text: "代表原話" }));
+    var qs = el("div", { class: "ph" }, [el("div", { class: "ph-tag", text: "佔位，正式版只在公司網域內、你允許的人才看得到" })]);
+    [1, 2, 3].forEach(function (i) {
+      var ctx = el("div", { class: "ctx", text: "（前後文佔位：原話前後各幾句，正式版顯示）" });
+      ctx.hidden = true;
+      var b = el("button", { class: "btn", type: "button", text: "看前後文", "aria-expanded": "false" });
+      b.addEventListener("click", function () {
+        ctx.hidden = !ctx.hidden;
+        b.setAttribute("aria-expanded", ctx.hidden ? "false" : "true");
+        b.textContent = ctx.hidden ? "看前後文" : "收起前後文";
+      });
+      qs.appendChild(el("div", { class: "quote" }, [
+        el("div", { class: "sum", text: "摘要佔位 " + i + "：Gemini 對這段話的一句話摘要" }),
+        el("div", { class: "txt", text: "「原話佔位 " + i + "：主播在直播中實際說的話會顯示在這裡」" }),
+        el("div", { class: "meta", text: (i === 1 ? "sTop" : i === 2 ? "Top" : "一般") + " 主播 · " + md(D.latestWeek.start) + " 那週" }),
+        b, ctx
+      ]));
+    });
+    box.appendChild(qs);
+
+    /* 負責的卡：由 Cross 自己指定（D3），連到既有編輯頁 */
+    box.appendChild(el("h3", { text: "負責的 Roadmap 卡" }));
+    if (p.cards.length) {
+      p.cards.forEach(function (k) { box.appendChild(el("div", { text: k })); });
+    } else {
+      box.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "還沒有指定。" }));
+    }
+    var ed = safeUrl(D.editorUrl);
+    if (ed) box.appendChild(el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "去指定負責的卡 ↗" }));
+    box.appendChild(el("div", { class: "note", text: "會開啟你現有的「誰在處理這個痛點」頁面，存檔後隔天這裡會自動更新。" }));
+    return box;
+  }
+
+  function ruleLine(ok, text) {
+    return el("div", { class: "rule " + (ok ? "yes" : "no") }, [el("span", { class: "mk", text: ok ? "✓" : "—" }), el("span", { text: text })]);
+  }
+
+  /* ---- 週柱狀圖：同一把尺畫柱、刻度、門檻線 ---- */
+  function chart(s) {
+    var W = 620, H = 190, L = 34, Rr = 70, T = 14, B = 26;
+    var max = Math.max(R.persistMin + 5, Math.max.apply(null, s)) * 1.1;
+    var y = function (v) { return T + (H - T - B) * (1 - v / max); };
+    var bw = (W - L - Rr) / s.length;
+    var g = svg("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "每週主播人數：" + s.join("、") });
+    [0, Math.round(max / 2)].forEach(function (v) {
+      g.appendChild(svg("line", { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: "var(--line)" }));
+      var t = svg("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--muted)" });
+      t.textContent = String(v); g.appendChild(t);
+    });
+    s.forEach(function (v, i) {
+      var x = L + i * bw + bw * 0.18, w = bw * 0.64, hi = i >= s.length - 2;
+      g.appendChild(svg("rect", { x: x, y: y(v), width: w, height: Math.max(0, y(0) - y(v)), rx: 2, fill: hi ? "var(--bar-hi)" : "var(--bar)" }));
+      var t = svg("text", { x: x + w / 2, y: y(v) - 4, "text-anchor": "middle", "font-size": 11, fill: "var(--ink)" });
+      t.textContent = String(v); g.appendChild(t);
+      var d = svg("text", { x: x + w / 2, y: H - 8, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)" });
+      d.textContent = weekLbl[i]; g.appendChild(d);
+    });
+    [[R.emergeMin, "新興門檻 " + R.emergeMin], [R.persistMin, "持續門檻 " + R.persistMin]].forEach(function (m) {
+      if (m[0] > max) return;
+      g.appendChild(svg("line", { x1: L, x2: W - Rr, y1: y(m[0]), y2: y(m[0]), stroke: "var(--muted)", "stroke-dasharray": "4 4" }));
+      var t = svg("text", { x: W - Rr + 6, y: y(m[0]) + 4, "text-anchor": "start", "font-size": 10, fill: "var(--muted)" });
+      t.textContent = m[1]; g.appendChild(t);
+    });
+    return g;
+  }
+
+  /* ---- 痛點分頁：全部 25 個＋篩選 ---- */
+  function viewPains() {
+    var F = [["all", "全部"], ["emerging", "🔥 新興"], ["persistent", "🔁 持續"], ["fading", "📉 消退"], ["noOwner", "沒人負責"]];
+    var left = el("div", { class: "panel" });
+    var fl = el("div", { class: "filters" });
+    F.forEach(function (f) {
+      fl.appendChild(el("button", { class: "chipf", type: "button", "aria-pressed": state.filter === f[0] ? "true" : "false", text: f[1],
+        onclick: function () { state.filter = f[0]; go("pains"); } }));
+    });
+    left.appendChild(fl);
+    var rows = pains.filter(function (p) {
+      return state.filter === "all" || (state.filter === "noOwner" ? p.noOwner : p.rule[state.filter]);
+    });
+    var list = el("div", { class: "list" });
+    if (!rows.length) list.appendChild(el("div", { class: "empty", text: "這一週沒有符合的痛點。" }));
+    rows.forEach(function (p) { list.appendChild(painRow(p, function () { go("pains"); })); });
+    left.appendChild(list);
+    if (D.outside.length) {
+      left.appendChild(el("div", { class: "note", text: "不在 25 個痛點清單內但聲量高：" +
+        D.outside.map(function (o) { return o.code + "（上週 " + o.latest + " 位）"; }).join("、") + "。" }));
+    }
+    view.appendChild(el("div", { class: "split" }, [left, detail(find(state.sel))]));
+  }
+
+  /* ---- Roadmap 分頁 ---- */
+  function viewRoadmap() {
+    var total = D.cards.length;
+    var order = ["Discovery", "Design", "Develop", "Impact"];
+    var sb = el("div", { class: "stagebar" });
+    order.forEach(function (s) {
+      var n = D.stages[s] || 0; if (!n) return;
+      sb.appendChild(el("div", { style: "flex:" + n, title: s + " " + n, text: n >= 3 ? s + " " + n : String(n) }));
+    });
+    var top = el("div", { class: "panel" }, [el("h2", { text: "進行中 " + total + " 張卡，各階段張數" }), sb,
+      el("div", { class: "legend", text: order.map(function (s) { return s + " " + (D.stages[s] || 0); }).join("　·　") })]);
+
+    var lt = el("table", {}, [el("thead", {}, [el("tr", {}, ["團隊", "卡", "點數", "手上工作量（月）", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
+    var tb = el("tbody");
+    D.load.forEach(function (r) {
+      var v = r.verdict === "overload" ? ["c-hot", "過載"] : r.verdict === "healthy" ? ["c-ok", "正常"] : ["c-mute", "沒有基準"];
+      tb.appendChild(el("tr", {}, [el("td", { text: r.domain }), el("td", { class: "n", text: String(r.cards) }),
+        el("td", { class: "n", text: String(r.points) }), el("td", { class: "n", text: r.months == null ? "—" : r.months.toFixed(1) }),
+        el("td", {}, [el("span", { class: "chip " + v[0], text: v[1] })])]));
+    });
+    lt.appendChild(tb);
+    var loadP = el("div", { class: "panel" }, [el("h2", { text: "團隊負荷" }), el("div", { class: "tbl" }, [lt])]);
+    if (D.baselineExpired) loadP.appendChild(el("div", { class: "note", text: "注意：產能基準 " + md(D.baselineExpiresAt) + " 已過期，等 PMT 給新一季的數字；目前沿用上一季。" }));
+
+    var up = el("div", { class: "panel" }, [el("h2", { text: "接下來要上線" })]);
+    var ut = el("table", {}, [el("thead", {}, [el("tr", {}, ["日期", "卡", "團隊", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
+    var ub = el("tbody");
+    D.upcoming.forEach(function (u) {
+      ub.appendChild(el("tr", {}, [el("td", { text: md(u.date) }), el("td", {}, [link("https://17media.atlassian.net/browse/" + u.key, u.summary)]),
+        el("td", { text: u.domain }), el("td", {}, [statusChip(u.project_status)])]));
+    });
+    ut.appendChild(ub); up.appendChild(el("div", { class: "tbl" }, [ut]));
+
+    var ub2 = el("div", { class: "panel" }, [el("h2", { text: "標了 VoC 但還沒對到痛點的卡（" + D.unbacked.length + "）" })]);
+    D.unbacked.forEach(function (c) {
+      ub2.appendChild(el("div", { class: "row", style: "cursor:default" }, [el("span", { class: "code", text: c.key.replace("APPIDEAS-", "#") }),
+        el("span", { class: "ttl" }, [link(c.url, c.summary), el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: c.stage }), statusChip(c.project_status)])]), el("span")]));
+    });
+
+    var all = el("div", { class: "panel" }, [el("h2", { text: "全部卡片" })]);
+    var at = el("table", {}, [el("thead", {}, [el("tr", {}, ["卡", "階段", "狀態", "團隊", "預計上線"].map(function (h) { return el("th", { text: h }); }))])]);
+    var ab = el("tbody");
+    D.cards.slice().sort(function (a, b) { return (b.project_status !== "On track") - (a.project_status !== "On track") || (a.release_date || "9").localeCompare(b.release_date || "9"); })
+      .forEach(function (c) {
+        ab.appendChild(el("tr", {}, [el("td", {}, [link(c.url, c.summary)]), el("td", { text: c.stage }), el("td", {}, [statusChip(c.project_status)]),
+          el("td", { text: c.domain || "—" }), el("td", { text: c.release_date ? md(c.release_date) : "未定" })]));
+      });
+    at.appendChild(ab); all.appendChild(el("div", { class: "tbl" }, [at]));
+
+    view.appendChild(el("div", { style: "display:grid;gap:16px" }, [top, el("div", { class: "grid2" }, [loadP, up]), ub2, all]));
+  }
+  function statusChip(s) {
+    var c = s === "On track" ? "c-ok" : s === "Warning" ? "c-warn" : "c-hot";
+    var t = s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s;
+    return el("span", { class: "chip " + c, text: t });
+  }
+
+  /* ---- Slack＋表單（取代舊的 VoC Console）---- */
+  function viewSlack() {
+    var p1 = el("div", { class: "panel" }, [el("h2", { text: "每日新增聲音（Slack #UserFeedback ＋ 4 份表單）" })]);
+    var ph = el("div", { class: "ph" }, [el("div", { class: "ph-tag", text: "佔位，正式版讀 VoC Daily Bot 的試算表（只讀不寫）" })]);
+    var t = el("table", {}, [el("thead", {}, [el("tr", {}, ["來源", "昨天", "近 7 天", "已對到痛點", "新痛點候選"].map(function (h) { return el("th", { text: h }); }))])]);
+    var b = el("tbody");
+    ["Slack #UserFeedback", "VIP Feedback", "JP feature requests", "JP feedback for Cross", "プロライバー定例会"].forEach(function (s) {
+      b.appendChild(el("tr", {}, [el("td", { text: s }), el("td", { class: "n", text: "—" }), el("td", { class: "n", text: "—" }), el("td", { class: "n", text: "—" }), el("td", { class: "n", text: "—" })]));
+    });
+    t.appendChild(b); ph.appendChild(el("div", { class: "tbl" }, [t])); p1.appendChild(ph);
+
+    var p2 = el("div", { class: "panel" }, [el("h2", { text: "最新聲音" })]);
+    var ph2 = el("div", { class: "ph" }, [el("div", { class: "ph-tag", text: "佔位" })]);
+    [["S2.1", "已對到痛點"], ["CAND", "新痛點候選"], ["U4.1", "已對到痛點"]].forEach(function (x, i) {
+      ph2.appendChild(el("div", { class: "quote" }, [
+        el("div", { class: "sum", text: "摘要佔位 " + (i + 1) }),
+        el("div", { class: "txt", text: "「原文佔位：Slack 或表單裡的原文」" }),
+        el("div", { class: "meta", text: "來源 · 日期 · " + x[1] + "（" + x[0] + "）" })
+      ]));
+    });
+    p2.appendChild(ph2);
+    p2.appendChild(el("div", { class: "note", text: "對到痛點的聲音會一起出現在「痛點」頁該痛點的原話區，和直播原話放在一起看。舊的 VoC Console 網址改成直接轉到這一頁。" }));
+    view.appendChild(el("div", { class: "grid2" }, [p1, p2]));
+  }
+
+  /* ---- 資料來源狀態 ---- */
+  function viewHealth() {
+    var rows = [
+      ["Jira Roadmap", "每天 09:00 自動更新", md(D.jiraAsOf), "c-ok", "正常"],
+      ["直播原話（STT）週統計", "每天 08:30 抓一次，週報每週一批", md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那週（" + md(D.sttFetched) + " 抓到）", D.sttAgeDays > 10 ? "c-warn" : "c-ok", D.sttAgeDays > 10 ? "注意" : "正常"],
+      ["Slack＋表單", "每天 08:10", "正式版顯示", "c-mute", "尚未接上"],
+      ["客服工單、聊天機器人", "—", "—", "c-mute", "還沒納入"]
+    ];
+    var t = el("table", {}, [el("thead", {}, [el("tr", {}, ["來源", "更新頻率", "最新資料", "狀態"].map(function (h) { return el("th", { text: h }); }))])]);
+    var b = el("tbody");
+    rows.forEach(function (r) { b.appendChild(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] }), el("td", { text: r[2] }), el("td", {}, [el("span", { class: "chip " + r[3], text: r[4] })])])); });
+    t.appendChild(b);
+    var p = el("div", { class: "panel" }, [el("h2", { text: "資料來源狀態" }), el("div", { class: "tbl" }, [t])]);
+    var zero = D.pains.filter(function (x) { return x.allZero; }).map(function (x) { return x.code; });
+    if (zero.length) p.appendChild(el("div", { class: "note", text: "數字可能不準：" + zero.join("、") + " 這 7 週都是 0 位，可能是週報沒有統計這幾個痛點，不代表沒人抱怨。" }));
+    p.appendChild(el("div", { class: "note", text: "時間段分析目前只有 7 週資料；正式版會拉到至少 10 週。" }));
+    view.appendChild(p);
+  }
+
+  go("today");
+})();
+</script>
