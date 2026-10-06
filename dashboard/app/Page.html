@@ -413,11 +413,11 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     return el("div", { class: "quote" }, kids);
   }
 
-  /* ---- 全部原話：輸出 CSV、Gemini 中文摘要與逐則翻譯（原話只在公司 GCP 內處理） ---- */
+  /* ---- 全部原話：輸出 CSV、Claude 中文摘要與逐則翻譯（摘要與翻譯會把原話送到 Anthropic） ---- */
   function exportPanel(p) {
     var wrap = el("div", {});
-    var status = el("div", { class: "note", text: "抓這個痛點最近 4 週的全部原話，用公司 GCP 的 Gemini 做中文摘要和逐則翻譯，可下載 CSV。翻譯每 1,000 則約 10–20 分鐘，途中隨時可以先下載。" });
-    var go = el("button", { class: "btn primary", type: "button", text: "開始整理" });
+    var status = el("div", { class: "note", text: "先抓這個痛點最近 4 週的全部原話，可直接下載 CSV（原話不離開公司）。之後可再按「送 Claude 做摘要＋翻譯」——這一步會把原話送到公司外部的 Anthropic。" });
+    var go = el("button", { class: "btn primary", type: "button", text: "讀取原話" });
     var out = el("div", {});
     wrap.appendChild(go); wrap.appendChild(status); wrap.appendChild(out);
     function busy(on) { go.disabled = on; }           // 整理或補翻進行中，不能再開一輪
@@ -434,7 +434,9 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   }
 
   function runExport(code, status, out, busy) {
-    var ex = null, sum = null, zh = {}, lastErr = "";
+    var ex = null, sum = null, zh = {}, lastErr = "", sent = false, fatal = false;
+    // 每一批都會一樣失敗的問題：直接停下說原因。FATAL 要先處理好才能再試；太忙等幾分鐘可以「補翻」
+    var FATAL = /沒有權限|金鑰|指令碼屬性|額度/, STOP = /沒有權限|金鑰|指令碼屬性|額度|太忙/;
     function done() { busy(false); }
     clear(out);
     var sumMsg = el("div", { class: "note" });
@@ -443,34 +445,48 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     call("getPainExport", [code], function (r) {
       ex = r;
       if (!ex.rows.length) { say("最近 4 週沒有原話。"); done(); return; }
-      say("共 " + ex.rows.length + " 則" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "，Gemini 整理摘要中…（原話已可先下載）");
+      say("共 " + ex.rows.length + " 則" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "，可以下載。要中文摘要和翻譯再按「送 Claude 做摘要＋翻譯」（原話會送到公司外部的 Anthropic；每 1,000 則約 15–30 分鐘，途中隨時可以先下載）。");
       renderButtons();
+      done();
+    }, function (m) { say("讀不到原話（" + m + "）。" + HELP); done(); });
+
+    function startClaude() {
+      busy(true); sent = true; renderButtons();
+      say("Claude 整理摘要中…（原話已可先下載）");
       // 伺服器每則只用前 250 字，先截好再送，避免一次送幾 MB
       call("summarizeQuotes", [ex.rows.map(function (q) { return { id: q.id, text: q.text.slice(0, 250) }; })], function (sm) {
         sum = sm;
-        if (sm.used < ex.rows.length) sumMsg.textContent = "摘要依據前 " + sm.used + " 則（原話太多，超過 Gemini 一次能讀的量）。";
-        renderSummary(); translateAll(ex.batch || 20);
-      }, function (m) { sumMsg.textContent = "摘要沒做成（" + m + "）。可以稍後再按一次「開始整理」。"; translateAll(ex.batch || 20); });
-    }, function (m) { say("讀不到原話（" + m + "）。" + HELP); done(); });
+        if (sm.used < ex.rows.length) sumMsg.textContent = "摘要依據前 " + sm.used + " 則（原話太多，超過一次能整理的量）。";
+        renderSummary(); translateAll(ex.batch || 10);
+      }, function (m) {
+        sumMsg.textContent = "摘要沒做成（" + m + "）。";
+        if (FATAL.test(m)) { lastErr = m; fatal = true; finish(); return; }
+        translateAll(ex.batch || 10);
+      });
+    }
 
     function missing() { return ex.rows.filter(function (q) { return !zh[q.id]; }); }
 
     function translateAll(n) {
       var todo = missing(), i = 0;
-      lastErr = "";
+      lastErr = ""; fatal = false;
       busy(true);
       (function next() {
         if (i >= todo.length) { finish(); return; }
-        var batch = todo.slice(i, i + n);
+        // 每批最多 n 則，且總字數不超過 3000（長原話一批太多會逾時）
+        var batch = [todo[i]], len = todo[i].text.length;
+        while (batch.length < n && i + batch.length < todo.length && len + todo[i + batch.length].text.length <= 3000) {
+          len += todo[i + batch.length].text.length; batch.push(todo[i + batch.length]);
+        }
         say("翻譯中 " + Object.keys(zh).length + "／" + ex.rows.length + " 則…（隨時可以先下載）");
         call("translateQuotes", [batch.map(function (q) { return { id: q.id, text: q.text }; })], function (m) {
           for (var k in m) zh[k] = m[k];
-          i += n; renderSummary(); next();
+          i += batch.length; renderSummary(); next();
         }, function (m) {
           lastErr = m;
-          // 權限類問題每一批都會一樣失敗，直接停下說原因；其他問題跳過這批繼續
-          if (/沒有權限|第 2 步|Vertex AI|管理員/.test(m)) { finish(); return; }
-          i += n; next();
+          // 金鑰、權限、額度、過載：每一批都會一樣失敗，直接停下說原因；其他問題跳過這批繼續
+          if (STOP.test(m)) { fatal = FATAL.test(m); finish(); return; }
+          i += batch.length; next();
         });
       })();
     }
@@ -479,7 +495,8 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       var miss = missing().length;
       say("完成：" + ex.rows.length + " 則原話" + (ex.capped ? "（超過 3000 則，只取前 3000 則）" : "") + "、" +
         (ex.rows.length - miss) + " 則有中文翻譯。" +
-        (miss ? "有 " + miss + " 則沒翻到" + (lastErr ? "（" + lastErr + "）" : "") + "，可以按「補翻」。" : ""));
+        (miss ? "有 " + miss + " 則沒翻到" + (lastErr ? "（" + lastErr + "）" : "") +
+          (fatal ? "。照上面說明處理好之後，重新按「讀取原話」。" : "，可以按「補翻」。") : ""));
       renderButtons();
       done();
     }
@@ -501,8 +518,12 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
           copyBox.appendChild(el("div", { class: "note", text: "點進框裡按 Ctrl+A 全選、Ctrl+C 複製，直接貼到 Google 試算表的 A1，會自動分成欄。" }));
           copyBox.appendChild(ta);
         } }));
+      if (!sent) {
+        btnBox.appendChild(el("button", { class: "btn", type: "button", text: "送 Claude 做摘要＋翻譯（原話會送到公司外部）",
+          onclick: startClaude }));
+      }
       var miss = ex ? missing().length : 0;
-      if (miss && status.textContent.indexOf("完成") === 0) {
+      if (miss && !fatal && status.textContent.indexOf("完成") === 0) {
         btnBox.appendChild(el("button", { class: "btn", type: "button", text: "補翻沒翻到的 " + miss + " 則",
           onclick: function (e) { e.target.disabled = true; translateAll(5); } }));   // 補翻用小批，避免同樣太長又失敗
       }
@@ -525,7 +546,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         });
         sumBox.appendChild(item);
       });
-      sumBox.appendChild(el("div", { class: "note", text: "摘要與翻譯由 Gemini 產生，可能有誤；以原話為準。" }));
+      sumBox.appendChild(el("div", { class: "note", text: "摘要與翻譯由 Claude 產生，可能有誤；以原話為準。" }));
     }
 
     function fileName(kind) { return "VoC_" + code + "_" + (ex.since || "") + "起_" + kind; }
@@ -557,7 +578,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
           t.push("");
         });
       }
-      t.push("摘要與翻譯由 Gemini 產生，可能有誤；以原話為準。");
+      t.push("摘要與翻譯由 Claude 產生，可能有誤；以原話為準。");
       return "﻿" + t.join("\r\n");
     }
   }
