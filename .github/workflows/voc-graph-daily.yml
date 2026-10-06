@@ -8,6 +8,8 @@
 #                                      （公司禁止 GCP 服務帳號金鑰，所以不在 Actions 裡連 BigQuery）
 #
 # 觸發：roadmap-daily 成功跑完之後（確保 Jira 是今天的）；也可以手動觸發。
+#       另外：mapping.json 一被改（編輯頁存檔）就重算，以「最新一份 Jira 快照的日期」為準，
+#       讓對應表的修改幾分鐘內就反映在頁面上，不用等隔天。
 # 驗收（check.py）沒過 → 不 commit，頁面維持前一天的版本，workflow 紅燈，GitHub 寄信給 repo watcher。
 # STT 超過 14 天沒被 Apps Script 更新 → check.py C4 紅燈。
 
@@ -18,6 +20,9 @@ on:
     workflows: [roadmap-daily]
     types: [completed]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['voc-graph/mapping.json']
 
 concurrency:
   group: voc-graph-daily
@@ -29,7 +34,7 @@ permissions:
 jobs:
   graph:
     # roadmap-daily 失敗就不跑：Jira 不是今天的，跑了也一定驗收不過
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10   # 對齊契約 BUDGET：單輪 ≤ 10 分鐘
 
@@ -45,11 +50,23 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: 決定這一輪的日期
+        id: day
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # 對應表修改：用現有 Jira 快照的日期重算同一天的圖（不假裝 Jira 是今天抓的）
+            D=$(python3 -c "import json;print(json.load(open('roadmap-bot/out/latest.json'))['as_of_date'])")
+            echo "::notice::對應表修改觸發，以 Jira 快照日 $D 重算。"
+          else
+            D=$(date -u +%F)
+          fi
+          echo "today=$D" >> "$GITHUB_OUTPUT"
+
       - name: 組圖
-        run: python3 voc-graph/build.py
+        run: python3 voc-graph/build.py --today ${{ steps.day.outputs.today }}
 
       - name: 驗收（checker）
-        run: python3 voc-graph/check.py
+        run: python3 voc-graph/check.py --today ${{ steps.day.outputs.today }}
 
       - name: Commit（只在驗收通過、且資料有變時）
         run: |

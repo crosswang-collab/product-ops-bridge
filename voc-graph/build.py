@@ -25,6 +25,7 @@ Exit code：0 = 寫出檔案 / 3 = 崩潰（輸入檔壞掉或不存在）
 
 import argparse
 import datetime as dt
+import glob
 import json
 import os
 import re
@@ -35,6 +36,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 READ_FLOOR = 10        # 低於 10 人不讀動向（跟 ayana 週報同一條規則）
 RISING_PCT = 0.20      # 前週比 +20% 以上算「在變多」
+HISTORY_DAYS = 120     # 對應表候選：最近 120 天內離開 active 的卡
 VOC_TAG_RE = re.compile(r"\[[^\]]*VoC[^\]]*\]", re.IGNORECASE)
 
 
@@ -74,11 +76,32 @@ def summarize(code_rows, window_starts):
     }
 
 
-def build(catalog, roadmap, stt, mapping, today):
+def load_left_cards(roadmap_dir, active_keys, today, days=HISTORY_DAYS):
+    """最近 N 天的每日快照裡出現過、但現在已不在 active 的卡（多半是已發布）。
+    給對應表編輯頁當候選，也讓「已離開 active」的卡能顯示卡名。"""
+    floor = (dt.date.fromisoformat(today) - dt.timedelta(days=days)).isoformat()
+    left = {}
+    for f in sorted(glob.glob(os.path.join(roadmap_dir, "facts-*.json"))):
+        d = os.path.basename(f)[6:16]
+        if d < floor:
+            continue
+        try:
+            snap = load(f)
+        except Exception:
+            continue
+        for c in snap.get("cards", []):
+            if c["key"] not in active_keys:
+                left[c["key"]] = {"key": c["key"], "summary": c.get("summary"), "last_stage": c.get("stage"),
+                                  "last_seen": d, "url": c.get("url")}
+    return sorted(left.values(), key=lambda x: x["last_seen"], reverse=True)
+
+
+def build(catalog, roadmap, stt, mapping, today, left_cards=()):
     dq = []  # data quality: {level: blocker|warn|info, msg}
 
     # ── Jira 卡 ─────────────────────────────────────────────
     cards = {c["key"]: c for c in roadmap.get("cards", [])}
+    left_by_key = {c["key"]: c for c in left_cards}
     pain_codes = {p["code"] for p in catalog["pains"]}
     m = mapping.get("pain_to_cards", {}) or {}
 
@@ -118,8 +141,9 @@ def build(catalog, roadmap, stt, mapping, today):
             linked.append({
                 "key": k,
                 "active": c is not None,
-                "summary": c["summary"] if c else None,
+                "summary": c["summary"] if c else (left_by_key.get(k) or {}).get("summary"),
                 "stage": c["stage"] if c else None,
+                "last_seen": None if c else (left_by_key.get(k) or {}).get("last_seen"),
                 "project_status": c.get("project_status") if c else None,
                 "release_date": c.get("release_date") if c else None,
                 "url": c["url"] if c else f"https://17media.atlassian.net/browse/{k}",
@@ -222,7 +246,7 @@ def build(catalog, roadmap, stt, mapping, today):
         },
         "rules": {"read_floor": READ_FLOOR, "rising_pct": RISING_PCT},
         "windows": window_starts,
-        "nodes": {"pains": pains, "themes": themes, "cards": card_nodes},
+        "nodes": {"pains": pains, "themes": themes, "cards": card_nodes, "left_cards": list(left_cards)},
         "edges": edges,
         "views": {"rising": rising, "gaps": gaps, "unbacked_voc_cards": unbacked,
                   "outside_catalog": outside},
@@ -278,7 +302,9 @@ def main():
         roadmap = load(args.roadmap)
         mapping = load(args.mapping)
         stt = load(args.stt) if os.path.exists(args.stt) else None
-        g = build(catalog, roadmap, stt, mapping, args.today)
+        left = load_left_cards(os.path.dirname(os.path.abspath(args.roadmap)),
+                               {c["key"] for c in roadmap.get("cards", [])}, args.today)
+        g = build(catalog, roadmap, stt, mapping, args.today, left)
     except Exception:
         print("[CRASH] 讀不到輸入檔或格式壞掉：")
         traceback.print_exc()

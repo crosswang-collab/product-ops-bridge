@@ -78,7 +78,7 @@ summary{cursor:pointer;color:var(--mut);font-size:13px}
 <body>
 <div class="wrap">
   <h1>🕸 VoC × Roadmap 對照</h1>
-  <p class="sub">STT 主播聲音 → VoC 25 痛點 → Jira 卡。每天自動更新，驗收沒過就維持前一天。</p>
+  <p class="sub">STT 主播聲音 → VoC 25 痛點 → Jira 卡。每天自動更新，驗收沒過就維持前一天。 <a href="mapping.html" style="color:var(--acc)">✏️ 編輯痛點↔卡對應</a></p>
   <div id="app"><p class="hint">載入中…</p></div>
 </div>
 <script>
@@ -97,7 +97,7 @@ function cardChips(cards){
   if (!cards.length) return '<span class="chip nocard">沒有卡</span>';
   return cards.map(c => c.active
     ? `<a class="chip" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.key.replace('APPIDEAS-',''))} · ${esc(c.stage)} · ${esc(STATUS[c.project_status] || c.project_status || '未標')}</a>`
-    : `<a class="chip left" href="${esc(c.url)}" target="_blank" rel="noopener" title="已不在 active：做完、關掉或移到停車場">${esc(c.key.replace('APPIDEAS-',''))} · 已離開 active</a>`).join('');
+    : `<a class="chip left" href="${esc(c.url)}" target="_blank" rel="noopener" title="${esc((c.summary ? c.summary + '\n' : '') + '已不在 active：做完、關掉或移到停車場')}">${esc(c.key.replace('APPIDEAS-',''))} · 已離開 active</a>`).join('');
 }
 
 function render(g){
@@ -107,7 +107,7 @@ function render(g){
   let h = `<div class="fresh">
     <span class="pill">Jira <b>${esc(s.jira.as_of_date)}</b>（active ${s.jira.active_cards} 張）</span>
     <span class="pill ${sttWarn ? 'warn' : ''}">STT <b>${lw ? esc(lw.start) + '〜' + esc(lw.end) : '無資料'}</b>${lw ? `（${s.stt.age_days} 天前）` : ''}</span>
-    <span class="pill">對應表 <b>${s.mapping.pains_mapped}/25</b> 痛點有卡</span>
+    <a class="pill" href="mapping.html" style="text-decoration:none">對應表 <b>${s.mapping.pains_mapped}/25</b> 痛點有卡 ✏️</a>
   </div>
   <div class="kpis">
     <a class="kpi red" href="#rising"><div class="n">${v.rising.length}</div><div class="l">聲音在變多</div></a>
@@ -126,7 +126,7 @@ function render(g){
   }).join('') : '<div class="empty">本週沒有明顯變多的項目。</div>';
   h += `</div>`;
 
-  h += `<h2 id="gaps">2. 有聲音、沒有卡</h2><p class="hint">VoC 痛點最新一週 ≥ ${g.rules.read_floor} 人，但對應表裡沒有任何 Jira 卡。要嘛補卡，要嘛在 mapping.json 補上已存在的卡。</p><div class="list">`;
+  h += `<h2 id="gaps">2. 有聲音、沒有卡</h2><p class="hint">VoC 痛點最新一週 ≥ ${g.rules.read_floor} 人，但對應表裡沒有任何 Jira 卡。要嘛補卡，要嘛到<a href="mapping.html" style="color:var(--acc)">對應表編輯頁</a>補上已存在的卡。</p><div class="list">`;
   h += v.gaps.length ? v.gaps.map(x => `<div class="row"><span class="code">${esc(x.code)}</span><div class="main">
       <div class="t">${esc(x.title)}</div><div class="meta">VoC 分數 ${x.voc_score}</div></div>
       <div class="num"><b>${x.latest}</b> 人<br><span class="${cls(x.delta_pct)}">${pct(x.delta_pct)}</span></div></div>`).join('')
@@ -167,7 +167,7 @@ function render(g){
     <li>F 主題由 Gemini 自動判定：抽驗準確度 77–86%、幾乎不漏 → 人數約多算 1–2 成，看方向不看小數。</li>
     <li>F 主題人數 = Gemini 判定後的看板母體（P1 × 真痛點 × 可行動）；25 痛點人數 = ayana 週報的「定点」（關鍵字檢知，不經判定，會比 F 主題雜）。兩者母體不同，不能相加。</li>
     <li>原話：用 hit_id 回 BigQuery <code>stt_voc_judgments</code> 查（社外不可），本頁不放原話。</li>
-    <li>痛點 ↔ 卡的對應在 repo 的 <code>voc-graph/mapping.json</code>，由 PM 維護。</li>
+    <li>痛點 ↔ 卡的對應由 Cross 在<a href="mapping.html" style="color:var(--acc)">編輯頁</a>維護（存在 repo 的 <code>voc-graph/mapping.json</code>）。</li>
     ${g.data_quality.map(d => `<li>[${esc(d.level)}] ${esc(d.msg)}</li>`).join('')}
     <li>產生時間 ${esc(g.generated_at)}</li></ul></div>`;
   document.getElementById('app').innerHTML = h;
