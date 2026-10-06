@@ -31,7 +31,7 @@
 var DASH_TITLE = 'VoC Console';
 
 /** 「VoC 作戰台」的網址（部署後貼上）。填了之後，舊的 Console 只會顯示一個連過去的頁面。留空＝照舊。 */
-var NEW_DASHBOARD_URL = '';
+var NEW_DASHBOARD_URL = 'https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec';
 
 /** 每次 apiRaw() 回傳幾列。壓在千位數是因為 google.script.run 的回傳要序列化，
  *  一次塞太多列在網路慢的時候會整包逾時重來。分頁失敗只損失一頁，會自動重試。 */

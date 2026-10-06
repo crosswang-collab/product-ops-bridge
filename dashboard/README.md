@@ -15,6 +15,12 @@
    按部署，複製網址，打開確認畫面正常。最上方出現黃色「注意」或「讀不到資料」時，截圖貼給 Claude。
 5. 舊 VoC Console 改轉址：打開「VoC Daily Bot」專案的 `Dashboard.gs`，找到 `var NEW_DASHBOARD_URL = '';`，把第 4 步的網址貼進兩個引號中間 → 儲存 → **部署 → 管理部署作業 → 編輯（鉛筆）→ 版本選「新版本」→ 部署**。
 
+## 已上線（2026-10-06）
+
+- 網址：`https://script.google.com/a/macros/17.media/s/AKfycbyvKDW_bRldvvYRaguBGJFsSg47uk3sqz83piXl-9GeX4eQq5jlW72JnMtrgd6CJ-aQxw/exec`
+- 舊頁面轉址：Vercel 的 `/voc-graph/web`（對照頁）、`/roadmap-bot/web`（Roadmap 頁）一律轉到上面網址（`vercel.json` 的 `redirects`）。「誰在處理這個痛點」編輯頁與 JP Needs 熱力圖不轉。
+- 舊 VoC Console：repo 的 `voc-bot/Dashboard.gs` 已填好 `NEW_DASHBOARD_URL`；貼進「VoC Daily Bot」專案並部署新版本後生效。
+
 ## 之後怎麼改
 
 | 想做的事 | 怎麼做 |
