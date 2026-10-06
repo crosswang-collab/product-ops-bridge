@@ -23,13 +23,13 @@
 
 ## 原話輸出＋中文摘要＋翻譯（2026-10-06 新增）
 
-在痛點細節的「全部原話」按「開始整理」：抓最近 4 週全部原話 → Claude 做中文摘要 → 每 10 則一批翻成繁中（每 1,000 則約 15–30 分鐘，途中可先下載；失敗的批次會跳過，最後可按「補翻」；金鑰或權限問題會直接停下說原因）→ 可下載 CSV 與摘要。
+在痛點細節的「全部原話」按「讀取原話」：抓最近 4 週全部原話，可直接下載 CSV（**這一步原話不離開公司**）。要中文摘要和翻譯，再按「送 Claude 做摘要＋翻譯」：Claude 做中文摘要 → 每批最多 10 則（且合計 ≤ 3,000 字）翻成繁中（每 1,000 則約 15–30 分鐘，途中可先下載；失敗的批次會跳過，最後可按「補翻」；金鑰、權限、額度用完或 Claude 持續太忙會直接停下說原因）→ 可下載 CSV 與摘要。
 
-**資料去向（2026-10-06 Cross 決定）**：摘要與翻譯會把原話送到 Claude API（Anthropic，公司外部服務）。只下載原話 CSV、不按摘要翻譯時，原話不會離開公司。
+**資料去向（2026-10-06 Cross 決定）**：按「送 Claude 做摘要＋翻譯」才會把原話送到 Claude API（Anthropic，公司外部服務）；只按「讀取原話」並下載 CSV 時，原話不會離開公司。頁面按鈕上也寫明會送到公司外部。
 
 **更新步驟（約 3 分鐘）**
 1. 打開 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/Dashboard.gs → Ctrl+A、Ctrl+C → 在 Apps Script 的程式檔（`程式碼.gs`）裡 Ctrl+A、Ctrl+V → 儲存。
-2. 打開 `appsscript.json`（上次已顯示在左側清單），整份換成 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/appsscript.json 的內容 → 儲存。（這次是把用不到的 GCP 權限收回來。）
+2. 打開 `appsscript.json`（左側檔案清單裡；看不到的話：齒輪「專案設定」→ 勾「在編輯器中顯示 appsscript.json」），整份換成 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/appsscript.json 的內容 → 儲存。（這次是把用不到的 GCP 權限收回來。）
 3. 左側齒輪「專案設定」→ 最下面「指令碼屬性」→「新增指令碼屬性」：屬性填 `ANTHROPIC_API_KEY`，值填 Claude 金鑰（`sk-ant-` 開頭；「VoC Daily Bot」專案 `Code.gs` 裡 `ANTHROPIC_API_KEY` 用的那一把即可）→ 儲存。金鑰放這裡，以後重貼程式不會被洗掉。
 4. 函數選單選 `testClaude` → 執行。看到「✅ Claude 可以用」才繼續；看到 ❌ 就把那行貼給 Claude。
 5. 部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署。
@@ -51,7 +51,7 @@
 - **BigQuery**：SQL 寫死，只吃具名參數 `@code`（必須是 25 痛點清單內的代碼）與 `@since`（伺服器算的日期）。
 - **不顯示 userID**：查詢結果不選 userID；Slack＋表單不帶發話者姓名；連結只保留 `https://`。
 - **不寫任何東西**：專案內不需要任何 GitHub 金鑰（repo 是公開的，直接讀統計檔）、沒有寫入函數、不建試算表。原話只存在伺服器端 6 小時快取。Claude 金鑰放在指令碼屬性，不在程式碼、不進 repo。
-- **例外（2026-10-06 Cross 決定）**：按「開始整理」做摘要與翻譯時，原話會送到 Claude API（Anthropic，公司外部服務）。
+- **例外（2026-10-06 Cross 決定）**：按「送 Claude 做摘要＋翻譯」時，原話會送到 Claude API（Anthropic，公司外部服務）。
 - **頁面打包在專案內**：不從 repo 動態讀頁面，改版必須 Cross 重新部署。
 
 ## 時間段規則（每個痛點各自計算，最近 12 週）

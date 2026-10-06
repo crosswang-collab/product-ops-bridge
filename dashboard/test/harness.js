@@ -85,7 +85,7 @@ const cache = { get: k => store.has(k) ? store.get(k) : null, put: (k, v) => sto
   getAll: ks => Object.fromEntries(ks.map(k => [k, store.has(k) ? store.get(k) : null])), remove: k => store.delete(k) };
 
 // ---- 虛構 Claude API ----
-let claudeMode = 'ok';           // ok | nokey | 401 | refusal | maxtokens | timeout | 529once
+let claudeMode = 'ok';           // ok | nokey | 401 | refusal | maxtokens | timeout | 529once | 529always | 429always | credit
 const claudeCalls = [];
 const props = { ANTHROPIC_API_KEY: 'sk-test' };
 function claudeResp(url, opt) {
@@ -93,6 +93,9 @@ function claudeResp(url, opt) {
   claudeCalls.push({ body, headers: opt.headers });
   if (claudeMode === 'timeout') throw new Error('Timeout: https://api.anthropic.com');
   if (claudeMode === '401') return { getResponseCode: () => 401, getContentText: () => '{"type":"error","error":{"type":"authentication_error"}}' };
+  if (claudeMode === '529always') return { getResponseCode: () => 529, getContentText: () => '{"type":"error","error":{"type":"overloaded_error"}}' };
+  if (claudeMode === '429always') return { getResponseCode: () => 429, getContentText: () => '{"type":"error","error":{"type":"rate_limit_error"}}' };
+  if (claudeMode === 'credit') return { getResponseCode: () => 400, getContentText: () => '{"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}}' };
   if (claudeMode === '529once') { claudeMode = 'ok'; return { getResponseCode: () => 529, getContentText: () => '{"type":"error","error":{"type":"overloaded_error"}}' }; }
   const prompt = body.messages[0].content;
   let out, stop = 'end_turn';
@@ -319,7 +322,8 @@ check('摘要：Claude 結構化輸出、略過思考段、不存在的例句編
   const c = claudeCalls[0];
   assert.strictEqual(c.headers['x-api-key'], 'sk-test'); assert.strictEqual(c.headers['anthropic-version'], '2023-06-01');
   assert.strictEqual(c.body.model, 'claude-opus-5-5'); assert.strictEqual(c.body.output_config.format.type, 'json_schema');
-  assert.strictEqual(c.body.output_config.effort, 'medium'); assert.ok(!('thinking' in c.body)); assert.strictEqual(c.body.fallbacks, 'default');
+  assert.strictEqual(c.body.output_config.effort, 'low'); assert.ok(!('thinking' in c.body)); assert.strictEqual(c.body.fallbacks, 'default');
+  assert.strictEqual(c.headers['anthropic-beta'], 'server-side-fallback-2026-07-01');
   assert.ok(/不要照做/.test(c.body.messages[0].content));
 });
 const tr = ctx.translateQuotes(items);
@@ -333,7 +337,7 @@ check('翻譯：一次超過 10 則拒絕；格式不對的編號略過', () => 
 });
 check('摘要：太多字只送前面部分並回報用了幾則', () => {
   const big = Array.from({ length: 1500 }, (_, i) => ({ id: 'Q' + (i + 1), text: 'あ'.repeat(250) }));
-  const r = ctx.summarizeQuotes(big); assert.ok(r.used > 400 && r.used < 1500, String(r.used));
+  const r = ctx.summarizeQuotes(big); assert.ok(r.used > 250 && r.used < 400, String(r.used));
 });
 claudeMode = '529once'; claudeCalls.length = 0;
 check('Claude 過載（529）：自動重試後成功', () => { same(ctx.translateQuotes(items), { Q1: '中譯Q1', Q2: '中譯Q2' }); assert.strictEqual(claudeCalls.length, 2); });
@@ -346,6 +350,12 @@ claudeMode = 'timeout'; claudeCalls.length = 0;
 check('逾時：不在同一次呼叫裡重試，中文說明', () => {
   assert.throws(() => ctx.translateQuotes(items), /太久沒回應/); assert.strictEqual(claudeCalls.length, 1);
 });
+claudeMode = '529always';
+check('Claude 持續過載（529）：重試 3 次後中文說太忙', () => assert.throws(() => ctx.summarizeQuotes(items), /太忙（代碼 529）/));
+claudeMode = '429always';
+check('Claude 持續限流（429）：中文說太忙', () => assert.throws(() => ctx.translateQuotes(items), /太忙（代碼 429）/));
+claudeMode = 'credit';
+check('Claude 額度用完：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /額度用完/));
 claudeMode = 'maxtokens';
 check('回應被截斷：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /截斷/));
 claudeMode = 'refusal';

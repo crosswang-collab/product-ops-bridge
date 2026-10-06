@@ -39,7 +39,7 @@ var DETAIL_WEEKS = 4;           // 細分類與原話看最近幾週
 var QUOTES_PER_PAIN = 5;
 var EXPORT_MAX = 3000;          // 輸出：單一痛點最近 4 週全部原話（只是保護上限，正常不會碰到）
 var TRANSLATE_BATCH = 10;       // 一次請 Claude 翻幾則（太多會逾時）
-var SUMMARY_MAX_CHARS = 150000; // 摘要時送給 Claude 的原話總字數上限（每則先截到 250 字）
+var SUMMARY_MAX_CHARS = 80000;  // 摘要時送給 Claude 的原話總字數上限（每則先截到 250 字；太多會超過 Apps Script 約 60 秒的等待上限）
 
 /**
  * Claude API（Anthropic）。2026-10-06 Cross 決定改用：原話會送到 Anthropic（公司外部服務）。
@@ -146,7 +146,7 @@ function summarizeQuotes(items) {
     lines.join('\n')
   ].join('\n');
   var j;
-  try { j = claudeJson_(prompt, SUMMARY_SCHEMA, 'medium'); } catch (e) { throw new Error(friendly_(e)); }
+  try { j = claudeJson_(prompt, SUMMARY_SCHEMA, 'low'); } catch (e) { throw new Error(friendly_(e)); }
   var ids = {};
   list.forEach(function (r) { ids[r.id] = true; });
   return {
@@ -563,7 +563,8 @@ function claudeJson_(prompt, schema, effort) {
     messages: [{ role: 'user', content: prompt }]
   };
   var key = claudeKey_();
-  var r = withRetry_(function () {
+  var r;
+  try { r = withRetry_(function () {
     var x;
     try {
       x = UrlFetchApp.fetch(CLAUDE_URL, {
@@ -573,14 +574,19 @@ function claudeJson_(prompt, schema, effort) {
       });
     } catch (netErr) {
       // 逾時或連線中斷：不在同一次呼叫裡重試（重試只會拖更久），交給頁面跳過這批
-      throw new Error('Claude 這一批太久沒回應');
+      throw new Error('Claude 太久沒回應');
     }
     var c = x.getResponseCode();
     if (c === 429 || c === 529 || c >= 500) { var e = new Error('Claude ' + c); e.transient = true; throw e; }
     return { code: c, body: x.getContentText('UTF-8') };
-  }, 'Claude');
+  }, 'Claude'); } catch (e) {
+    // 重試 3 次仍過載或限流
+    if (e.transient) throw new Error('Claude 現在太忙（' + e.message.replace('Claude ', '代碼 ') + '），等幾分鐘再按一次');
+    throw e;
+  }
   if (r.code === 401) throw new Error('Claude 金鑰不對或已失效：請到「專案設定 → 指令碼屬性」更新 ANTHROPIC_API_KEY');
   if (r.code === 403) throw new Error('這把 Claude 金鑰沒有使用權限，請確認金鑰所屬的 Anthropic 帳號');
+  if (r.code === 400 && /credit balance/i.test(r.body)) throw new Error('Claude 帳號額度用完：請到 Anthropic 後台加值');
   if (r.code !== 200) {
     console.log('[ERROR] Claude 回 ' + r.code + '：' + r.body.slice(0, 300));
     throw new Error('Claude 暫時不能用（代碼 ' + r.code + '）');
