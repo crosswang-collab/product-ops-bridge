@@ -37,6 +37,14 @@
 
 下載沒反應時，按「下載沒反應？顯示全文自己複製」，全選複製後貼到 Google 試算表的 A1，會自動分成欄。
 
+## 在儀表板指定負責的卡（2026-10-07 起，取代「誰在處理這個痛點」編輯頁）
+
+痛點細節最上面的「下一步」→「指定負責的卡」→ 搜尋、勾選 → 存檔，畫面馬上更新。只有 Cross 看得到這個功能。
+
+**第一次要做（1 分鐘）**：Apps Script 左側齒輪「專案設定」→ 最下面「指令碼屬性」→ 新增屬性 `GITHUB_TOKEN`，值填「STT Export」專案 `SttExport.gs` 最上面 `GITHUB_TOKEN` 那一把（`github_pat_` 開頭）→ 儲存。函數選單選 `testGithub` → 執行，看到「✅ GitHub 金鑰可以用」就好。
+
+舊的編輯頁網址還能打開，但只會顯示「已搬到 VoC 作戰台」和連結。
+
 ## 之後怎麼改
 
 | 想做的事 | 怎麼做 |
@@ -49,11 +57,11 @@
 
 ## 安全設計（第 3 輪審查要求）
 
-- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`getPainExport`、`translateQuotes`、`refreshNow`、`testDashboard`、`testTranslate`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
+- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`getPainExport`、`translateQuotes`、`refreshNow`、`saveOwnerCards`、`testDashboard`、`testTranslate`、`testGithub`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
 - **原話顯示**：頁面一律用 `textContent` 放文字，不把字串當 HTML；不載入任何外部腳本或樣式。`build_gas.py` 打包時會掃描並拒絕違規寫法。
 - **BigQuery**：SQL 寫死，只吃具名參數 `@code`（必須是 25 痛點清單內的代碼）與 `@since`（伺服器算的日期）。
 - **不顯示 userID**：查詢結果不選 userID；Slack＋表單不帶發話者姓名；連結只保留 `https://`。
-- **不寫任何東西**：專案內不需要任何 GitHub 金鑰（repo 是公開的，直接讀統計檔）、沒有寫入函數、不建試算表。原話只存在伺服器端 6 小時快取。不需要任何金鑰。
+- **唯一的寫入**：`saveOwnerCards` 只有 Cross 能用、只改 `voc-graph/mapping.json` 的「誰負責哪個痛點」。GitHub 金鑰放在指令碼屬性 `GITHUB_TOKEN`，不在程式裡、不進 repo（2026-10-07 Cross 決定）。其他一律只讀、不建試算表；原話只存在伺服器端 6 小時快取。
 - **例外（2026-10-07 Cross 決定）**：按「翻譯成中文」時原話送到 Google 翻譯；摘要由 Cross 自己把 CSV 上傳到 claude.ai。
 - **頁面打包在專案內**：不從 repo 動態讀頁面，改版必須 Cross 重新部署。
 

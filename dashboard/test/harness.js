@@ -103,11 +103,34 @@ const LanguageApp = { translate: (text, from, to) => {
   return '中譯' + text.slice(0, 4);
 } };
 
+// ---- 虛構 GitHub contents API（只給「誰負責哪個痛點」用） ----
+let ghMode = 'ok';               // ok | 401 | conflictOnce | conflictAlways
+const ghPuts = [];
+const props = { GITHUB_TOKEN: 'ghp_test' };
+const gh = { sha: 's1', text: fs.readFileSync(path.join(ROOT, 'voc-graph/mapping.json'), 'utf8') };
+function ghResp(url, opt) {
+  assert.strictEqual(opt.headers.Authorization, 'Bearer ghp_test');
+  assert.ok(/contents\/voc-graph\/mapping\.json/.test(url), url);
+  if (ghMode === '401') return { getResponseCode: () => 401, getContentText: () => '{}' };
+  if ((opt.method || 'get') === 'get') {
+    return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ sha: gh.sha, content: Buffer.from(gh.text, 'utf8').toString('base64').replace(/(.{60})/g, '$1\n') }) };
+  }
+  const body = JSON.parse(opt.payload);
+  ghPuts.push(body);
+  if (ghMode === 'conflictAlways' || (ghMode === 'conflictOnce' && ghPuts.length === 1) || body.sha !== gh.sha) return { getResponseCode: () => 409, getContentText: () => '{}' };
+  assert.strictEqual(body.branch, 'main');
+  gh.text = Buffer.from(body.content, 'base64').toString('utf8'); gh.sha = 's' + (+gh.sha.slice(1) + 1);
+  return { getResponseCode: () => 200, getContentText: () => '{}' };
+}
+
 const ctx = {
   LanguageApp,
+  PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null }) },
+  LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
   console: { log: m => log.push(String(m)) },
   Session: { getActiveUser: () => ({ getEmail: () => viewer }) },
   UrlFetchApp: { fetch: (url, opt) => {
+    if (/^https:\/\/api\.github\.com\//.test(url)) return ghResp(url, opt || {});
     const rel = url.replace('https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/', '');
     const f = path.join(ROOT, rel);
     const ok = fs.existsSync(f);
@@ -123,7 +146,11 @@ const ctx = {
   SpreadsheetApp: { openById: id => ({ getSheetByName: n =>
     n === 'VoC_Raw_Log' ? sheet(rawRows) : n === 'VoC_Bot_Log' ? sheet(logRows) : null }) },
   CacheService: { getScriptCache: () => cache },
-  Utilities: { formatDate: fmt, sleep: () => {} },
+  Utilities: { formatDate: fmt, sleep: () => {},
+    Charset: { UTF_8: 'UTF-8' },
+    base64Encode: b => Buffer.from(typeof b === 'string' ? Buffer.from(b, 'utf8') : b).toString('base64'),
+    base64Decode: s => Array.from(Buffer.from(s, 'base64')),
+    newBlob: d => ({ getBytes: () => Array.from(Buffer.from(String(d), 'utf8')), getDataAsString: () => Buffer.from(d).toString('utf8') }) },
   HtmlService: { createHtmlOutput: h => ({ html: h, setTitle() { return this; }, addMetaTag() { return this; } }) },
 };
 vm.createContext(ctx);
@@ -338,10 +365,65 @@ check('testTranslate 回報可以用', () => { log.length = 0; ctx.testTranslate
   assert.throws(() => ctx.getPainExport(bad), /不認得/);
 }));
 viewer = 'someone@17.media';
+// ---- 指定負責的卡（寫回 mapping.json） ----
+viewer = 'crosswang@17.media';
+check('Cross 看得到指定功能（有金鑰）', () => { const d = ctx.getDashboard(); assert.strictEqual(d.canAssign, true); });
+check('指定負責的卡：寫回 mapping.json 的 pain_to_cards，其他欄位不動，畫面資料馬上更新', () => {
+  const before = JSON.parse(gh.text);
+  const r = ctx.saveOwnerCards('U6.0', ['APPIDEAS-2258', 'APPIDEAS-2251', 'APPIDEAS-2258']);
+  same(r.cards, ['APPIDEAS-2251', 'APPIDEAS-2258']); assert.strictEqual(r.noOwner, false);
+  const after = JSON.parse(gh.text);
+  same(after.pain_to_cards['U6.0'], ['APPIDEAS-2251', 'APPIDEAS-2258']);
+  Object.keys(before).filter(k => k !== 'pain_to_cards').forEach(k => same(after[k], before[k]));
+  assert.ok(/U6\.0/.test(ghPuts[ghPuts.length - 1].message));
+  const p = ctx.getDashboard().pains.filter(x => x.code === 'U6.0')[0];
+  same(p.cards, ['APPIDEAS-2251', 'APPIDEAS-2258']); assert.strictEqual(p.noOwner, false);
+});
+check('沒有快取時存檔：一樣算對「沒人負責」並放回快取', () => {
+  store.clear();
+  const r = ctx.saveOwnerCards('S2.1', ['APPIDEAS-2251']);
+  assert.strictEqual(r.noOwner, false); assert.strictEqual(r.team, 'IST');
+  const r2 = ctx.saveOwnerCards('S2.1', []);
+  assert.strictEqual(r2.noOwner, true);
+  assert.strictEqual(ctx.getDashboard().pains.filter(x => x.code === 'S2.1')[0].noOwner, true);
+});
+check('剛指定的卡不再列在「標了 VoC 但還沒對到痛點」', () => {
+  const k = ctx.getDashboard().unbacked.map(c => c.key)[0];
+  if (!k) return;
+  ctx.saveOwnerCards('U6.0', [k]);
+  assert.ok(!ctx.getDashboard().unbacked.some(c => c.key === k));
+});
+check('清掉負責的卡：從對應表移除，又變回沒人負責', () => {
+  const r = ctx.saveOwnerCards('U6.0', []);
+  assert.ok(!('U6.0' in JSON.parse(gh.text).pain_to_cards)); assert.strictEqual(r.noOwner, true);
+});
+check('指定負責的卡：拒絕不認得的痛點與錯的卡號', () => {
+  assert.throws(() => ctx.saveOwnerCards('X1.0', []), /不認得/);
+  assert.throws(() => ctx.saveOwnerCards('U6.0', ['../evil']), /卡號格式不對/);
+  assert.throws(() => ctx.saveOwnerCards('U6.0', 'APPIDEAS-1'), /格式不對/);
+});
+ghMode = 'conflictOnce'; ghPuts.length = 0;
+check('剛好被別處改過：重讀一次再存成功', () => { ctx.saveOwnerCards('S2.1', ['APPIDEAS-1928']); assert.strictEqual(ghPuts.length, 2); same(JSON.parse(gh.text).pain_to_cards['S2.1'], ['APPIDEAS-1928']); });
+ghMode = 'conflictAlways';
+check('一直被別處改：中文請重新整理', () => assert.throws(() => ctx.saveOwnerCards('S2.1', []), /重新整理/));
+ghMode = '401';
+check('金鑰錯：中文說明換一把新的', () => assert.throws(() => ctx.saveOwnerCards('S2.1', []), /金鑰不對/));
+ghMode = 'ok';
+check('testGithub 回報可以用', () => { log.length = 0; ctx.testGithub(); assert.ok(log.some(l => l.startsWith('✅ GitHub')), log.join('|')); });
+delete props.GITHUB_TOKEN;
+check('沒設金鑰：畫面不給指定、存檔時中文說明', () => {
+  assert.strictEqual(ctx.getDashboard().canAssign, false);
+  assert.throws(() => ctx.saveOwnerCards('S2.1', []), /還沒設定 GitHub 金鑰/);
+});
+props.GITHUB_TOKEN = 'ghp_test';
+viewer = 'someone@17.media';
+
 check('名單外：輸出／翻譯／testTranslate 都拒絕', () => {
   assert.throws(() => ctx.getPainExport('S2.1'), /沒有權限/);
   assert.throws(() => ctx.translateQuotes(items), /沒有權限/);
   assert.throws(() => ctx.testTranslate(), /沒有權限/);
+  assert.throws(() => ctx.saveOwnerCards('U6.0', []), /沒有權限/);
+  assert.throws(() => ctx.testGithub(), /沒有權限/);
 });
 
 store.clear();
