@@ -1,6 +1,10 @@
 {
  "_how_to_edit": "痛點代碼 → Jira 卡 key（APPIDEAS-xxxx）。一個痛點可以對多張卡，一張卡也可以出現在多個痛點。只改 pain_to_cards 這一段；代碼必須是 catalog.json 裡的 25 個之一，否則每日驗收會 FAIL。卡做完離開 active 不用刪，頁面會標成「已離開 active」。",
  "_owner": "Cross 在「誰在處理這個痛點」網頁編輯（Apps Script）",
- "pain_to_cards": {},
+ "pain_to_cards": {
+  "S2.0": [
+   "APPIDEAS-2251"
+  ]
+ },
  "_editor_url": "https://script.google.com/a/17.media/macros/s/AKfycbyCg2aSAvVXwbzdDyOTox-1_PeajuR_-zIxEtfyxDZv0iLoIYMW-ak7B0H6dTWLj0PC/exec"
 }
