@@ -108,6 +108,12 @@ details.more>summary{cursor:pointer;font-size:13px;color:var(--muted);font-weigh
 footer.src{margin-top:18px}
 footer.src>details>summary{cursor:pointer;font-size:12.5px;color:var(--muted)}
 footer.src .grid2{margin-top:10px}
+.assign{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+.assign .find{font:inherit;font-size:13px;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.pick{max-height:260px;overflow-y:auto;margin-top:6px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.pk{display:grid;grid-template-columns:20px 48px minmax(0,1fr) auto;gap:6px;align-items:center;padding:6px 8px;border-top:1px solid var(--line);font-size:13px;cursor:pointer}
+.pk:first-child{border-top:0}
+.pk:hover{background:var(--soft)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
 </style>
@@ -166,7 +172,10 @@ footer.src .grid2{margin-top:10px}
     return u ? el("a", { href: u, target: "_blank", rel: "noopener", text: text }) : el("span", { text: text });
   }
 
+  var currentTab = function () { return "today"; }, currentFilter = function () { return "all"; };
+  var keep = null;   // 存檔後重畫時保留目前的分頁與選中的痛點
   function init() {
+  clear(document.getElementById("bluf")); clear(document.getElementById("tabs")); clear(document.getElementById("srcbody"));
   var R = D.rules;
   var weekLbl = D.weeks.map(md);
 
@@ -222,8 +231,11 @@ footer.src .grid2{margin-top:10px}
   var TABS = [
     ["today", "這週要注意（" + todo.length + "）"], ["pains", "全部痛點（" + D.pains.length + "）"], ["roadmap", "Roadmap"]
   ];
-  var state = { tab: "today", sel: todo.length ? todo[0].code : pains[0].code, filter: "all" };
+  var state = keep || { tab: "today", sel: todo.length ? todo[0].code : pains[0].code, filter: "all" };
+  keep = null;
   var tabsEl = document.getElementById("tabs"), view = document.getElementById("view");
+  currentTab = function () { return state.tab; };
+  currentFilter = function () { return state.filter; };
   TABS.forEach(function (t) {
     tabsEl.appendChild(el("button", { role: "tab", id: "tab-" + t[0], "aria-selected": "false", text: t[1],
       onclick: function () { go(t[0]); } }));
@@ -282,7 +294,13 @@ footer.src .grid2{margin-top:10px}
 
     /* 下一步：找 PM → 開卡 → 回來指定負責的卡（D3：卡由 Cross 自己指定） */
     var nx = el("div", { class: "next" }, [el("h3", { text: p.cards.length ? "已有負責的卡" : "下一步" })]);
-    var ed = safeUrl(D.editorUrl), sheet = safeUrl(D.cardSheetUrl);
+    var sheet = safeUrl(D.cardSheetUrl);
+    var picker = D.canAssign ? assignBox(p) : null;
+    function openBtn(label) {
+      return el("button", { class: "btn primary", type: "button", text: label,
+        onclick: function (e) { picker.hidden = !picker.hidden; e.target.setAttribute("aria-expanded", picker.hidden ? "false" : "true"); } });
+    }
+    var cantAssign = D.canEdit ? "（要在這裡指定，先在 Apps Script「指令碼屬性」加 GITHUB_TOKEN）" : "（由 Cross 指定）";
     if (p.cards.length) {
       p.cards.forEach(function (k) {
         var c = D.cards.filter(function (x) { return x.key === k; })[0];
@@ -293,20 +311,22 @@ footer.src .grid2{margin-top:10px}
               c.domain ? el("span", { class: "chip c-mute", text: c.domain + (pmOf(c.domain) ? "・" + pmOf(c.domain) : "") }) : null]) : null]),
           el("span")]));
       });
-      if (ed) nx.appendChild(el("div", { class: "note" }, ["卡不對？", el("a", { href: ed, target: "_blank", rel: "noopener", text: "改負責的卡 ↗" })]));
+      if (picker) { nx.appendChild(openBtn("改負責的卡")); nx.appendChild(picker); }
+      else if (D.canEdit) nx.appendChild(el("div", { class: "note", text: "要改負責的卡" + cantAssign }));
     } else {
       var ol = el("ol");
       var pmName = p.team ? p.team.split("、").map(pmOf).filter(Boolean).join("、") : "";
       var teams = Object.keys(D.teamPm || {});
       ol.appendChild(el("li", {}, [p.team
         ? "找 " + p.team + " 的 PM" + (pmName ? "：" + pmName : "（PM 名字還沒填）")
-        : "決定找哪個團隊的 PM" + (teams.length ? "：" + teams.map(function (t) { return t + (pmOf(t) ? " " + pmOf(t) : ""); }).join("／") : "")]));
+        : "決定找哪個團隊的 PM：", p.team ? null : el("span", { class: "chips", style: "margin-top:4px" }, teams.map(function (t) {
+          return el("span", { class: "chip c-mute", text: t + (pmOf(t) ? " " + pmOf(t) : "") });   // 一組一個標籤，手機換行也不會拆開
+        }))]));
       ol.appendChild(el("li", {}, ["開卡", sheet ? el("a", { class: "btn", href: sheet, target: "_blank", rel: "noopener", text: "開卡試算表 ↗" })
         : el("span", { class: "note", text: D.canEdit ? "（開卡試算表網址還沒設定）" : "（由 Cross 開卡）" })]));
-      ol.appendChild(el("li", {}, ["卡開好後，回來指定負責的卡", ed ? el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "指定負責的卡 ↗" })
-        : el("span", { class: "note", text: "（由 Cross 指定）" })]));
+      ol.appendChild(el("li", {}, ["卡開好後，在這裡指定負責的卡", picker ? openBtn("指定負責的卡") : el("span", { class: "note", text: cantAssign })]));
       nx.appendChild(ol);
-      if (ed) nx.appendChild(el("div", { class: "note", text: "指定後隔天這裡會自動更新。" }));
+      if (picker) nx.appendChild(picker);
     }
     var toQ = el("button", { class: "btn", type: "button", text: "看代表原話 ↓", style: "margin-top:8px" });
     nx.appendChild(toQ);
@@ -369,6 +389,54 @@ footer.src .grid2{margin-top:10px}
       [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: msg })); });
     });
     return box;
+  }
+
+  /* 指定負責的卡：就在細節裡勾選、存檔，不用跳到別的頁面（只有 Cross 看得到） */
+  function assignBox(p) {
+    var wrap = el("div", { class: "assign", hidden: "hidden" });
+    var chosen = {};
+    p.cards.forEach(function (k) { chosen[k] = true; });
+    var q = el("input", { type: "search", placeholder: "搜尋卡名、卡號或團隊", "aria-label": "搜尋卡", class: "find" });
+    var list = el("div", { class: "pick" });
+    var msg = el("div", { class: "note", role: "status" });
+    var save = el("button", { class: "btn primary", type: "button", text: "存檔" });
+    var cards = D.cards.slice().sort(function (a, b) { return (a.domain || "").localeCompare(b.domain || "") || a.summary.localeCompare(b.summary); });
+    p.cards.forEach(function (k) {   // 已指定但不在進行中清單的卡也要列出來，才能取消
+      if (!cards.some(function (c) { return c.key === k; })) cards.unshift({ key: k, summary: "（已不在進行中清單）", domain: "" });
+    });
+    function draw() {
+      clear(list);
+      var t = q.value.trim().toLowerCase();
+      cards.forEach(function (c) {
+        var hay = (c.key + " " + c.summary + " " + (c.domain || "")).toLowerCase();
+        if (t && hay.indexOf(t) < 0 && !chosen[c.key]) return;
+        var box = el("input", { type: "checkbox" });
+        box.checked = !!chosen[c.key];
+        box.addEventListener("change", function () { if (box.checked) chosen[c.key] = true; else delete chosen[c.key]; });
+        list.appendChild(el("label", { class: "pk" }, [box,
+          el("span", { class: "code", text: c.key.replace("APPIDEAS-", "#") }),
+          el("span", { text: c.summary }),
+          c.domain ? el("span", { class: "chip c-mute", text: c.domain + (pmOf(c.domain) ? "・" + pmOf(c.domain) : "") }) : null]));
+      });
+      if (!list.firstChild) list.appendChild(el("div", { class: "empty", text: "找不到符合的卡。" }));
+    }
+    q.addEventListener("input", draw);
+    save.addEventListener("click", function () {
+      var keys = Object.keys(chosen).sort();
+      save.disabled = true; msg.textContent = "存檔中…";
+      call("saveOwnerCards", [p.code, keys], function (r) {
+        D.pains.forEach(function (x) { if (x.code === r.code) { x.cards = r.cards; x.noOwner = r.noOwner; } });
+        keep = { tab: currentTab(), sel: r.code, filter: currentFilter() };
+        init();
+        showStatus("");
+      }, function (m) { save.disabled = false; msg.textContent = "沒存成（" + m + "）"; });
+    });
+    draw();
+    wrap.appendChild(q); wrap.appendChild(list);
+    wrap.appendChild(el("div", { class: "chips", style: "margin-top:8px;align-items:center" }, [save,
+      el("span", { class: "note", style: "margin:0", text: "存檔後這裡馬上更新；每天的對照圖也會跟著重算。" })]));
+    wrap.appendChild(msg);
+    return wrap;
   }
 
   var pending = {};
@@ -773,7 +841,7 @@ footer.src .grid2{margin-top:10px}
     into.appendChild(p);
   }
 
-  go("today");
+  go(state.tab);
 
   /* ---- 頁尾：資料來源一行，展開看 Slack＋表單與各來源狀態（出錯也不影響上面的主畫面） ---- */
   try { (function () {

@@ -1,5 +1,5 @@
 /**
- * VoC 作戰台 —— 單一儀表板（Apps Script 網頁，只讀不寫）
+ * VoC 作戰台 —— 單一儀表板（Apps Script 網頁；唯一會寫的是「誰負責哪個痛點」）
  *
  * 部署見 dashboard/README.md（5 步）。這是「新的」Apps Script 專案，不要放進「STT Export」。
  * 這支檔案由 dashboard/build_gas.py 產生（Code.template.gs ＋ Page.html），頁面打包在檔案裡：
@@ -10,8 +10,10 @@
  * 網域內任何人都能直接呼叫 google.script.run 的公開函數，所以「每一個」公開函數第一行都呼叫 assertAllowed_()。
  * 回傳原話的函數都以 _ 結尾（瀏覽器呼叫不到），只透過已檢查權限的公開函數回傳。
  *
- * === 這支檔案不寫任何東西 ===
- * 沒有 GitHub token、沒有寫入 repo 的函數、不建 Sheet。資料來源：
+ * === 唯一的寫入：「誰負責哪個痛點」（2026-10-07 Cross 決定，取代另一個編輯頁）===
+ * saveOwnerCards() 只有 OWNER_EMAIL 能用、只寫 voc-graph/mapping.json 的 pain_to_cards 一個欄位。
+ * GitHub 金鑰放在「專案設定 → 指令碼屬性」GITHUB_TOKEN，不在程式裡、不進 repo。其他一律只讀、不建 Sheet。
+ * 資料來源：
  *   1. repo 的公開統計檔（raw.githubusercontent.com，repo 是公開的，不需要 token）
  *   2. BigQuery（以 Cross 身分）：25 痛點週人數、細分類、代表原話。SQL 固定，只吃參數 @code／@since
  *   3. VoC Daily Bot 的試算表（以 Cross 身分，只讀）：Slack＋表單的聲音
@@ -100,6 +102,7 @@ function getDashboard() {
     cachePut_('dash', d, d.sttSource !== 'bigquery' || !d.slack.ok);
   }
   d.canEdit = (who === OWNER_EMAIL.toLowerCase());
+  d.canAssign = d.canEdit && !!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
   if (!d.canEdit) { d.editorUrl = ''; d.cardSheetUrl = ''; }
   return d;
 }
@@ -175,6 +178,53 @@ function refreshNow() {
   return 'ok';
 }
 
+/**
+ * 指定某個痛點負責的卡（只有 Cross）。keys＝卡號陣列（空陣列＝清掉）。
+ * 寫回 repo 的 voc-graph/mapping.json，並更新快取，畫面馬上看到；每天的對照圖也會跟著重算。
+ */
+function saveOwnerCards(code, keys) {
+  var who = assertAllowed_();
+  if (who !== OWNER_EMAIL.toLowerCase()) throw new Error('只有 Cross 可以指定負責的卡');
+  code = assertPainCode_(code);
+  if (!Array.isArray(keys) || keys.length > 10) throw new Error('卡的資料格式不對（最多 10 張）');
+  var clean = keys.map(String).filter(function (k, i, a) { return a.indexOf(k) === i; }).sort();
+  clean.forEach(function (k) { if (!/^APPIDEAS-\d{1,6}$/.test(k)) throw new Error('卡號格式不對：' + k); });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) throw new Error('另一個存檔正在進行，請稍等幾秒再按一次');
+  try {
+    var tries = 0;
+    while (true) {
+      tries++;
+      var cur = ghGetFile_(MAPPING_PATH);
+      var doc = cur.doc || {};
+      var map = doc.pain_to_cards || {};
+      if (clean.length) map[code] = clean; else delete map[code];
+      doc.pain_to_cards = map;
+      var res = ghPutFile_(MAPPING_PATH, JSON.stringify(doc, null, 1) + '\n', cur.sha,
+        'mapping: ' + code + ' → ' + (clean.join(', ') || '（清掉）') + '（Cross 在儀表板指定）');
+      if (res === 'conflict' && tries < 2) continue;   // 剛好有別處同時改：重讀一次再存
+      if (res === 'conflict') throw new Error('對應表剛被別處改過，請重新整理頁面再存一次');
+      break;
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  // 快取裡的主資料一起更新，重新整理就看得到，不用等 6 小時
+  var d = cacheGet_('dash'), noOwner = false;
+  if (d) {
+    d.pains.forEach(function (p) {
+      if (p.code !== code) return;
+      p.cards = clean;
+      p.noOwner = !clean.length && p.latest >= READ_FLOOR;
+      noOwner = p.noOwner;
+    });
+    cachePut_('dash', d, d.sttSource !== 'bigquery' || !d.slack.ok);
+  }
+  return { ok: true, code: code, cards: clean, noOwner: noOwner };
+}
+
 // ═══════════════ 部署前手動驗證（在 Apps Script 編輯器執行） ═══════════════
 
 /** 每一行都是 ✅ 才去部署。只印數量，不印任何原話。 */
@@ -204,6 +254,19 @@ function testDashboard() {
     '；前後文有內容 ' + (det.quotes.length - noCtx) + '／' + det.quotes.length + ' 則');
   var leak = JSON.stringify(d).match(/userID|liveStreamID/i);
   console.log((leak ? '❌ 主資料出現 ' + leak[0] : '✅ 主資料沒有 userID'));
+}
+
+/** 確認儀表板能不能寫「誰負責哪個痛點」（只讀一次，不寫）。 */
+function testGithub() {
+  var who = viewer_();
+  if (!isAllowed_(who)) throw new Error('沒有權限');
+  try {
+    var f = ghGetFile_(MAPPING_PATH);
+    var n = Object.keys((f.doc && f.doc.pain_to_cards) || {}).length;
+    console.log('✅ GitHub 金鑰可以用：目前 ' + n + ' 個痛點已指定負責的卡');
+  } catch (e) {
+    console.log('❌ ' + e.message);
+  }
 }
 
 /** 確認 Google 翻譯能不能用（不送任何原話）。部署前在編輯器執行一次。 */
@@ -666,6 +729,45 @@ function repoLabel_(path) {
 }
 
 // ═══════════════ 快取（伺服器端；超過 30000 字自動分段） ═══════════════
+
+// ═══════════════ GitHub（只用在「誰負責哪個痛點」） ═══════════════
+
+var MAPPING_PATH = 'voc-graph/mapping.json';
+var GH_API = 'https://api.github.com/repos/crosswang-collab/product-ops-bridge/contents/';
+
+function ghToken_() {
+  var t = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  if (!t) throw new Error('還沒設定 GitHub 金鑰：Apps Script 左側齒輪「專案設定」→ 最下面「指令碼屬性」→ 新增屬性 GITHUB_TOKEN');
+  return t.trim();
+}
+
+function ghHeaders_() {
+  return { Authorization: 'Bearer ' + ghToken_(), Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+}
+
+/** 讀 repo 檔案（main 分支），回傳 {sha, doc}。 */
+function ghGetFile_(path) {
+  var x = UrlFetchApp.fetch(GH_API + path + '?ref=main', { headers: ghHeaders_(), muteHttpExceptions: true });
+  var c = x.getResponseCode();
+  if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對、過期或沒有這個 repo 的權限：請到「指令碼屬性」更新 GITHUB_TOKEN');
+  if (c !== 200) throw new Error('讀不到「誰負責哪個痛點」的設定（代碼 ' + c + '）');
+  var j = JSON.parse(x.getContentText('UTF-8'));
+  var text = Utilities.newBlob(Utilities.base64Decode(String(j.content || '').replace(/\s/g, ''))).getDataAsString('UTF-8');
+  return { sha: j.sha, doc: JSON.parse(text) };
+}
+
+/** 寫 repo 檔案；sha 不符（別處剛改過）回傳 'conflict'。 */
+function ghPutFile_(path, text, sha, message) {
+  var x = UrlFetchApp.fetch(GH_API + path, {
+    method: 'put', contentType: 'application/json', headers: ghHeaders_(), muteHttpExceptions: true,
+    payload: JSON.stringify({ message: message, content: Utilities.base64Encode(Utilities.newBlob(text).getBytes()), sha: sha, branch: 'main' })
+  });
+  var c = x.getResponseCode();
+  if (c === 409 || c === 422) return 'conflict';
+  if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對、過期或沒有寫入權限：請到「指令碼屬性」更新 GITHUB_TOKEN');
+  if (c !== 200 && c !== 201) throw new Error('存不進去（代碼 ' + c + '），請稍後再試');
+  return 'ok';
+}
 
 function cacheGet_(key) {
   var c = CacheService.getScriptCache();
