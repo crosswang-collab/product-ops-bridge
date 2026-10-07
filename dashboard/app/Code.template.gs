@@ -28,6 +28,23 @@ var ALLOWED_EMAILS = [
 /** 只有這個人會看到「去指定負責的卡」按鈕（編輯頁只部署給 Cross 自己）。 */
 var OWNER_EMAIL = 'crosswang@17.media';
 
+/**
+ * 「該找哪個 PM」：痛點 → 團隊 → PM。
+ * 痛點已有負責的卡時，用卡的團隊；還沒有卡時，用下面 PAIN_TEAM 的預設建議（Cross 可直接改）。
+ */
+var TEAM_PM = {            // 團隊 → PM 名字（空白＝畫面顯示「PM 還沒填」）
+  '17App': '', 'IST': '', 'Internal Tool': '', 'Platform': '', 'Live Commerce': ''
+};
+var PAIN_TEAM = {          // 2026-10-07 Claude 依痛點內容與現有卡的團隊預填，Cross 確認後可改
+  'S2.0': '17App', 'S2.1': '17App', 'S2.2': '17App', 'S2.3': '17App', 'S2.4': '17App',
+  'U2.0': '17App', 'U2.1': '17App', 'U2.2': '17App', 'U2.3': '17App', 'U2.4': '17App',
+  'U4.0': 'Platform', 'U4.1': 'Internal Tool', 'U4.2': 'IST', 'U4.3': 'IST', 'U4.4': 'IST',
+  'U5.0': '17App', 'U5.1': '17App', 'U5.2': 'IST', 'U5.3': '17App', 'U5.4': '17App',
+  'U6.0': 'IST', 'U6.1': 'IST', 'U6.2': 'IST', 'U6.3': 'IST', 'U6.4': 'IST'
+};
+/** 開卡用的 Google 試算表網址（空白＝畫面不顯示「開卡」按鈕）。 */
+var CARD_SHEET_URL = '';
+
 var REPO_RAW = 'https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/';
 var BQ_PROJECT = 'media17-1119';
 var JUDGMENTS_TABLE = 'media17-1119.DataLab_Ayana.stt_voc_judgments';
@@ -88,7 +105,7 @@ function getDashboard() {
     cachePut_('dash', d, d.sttSource !== 'bigquery' || !d.slack.ok);
   }
   d.canEdit = (who === OWNER_EMAIL.toLowerCase());
-  if (!d.canEdit) d.editorUrl = '';
+  if (!d.canEdit) { d.editorUrl = ''; d.cardSheetUrl = ''; }
   return d;
 }
 
@@ -278,14 +295,19 @@ function buildDashboard_() {
     (themesOf[e.to] = themesOf[e.to] || []).push({ code: e.from, name: themeNames[e.from] || '', n: e.weight });
   });
 
+  var domainOf = {};
+  rm.cards.forEach(function (c) { domainOf[c.key] = c.domain; });
   var pains = g.nodes.pains.map(function (p) {
     var s = series.byCode[p.code] || weeks.map(function () { return 0; });
     var cards = p2c[p.code] || [];
+    var cardTeams = cards.map(function (k) { return domainOf[k]; }).filter(function (t, i, a) { return t && a.indexOf(t) === i; });
     return {
       code: p.code, title: p.title, vocScore: p.voc_score, series: s, latest: s[s.length - 1],
       cards: cards, noOwner: !cards.length && s[s.length - 1] >= READ_FLOOR,
       allZero: !s.some(function (v) { return v > 0; }),
-      rule: classify_(s), themes: themesOf[p.code] || []
+      rule: classify_(s), themes: themesOf[p.code] || [],
+      team: cardTeams.length ? cardTeams.join('、') : (PAIN_TEAM[p.code] || ''),
+      teamFromCards: cardTeams.length > 0
     };
   });
 
@@ -332,6 +354,8 @@ function buildDashboard_() {
     baselineExpiresAt: rm.baseline ? rm.baseline.expires_at : '',
     upcoming: (rm.aggregate.upcoming_releases || []).slice(0, 8),
     editorUrl: mapping._editor_url || '',
+    teamPm: TEAM_PM,
+    cardSheetUrl: CARD_SHEET_URL,
     rules: { emergeMin: EMERGE_MIN, persistMin: PERSIST_MIN },
     slack: slackSummary_()
   };
