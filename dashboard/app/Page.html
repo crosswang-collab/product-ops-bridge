@@ -37,6 +37,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 nav.tabs button:focus-visible,.row:focus-visible,.btn:focus-visible,.chipf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
 @media (max-width:860px){.split{grid-template-columns:1fr}}
+@media (min-width:861px){.split>section.panel{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
 .panel h2{font-size:15px;margin:0 0 10px}
 .panel h3{font-size:13px;margin:16px 0 8px;color:var(--muted);letter-spacing:.04em}
@@ -96,6 +97,17 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 .stagebar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:6px 0}
 .stagebar div{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--accent-ink);background:var(--accent);min-width:0;overflow:hidden;white-space:nowrap}
 .stagebar div:nth-child(2){opacity:.8}.stagebar div:nth-child(3){opacity:.62}.stagebar div:nth-child(4){opacity:.45}
+.next{border:1px solid var(--accent);border-radius:8px;padding:10px 12px;margin:12px 0 4px;background:var(--soft)}
+.next h3{margin:0 0 6px;color:var(--ink)}
+.next ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.next li{font-size:13.5px}
+.next .btn{margin-left:6px;white-space:nowrap;display:inline-block}
+.bluf .btn{margin-left:8px;font-size:13px}
+details.more{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+details.more>summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600}
+footer.src{margin-top:18px}
+footer.src>details>summary{cursor:pointer;font-size:12.5px;color:var(--muted)}
+footer.src .grid2{margin-top:10px}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.row{transition:background .12s}}
 </style>
@@ -111,6 +123,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 
   <nav class="tabs" role="tablist" id="tabs"></nav>
   <main id="view"></main>
+  <footer class="src"><details id="sources"><summary id="srcline">資料來源</summary><div id="srcbody"></div></details></footer>
 </div>
 
 <script>
@@ -176,27 +189,38 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     if (p.rule.emerging) c.push(el("span", { class: "chip c-hot", text: "🔥 新興高熱" }));
     if (p.rule.persistent) c.push(el("span", { class: "chip c-keep", text: "🔁 持續高熱" }));
     if (p.rule.fading) c.push(el("span", { class: "chip c-fade", text: "📉 消退" }));
-    if (p.noOwner) c.push(el("span", { class: "chip c-gap", text: "沒人負責" }));
+    if (p.noOwner) c.push(el("span", { class: "chip c-gap", text: "沒人負責" + (p.team ? "・建議找 " + p.team : "") }));
     if (p.allZero) c.push(el("span", { class: "chip c-mute", text: D.weeks.length + " 週都是 0 位" }));
     return c;
+  }
+
+  /* 該找誰：團隊＋PM（PM 名字在伺服器 TEAM_PM 設定） */
+  function pmOf(team) { return (D.teamPm && D.teamPm[team]) || ""; }
+  function teamLabel(p) {
+    if (!p.team) return "";
+    var pm = p.team.split("、").map(pmOf).filter(Boolean);
+    return p.team + (pm.length ? "（" + pm.join("、") + "）" : "");
   }
 
   /* ---- 頂端：資料日期＋一句話結論 ---- */
   document.getElementById("asof").textContent =
     "聲音資料：" + md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + " 那一週　·　Roadmap：" + md(D.jiraAsOf);
-  var nE = D.pains.filter(function (p) { return p.rule.emerging; }).length;
-  var nP = D.pains.filter(function (p) { return p.rule.persistent; }).length;
-  var nF = D.pains.filter(function (p) { return p.rule.fading; }).length;
   var nG = D.pains.filter(function (p) { return p.noOwner; }).length;
   var bl = document.getElementById("bluf");
-  [["本週 ", ""], [nE, "b"], [" 個新興高熱、", ""], [nP, "b"], [" 個持續高熱、", ""], [nF, "b"],
-   [" 個消退；", ""], [nG, "b"], [" 個有聲音的痛點還沒人負責；Roadmap 近 7 天有 ", ""], [D.worse.length, "b"], [" 件變差。", ""]]
-    .forEach(function (x) { bl.appendChild(x[1] ? el("b", { text: String(x[0]) }) : document.createTextNode(String(x[0]))); });
+  if (!todo.length) bl.textContent = "這週沒有需要特別注意的痛點。";
+  else {
+    var top1 = todo[0];
+    [["這週要注意 ", ""], [todo.length, "b"], [" 個痛點（其中 ", ""], [nG, "b"], [" 個還沒人負責）。先看 ", ""],
+     [top1.code + "「" + top1.title + "」", "b"], ["：上週 " + top1.latest + " 位主播" + (top1.noOwner ? "、還沒人負責" : "") +
+       (top1.team ? "，建議先找 " + teamLabel(top1) : "") + "。", ""]]
+      .forEach(function (x) { bl.appendChild(x[1] ? el("b", { text: String(x[0]) }) : document.createTextNode(String(x[0]))); });
+    bl.appendChild(el("button", { class: "btn primary", type: "button", text: "看 " + top1.code,
+      onclick: function () { state.sel = top1.code; state.jump = true; go("today"); } }));
+  }
 
   /* ---- 分頁 ---- */
   var TABS = [
-    ["today", "今天要處理"], ["pains", "痛點（" + D.pains.length + "）"], ["roadmap", "Roadmap"],
-    ["slack", "Slack＋表單"], ["health", "資料來源狀態"]
+    ["today", "這週要注意（" + todo.length + "）"], ["pains", "全部痛點（" + D.pains.length + "）"], ["roadmap", "Roadmap"]
   ];
   var state = { tab: "today", sel: todo.length ? todo[0].code : pains[0].code, filter: "all" };
   var tabsEl = document.getElementById("tabs"), view = document.getElementById("view");
@@ -211,7 +235,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     });
     clear(view);
     try {
-      ({ today: viewToday, pains: viewPains, roadmap: viewRoadmap, slack: viewSlack, health: viewHealth })[tab]();
+      ({ today: viewToday, pains: viewPains, roadmap: viewRoadmap })[tab]();
     } catch (err) {
       if (window.console) console.error(err);
       clear(view);
@@ -234,29 +258,18 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 
   /* ---- 首頁：今天要處理 ---- */
   function viewToday() {
-    var left = el("div", { class: "panel" }, [el("h2", { text: "要處理的痛點（最急的在最上面）" })]);
+    var left = el("div", { class: "panel" }, [el("h2", { text: "這週要注意的痛點（最急的在最上面）" })]);
     var list = el("div", { class: "list" });
     todo.forEach(function (p) { list.appendChild(painRow(p, function () { go("today"); })); });
+    if (!todo.length) list.appendChild(el("div", { class: "empty", text: "這週沒有新興、持續高熱或沒人負責的痛點。" }));
     left.appendChild(list);
-
-    left.appendChild(el("h3", { text: "ROADMAP 卡變差" + (D.worseSince ? "（近 7 天，與 " + md(D.worseSince) + " 相比）" : "") }));
-    if (!D.worseSince) left.appendChild(el("div", { class: "empty", text: "找不到 7–10 天前的 Roadmap 紀錄，暫時無法比較。" }));
-    else if (!D.worse.length) left.appendChild(el("div", { class: "empty", text: "沒有卡變差。" }));
-    D.worse.forEach(function (w) {
-      left.appendChild(el("div", { class: "row", style: "cursor:default" }, [
-        el("span", { class: "code", text: w.key.replace("APPIDEAS-", "#") }),
-        el("span", { class: "ttl" }, [link(w.url, w.summary),
-          el("span", { class: "chips" }, [el("span", { class: "chip " + (w.what === "狀態變差" ? "c-hot" : "c-warn"),
-            text: w.what + "：" + w.from + " → " + w.to })])]),
-        el("span")
-      ]));
-    });
+    left.appendChild(el("div", { class: "note", text: "排序：🔥 新興高熱 → 🔁 持續高熱且沒人負責 → 其他持續高熱 → 沒人負責 → 📉 消退；同組依上週人數。" }));
     view.appendChild(el("div", { class: "split" }, [left, detail(find(state.sel))]));
   }
 
   function find(code) { for (var i = 0; i < D.pains.length; i++) if (D.pains[i].code === code) return D.pains[i]; return D.pains[0]; }
 
-  /* ---- 痛點細節（右欄） ---- */
+  /* ---- 痛點細節（右欄）：下一步 → 為什麼要注意 → 代表原話 → 全部原話 → 更多細節 ---- */
   function detail(p) {
     var r = p.rule;
     var box = el("section", { class: "panel", "aria-label": "痛點細節" });
@@ -264,10 +277,41 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     box.appendChild(el("div", { class: "chips" }, chipsFor(p)));
     var big = el("div", { class: "d-big" });
     big.appendChild(el("b", { text: String(p.latest) }));
-    big.appendChild(document.createTextNode(" 位主播在 " + md(D.latestWeek.start) + " 那週提到（週報固定統計）　·　VoC 分數 " + p.vocScore));
+    big.appendChild(document.createTextNode(" 位主播在 " + md(D.latestWeek.start) + " 那週提到"));
     box.appendChild(big);
 
-    box.appendChild(el("h3", { text: "每週主播人數（最近 2 週用深色標出）" }));
+    /* 下一步：找 PM → 開卡 → 回來指定負責的卡（D3：卡由 Cross 自己指定） */
+    var nx = el("div", { class: "next" }, [el("h3", { text: p.cards.length ? "已有負責的卡" : "下一步" })]);
+    var ed = safeUrl(D.editorUrl), sheet = safeUrl(D.cardSheetUrl);
+    if (p.cards.length) {
+      p.cards.forEach(function (k) {
+        var c = D.cards.filter(function (x) { return x.key === k; })[0];
+        nx.appendChild(el("div", { class: "row", style: "cursor:default;border-top:0;padding-left:0" }, [
+          el("span", { class: "code", text: k.replace("APPIDEAS-", "#") }),
+          el("span", { class: "ttl" }, [c ? link(c.url, c.summary) : el("span", { text: k }),
+            c ? el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: stageZh(c.stage) }), statusChip(c.project_status),
+              c.domain ? el("span", { class: "chip c-mute", text: c.domain + (pmOf(c.domain) ? "・" + pmOf(c.domain) : "") }) : null]) : null]),
+          el("span")]));
+      });
+      if (ed) nx.appendChild(el("div", { class: "note" }, ["卡不對？", el("a", { href: ed, target: "_blank", rel: "noopener", text: "改負責的卡 ↗" })]));
+    } else {
+      var ol = el("ol");
+      var pmName = p.team ? p.team.split("、").map(pmOf).filter(Boolean).join("、") : "";
+      ol.appendChild(el("li", {}, [p.team
+        ? "找 " + p.team + " 的 PM" + (pmName ? "：" + pmName : "（PM 名字還沒填）") + (p.teamFromCards ? "" : "　·　團隊是預設建議")
+        : "決定要找哪個團隊的 PM"]));
+      ol.appendChild(el("li", {}, ["開卡", sheet ? el("a", { class: "btn", href: sheet, target: "_blank", rel: "noopener", text: "開卡試算表 ↗" })
+        : el("span", { class: "note", text: D.canEdit ? "（開卡試算表網址還沒設定）" : "（由 Cross 開卡）" })]));
+      ol.appendChild(el("li", {}, ["卡開好後，回來指定負責的卡", ed ? el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "指定負責的卡 ↗" })
+        : el("span", { class: "note", text: "（由 Cross 指定）" })]));
+      nx.appendChild(ol);
+      if (ed) nx.appendChild(el("div", { class: "note", text: "指定後隔天這裡會自動更新。" }));
+    }
+    var toQ = el("button", { class: "btn", type: "button", text: "看代表原話 ↓", style: "margin-top:8px" });
+    nx.appendChild(toQ);
+    box.appendChild(nx);
+
+    box.appendChild(el("h3", { text: "為什麼要注意：每週主播人數（最近 2 週用深色標出）" }));
     box.appendChild(el("div", { class: "chart" }, [chart(p.series)]));
     box.appendChild(el("div", { class: "rules" }, [
       ruleLine(r.emerging, "新興高熱：最近 2 週平均 " + r.recent2 + " 位（門檻 ≥ " + R.emergeMin + "），前 4 週平均 " + r.prior4 + " 位" +
@@ -276,40 +320,46 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       ruleLine(r.fading, "消退：最近 3 週每週都比前一週低（" + p.series.slice(-4).join(" → ") + "）")
     ]));
 
+    var qHead = el("h3", { id: "quotes", text: "代表原話（每位主播最多 1 則，sTop＝頂級主播優先）" });
+    box.appendChild(qHead);
+    var qBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
+    box.appendChild(qBox);
+    function reduce() { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    toQ.addEventListener("click", function () { qHead.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" }); });
+    /* 點了痛點就帶到細節開頭（窄螢幕時細節排在清單下面，不帶過去會像沒反應） */
+    if (state.jump) {
+      state.jump = false;
+      setTimeout(function () {
+        var narrow = window.matchMedia && window.matchMedia("(max-width:860px)").matches;
+        if (narrow) { box.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" }); return; }
+        var t = box.getBoundingClientRect().top;     // 桌機：點清單最後幾列時，細節欄會被推到畫面上方，往上捲回來
+        if (t < 12) window.scrollBy(0, t - 12);
+      }, 50);
+    }
+
+    box.appendChild(el("h3", { text: "全部原話（最近 4 週）：讀取 → 翻譯 → 下載" }));
+    box.appendChild(exportPanel(p));
+
+    var more = el("details", { class: "more" }, [el("summary", { text: "更多細節：細分類、同時被提到的主題、Slack＋表單的聲音" })]);
     if (p.themes.length) {
-      box.appendChild(el("h3", { text: "同時被歸到的主題（上週，同一位主播）" }));
-      box.appendChild(el("div", { class: "chips" }, p.themes.map(function (t) {
+      more.appendChild(el("h3", { text: "同時被歸到的主題（上週，同一位主播）" }));
+      more.appendChild(el("div", { class: "chips" }, p.themes.map(function (t) {
         return el("span", { class: "chip c-mute", text: t.code + " " + t.name + "　" + t.n + " 位" });
       })));
     }
-
-    /* 細分類＋代表原話：伺服器以固定查詢取回，這裡只當純文字放進畫面 */
-    box.appendChild(el("h3", { text: "細分類（最近 4 週）" }));
+    more.appendChild(el("h3", { text: "細分類（最近 4 週）" }));
     var subBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
-    box.appendChild(subBox);
-    var qHead = el("h3", { id: "quotes", text: "代表原話（每位主播最多 1 則，sTop 優先）" });
-    box.appendChild(qHead);
-    /* 點了痛點就直接帶到原話（窄螢幕時細節排在清單下面，不帶過去會像沒反應） */
-    var jumpHere = !!state.jump;
-    state.jump = false;
-    function jump() {
-      if (!jumpHere) return;
-      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      qHead.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
-    }
-    setTimeout(jump, 0);
-    var qBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
-    box.appendChild(qBox);
-    box.appendChild(el("h3", { text: "全部原話：輸出、中文摘要、翻譯（最近 4 週）" }));
-    box.appendChild(exportPanel(p));
-    box.appendChild(el("h3", { text: "Slack＋表單裡對到這個痛點的聲音" }));
+    more.appendChild(subBox);
+    more.appendChild(el("h3", { text: "Slack＋表單裡對到這個痛點的聲音" }));
     var vBox = el("div", {}, [el("div", { class: "empty", style: "padding-left:0", text: "讀取中…" })]);
-    box.appendChild(vBox);
+    more.appendChild(vBox);
+    more.appendChild(el("div", { class: "note", text: "VoC 分數 " + p.vocScore + "（痛點清單的綜合分數，越高越重要）" }));
+    box.appendChild(more);
+
     loadDetail(p.code, function (det) {
       if (state.sel !== p.code) return;
       try {
         fillDetail(det, subBox, qBox, vBox);
-        jump();   // 細分類填進來會把原話往下推，載入完再對齊一次
       } catch (err) {
         if (window.console) console.error(err);
         [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "這個痛點的細節整理時出錯。" + HELP })); });
@@ -317,26 +367,6 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     }, function (msg) {
       [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: msg })); });
     });
-
-    /* 負責的卡：由 Cross 自己指定（D3），連到既有編輯頁 */
-    box.appendChild(el("h3", { text: "負責的 Roadmap 卡" }));
-    if (p.cards.length) {
-      p.cards.forEach(function (k) {
-        var c = D.cards.filter(function (x) { return x.key === k; })[0];
-        box.appendChild(el("div", { class: "row", style: "cursor:default" }, [
-          el("span", { class: "code", text: k.replace("APPIDEAS-", "#") }),
-          el("span", { class: "ttl" }, [c ? link(c.url, c.summary) : el("span", { text: k }),
-            c ? el("span", { class: "chips" }, [el("span", { class: "chip c-mute", text: stageZh(c.stage) }), statusChip(c.project_status)]) : null]),
-          el("span")]));
-      });
-    } else {
-      box.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "還沒有指定。" }));
-    }
-    var ed = safeUrl(D.editorUrl);
-    if (ed) {
-      box.appendChild(el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "去指定負責的卡 ↗" }));
-      box.appendChild(el("div", { class: "note", text: "會開啟你現有的「誰在處理這個痛點」頁面，存檔後隔天這裡會自動更新。" }));
-    }
     return box;
   }
 
@@ -667,10 +697,28 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
       });
     at.appendChild(ab); all.appendChild(el("div", { class: "tbl" }, [at]));
 
-    view.appendChild(el("div", { style: "display:grid;gap:16px" }, [top, el("div", { class: "grid2" }, [loadP, up]), ub2, all]));
+    var wp = el("div", { class: "panel" }, [el("h2", { text: "近 7 天變差的卡" + (D.worseSince ? "（與 " + md(D.worseSince) + " 相比）" : "") })]);
+    if (!D.worseSince) wp.appendChild(el("div", { class: "empty", text: "找不到 7–10 天前的 Roadmap 紀錄，暫時無法比較。" }));
+    else if (!D.worse.length) wp.appendChild(el("div", { class: "empty", text: "沒有卡變差。" }));
+    var byKey = {}, keys = [];
+    D.worse.forEach(function (w) { if (!byKey[w.key]) { byKey[w.key] = { w: w, items: [] }; keys.push(w.key); } byKey[w.key].items.push(w); });
+    keys.forEach(function (k) {
+      var g = byKey[k];
+      wp.appendChild(el("div", { class: "row", style: "cursor:default" }, [
+        el("span", { class: "code", text: k.replace("APPIDEAS-", "#") }),
+        el("span", { class: "ttl" }, [link(g.w.url, g.w.summary), el("span", { class: "chips" }, g.items.map(function (w) {
+          var st = w.what === "狀態變差";
+          return el("span", { class: "chip " + (st ? "c-hot" : "c-warn"),
+            text: w.what + "：" + (st ? statusZh(w.from) + " → " + statusZh(w.to) : md(w.from) + " → " + md(w.to)) });
+        }))]),
+        el("span")]));
+    });
+
+    view.appendChild(el("div", { style: "display:grid;gap:16px" }, [wp, top, el("div", { class: "grid2" }, [loadP, up]), ub2, all]));
   }
   var STAGE_ZH = { Discovery: "探索", Design: "設計", Develop: "開發", Impact: "上線觀察" };
   function stageZh(s) { return STAGE_ZH[s] || s || "—"; }
+  function statusZh(s) { return s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s === "Off track" ? "落後" : (s || "未填"); }
   function statusChip(s) {
     var c = s === "On track" ? "c-ok" : s === "Warning" ? "c-warn" : "c-hot";
     var t = s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s === "Off track" ? "落後" : (s || "未填");
@@ -678,12 +726,12 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   }
 
   /* ---- Slack＋表單（取代舊的 VoC Console）---- */
-  function viewSlack() {
+  function viewSlack(into) {
     var S = D.slack;
     var p1 = el("div", { class: "panel" }, [el("h2", { text: "每日新增聲音（Slack ＋ 表單）" })]);
     if (!S.ok) {
       p1.appendChild(el("div", { class: "empty", text: S.problem }));
-      view.appendChild(p1); return;
+      into.appendChild(p1); return;
     }
     var t = el("table", {}, [el("thead", {}, [el("tr", {}, ["來源", "昨天", "近 7 天", "已對到痛點", "新痛點候選"].map(function (h) { return el("th", { text: h }); }))])]);
     var b = el("tbody");
@@ -698,12 +746,12 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     var p2 = el("div", { class: "panel" }, [el("h2", { text: "最新聲音（" + S.latest.length + " 則）" })]);
     S.latest.forEach(function (v) { p2.appendChild(voiceEl(v)); });
     if (!S.latest.length) p2.appendChild(el("div", { class: "empty", text: "還沒有資料。" }));
-    p2.appendChild(el("div", { class: "note", text: "對到痛點的聲音也會出現在「痛點」頁該痛點的下方。" }));
-    view.appendChild(el("div", { class: "grid2" }, [p1, p2]));
+    p2.appendChild(el("div", { class: "note", text: "對到痛點的聲音也會出現在該痛點細節的「更多細節」裡。" }));
+    into.appendChild(el("div", { class: "grid2" }, [p1, p2]));
   }
 
   /* ---- 資料來源狀態 ---- */
-  function viewHealth() {
+  function viewHealth(into) {
     var S = D.slack;
     var sttOk = D.sttSource === "bigquery" && D.sttAgeDays <= 10;
     var rows = [
@@ -721,10 +769,29 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     var zero = D.pains.filter(function (x) { return x.allZero; }).map(function (x) { return x.code; });
     if (zero.length) p.appendChild(el("div", { class: "note", text: "數字可能不準：" + zero.join("、") + " 這 " + D.weeks.length + " 週都是 0 位，可能是週報沒有統計這幾個痛點，不代表沒人抱怨。" }));
     p.appendChild(el("div", { class: "note", text: "時間段分析用最近 " + D.weeks.length + " 週。畫面資料產生於 " + D.generatedAt + "，6 小時內重新打開會沿用同一份。" }));
-    view.appendChild(p);
+    into.appendChild(p);
   }
 
   go("today");
+
+  /* ---- 頁尾：資料來源一行，展開看 Slack＋表單與各來源狀態（出錯也不影響上面的主畫面） ---- */
+  try { (function () {
+    var S = D.slack;
+    var bad = (D.jiraAgeDays > 2) || !(D.sttSource === "bigquery" && D.sttAgeDays <= 10) || !(S.ok && S.lastRun);
+    document.getElementById("srcline").textContent = (bad ? "⚠️ 有資料來源要注意" : "✅ 資料來源都正常") +
+      "　·　聲音 " + md(D.latestWeek.start) + "–" + md(D.latestWeek.end) + "　·　Roadmap " + md(D.jiraAsOf) +
+      "　·　Slack＋表單 " + (S.ok ? (S.lastRun || "未知") : "讀不到") + "　（點開看詳情）";
+    var body = document.getElementById("srcbody");
+    var g = el("div", { style: "display:grid;gap:16px;margin-top:10px" });
+    viewHealth(g);
+    var sl = el("div", {});
+    viewSlack(sl);
+    g.appendChild(sl);
+    body.appendChild(g);
+  })(); } catch (err) {
+    if (window.console) console.error(err);
+    document.getElementById("srcline").textContent = "資料來源詳情整理時出錯。" + HELP;
+  }
   }
 
   /* ---- 跟伺服器拿資料 ---- */

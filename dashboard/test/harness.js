@@ -9,6 +9,11 @@ const path = require('path');
 const vm = require('vm');
 const assert = require('assert');
 
+// 固定「今天」= 2026-10-06（虛構的 BigQuery 週資料是照這天寫的，不固定的話換週就會誤報）
+const FIXED_NOW = Date.parse('2026-10-06T03:00:00Z');
+const RealDate = Date;
+global.Date = class extends RealDate { constructor(...a) { super(...(a.length ? a : [FIXED_NOW])); } static now() { return FIXED_NOW; } };
+
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = process.argv[2] || path.join(__dirname, 'out.json');
 const log = [];
@@ -24,7 +29,7 @@ function fmt(d, tz, pat) {
 }
 
 // ---- 虛構 BigQuery ----
-const stt = JSON.parse(fs.readFileSync(path.join(ROOT, 'voc-graph/out/stt-latest.json'), 'utf8'));
+const stt = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/stt-latest.json'), 'utf8'));
 function painRows() {
   const rows = [];
   stt.pains.forEach(r => rows.push({ window_start: r.window_start, code: r.code, streamers: r.streamers }));
@@ -122,6 +127,7 @@ const ctx = {
   HtmlService: { createHtmlOutput: h => ({ html: h, setTitle() { return this; }, addMetaTag() { return this; } }) },
 };
 vm.createContext(ctx);
+vm.runInContext("(function(){var R=Date,T=" + FIXED_NOW + ";Date=class extends R{constructor(...a){super(...(a.length?a:[T]));}static now(){return T;}};})()", ctx);
 // 試算表回傳的 Date 要是沙盒裡的 Date（Apps Script 裡是同一個 realm）
 const VDate = vm.runInContext('Date', ctx);
 [rawRows, logRows].forEach(rows => rows.forEach(r => r.forEach((v, i) => { if (v instanceof Date) r[i] = new VDate(v.getTime()); })));
