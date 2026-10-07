@@ -329,7 +329,12 @@ footer.src .grid2{margin-top:10px}
     /* 點了痛點就帶到細節開頭（窄螢幕時細節排在清單下面，不帶過去會像沒反應） */
     if (state.jump) {
       state.jump = false;
-      setTimeout(function () { if (window.matchMedia && window.matchMedia("(max-width:860px)").matches) box.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" }); }, 0);
+      setTimeout(function () {
+        var narrow = window.matchMedia && window.matchMedia("(max-width:860px)").matches;
+        if (narrow) { box.scrollIntoView({ block: "start", behavior: reduce() ? "auto" : "smooth" }); return; }
+        var t = box.getBoundingClientRect().top;     // 桌機：點清單最後幾列時，細節欄會被推到畫面上方，往上捲回來
+        if (t < 12) window.scrollBy(0, t - 12);
+      }, 50);
     }
 
     box.appendChild(el("h3", { text: "全部原話（最近 4 週）：讀取 → 翻譯 → 下載" }));
