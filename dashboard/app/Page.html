@@ -37,6 +37,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 nav.tabs button:focus-visible,.row:focus-visible,.btn:focus-visible,.chipf:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
 @media (max-width:860px){.split{grid-template-columns:1fr}}
+@media (min-width:861px){.split>section.panel{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
 .panel h2{font-size:15px;margin:0 0 10px}
 .panel h3{font-size:13px;margin:16px 0 8px;color:var(--muted);letter-spacing:.04em}
@@ -301,7 +302,8 @@ footer.src .grid2{margin-top:10px}
         : "決定要找哪個團隊的 PM"]));
       ol.appendChild(el("li", {}, ["開卡", sheet ? el("a", { class: "btn", href: sheet, target: "_blank", rel: "noopener", text: "開卡試算表 ↗" })
         : el("span", { class: "note", text: D.canEdit ? "（開卡試算表網址還沒設定）" : "（由 Cross 開卡）" })]));
-      ol.appendChild(el("li", {}, ["卡開好後，回來指定負責的卡", ed ? el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "指定負責的卡 ↗" }) : null]));
+      ol.appendChild(el("li", {}, ["卡開好後，回來指定負責的卡", ed ? el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "指定負責的卡 ↗" })
+        : el("span", { class: "note", text: "（由 Cross 指定）" })]));
       nx.appendChild(ol);
       if (ed) nx.appendChild(el("div", { class: "note", text: "指定後隔天這裡會自動更新。" }));
     }
@@ -700,7 +702,9 @@ footer.src .grid2{margin-top:10px}
       wp.appendChild(el("div", { class: "row", style: "cursor:default" }, [
         el("span", { class: "code", text: k.replace("APPIDEAS-", "#") }),
         el("span", { class: "ttl" }, [link(g.w.url, g.w.summary), el("span", { class: "chips" }, g.items.map(function (w) {
-          return el("span", { class: "chip " + (w.what === "狀態變差" ? "c-hot" : "c-warn"), text: w.what + "：" + w.from + " → " + w.to });
+          var st = w.what === "狀態變差";
+          return el("span", { class: "chip " + (st ? "c-hot" : "c-warn"),
+            text: w.what + "：" + (st ? statusZh(w.from) + " → " + statusZh(w.to) : md(w.from) + " → " + md(w.to)) });
         }))]),
         el("span")]));
     });
@@ -709,6 +713,7 @@ footer.src .grid2{margin-top:10px}
   }
   var STAGE_ZH = { Discovery: "探索", Design: "設計", Develop: "開發", Impact: "上線觀察" };
   function stageZh(s) { return STAGE_ZH[s] || s || "—"; }
+  function statusZh(s) { return s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s === "Off track" ? "落後" : (s || "未填"); }
   function statusChip(s) {
     var c = s === "On track" ? "c-ok" : s === "Warning" ? "c-warn" : "c-hot";
     var t = s === "On track" ? "正常" : s === "Warning" ? "注意" : s === "At Risk" ? "有風險" : s === "Off track" ? "落後" : (s || "未填");
