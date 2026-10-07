@@ -227,6 +227,8 @@ function saveOwnerCards(code, keys) {
       p.teamFromCards = teams.length > 0;
       out.noOwner = p.noOwner; out.team = p.team; out.teamFromCards = p.teamFromCards;
     });
+    d.unbacked = (d.unbacked || []).filter(function (c) { return clean.indexOf(c.key) < 0; });   // 剛指定的卡不再算「沒對到痛點」
+    out.assigned = clean;
     cachePut_('dash', d, d.sttSource !== 'bigquery' || !d.slack.ok);
   }
   return out;
@@ -744,7 +746,7 @@ var GH_API = 'https://api.github.com/repos/crosswang-collab/product-ops-bridge/c
 
 function ghToken_() {
   var t = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-  if (!t) throw new Error('還沒設定 GitHub 金鑰：Apps Script 左側齒輪「專案設定」→ 最下面「指令碼屬性」→ 新增屬性 GITHUB_TOKEN');
+  if (!t) throw new Error('還沒設定 GitHub 金鑰：照說明文件「在儀表板指定負責的卡」的第一次設定做一次');
   return t.trim();
 }
 
@@ -756,7 +758,7 @@ function ghHeaders_() {
 function ghGetFile_(path) {
   var x = UrlFetchApp.fetch(GH_API + path + '?ref=main', { headers: ghHeaders_(), muteHttpExceptions: true });
   var c = x.getResponseCode();
-  if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對、過期或沒有這個 repo 的權限：請到「指令碼屬性」更新 GITHUB_TOKEN');
+  if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對或過期：照說明文件「在儀表板指定負責的卡」換一把新的');
   if (c !== 200) throw new Error('讀不到「誰負責哪個痛點」的設定（代碼 ' + c + '）');
   var j = JSON.parse(x.getContentText('UTF-8'));
   if (!j.content) throw new Error('「誰負責哪個痛點」的設定讀到空白，請稍後再試');
@@ -772,7 +774,7 @@ function ghPutFile_(path, text, sha, message) {
   });
   var c = x.getResponseCode();
   if (c === 409 || c === 422) return 'conflict';
-  if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對、過期或沒有寫入權限：請到「指令碼屬性」更新 GITHUB_TOKEN');
+  if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對、過期或不能存檔：照說明文件「在儀表板指定負責的卡」換一把新的');
   if (c !== 200 && c !== 201) throw new Error('存不進去（代碼 ' + c + '），請稍後再試');
   return 'ok';
 }

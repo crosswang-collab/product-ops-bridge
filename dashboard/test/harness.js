@@ -387,6 +387,12 @@ check('沒有快取時存檔：一樣算對「沒人負責」並放回快取', (
   assert.strictEqual(r2.noOwner, true);
   assert.strictEqual(ctx.getDashboard().pains.filter(x => x.code === 'S2.1')[0].noOwner, true);
 });
+check('剛指定的卡不再列在「標了 VoC 但還沒對到痛點」', () => {
+  const k = ctx.getDashboard().unbacked.map(c => c.key)[0];
+  if (!k) return;
+  ctx.saveOwnerCards('U6.0', [k]);
+  assert.ok(!ctx.getDashboard().unbacked.some(c => c.key === k));
+});
 check('清掉負責的卡：從對應表移除，又變回沒人負責', () => {
   const r = ctx.saveOwnerCards('U6.0', []);
   assert.ok(!('U6.0' in JSON.parse(gh.text).pain_to_cards)); assert.strictEqual(r.noOwner, true);
@@ -401,13 +407,13 @@ check('剛好被別處改過：重讀一次再存成功', () => { ctx.saveOwnerC
 ghMode = 'conflictAlways';
 check('一直被別處改：中文請重新整理', () => assert.throws(() => ctx.saveOwnerCards('S2.1', []), /重新整理/));
 ghMode = '401';
-check('金鑰錯：中文說明去指令碼屬性更新', () => assert.throws(() => ctx.saveOwnerCards('S2.1', []), /GITHUB_TOKEN/));
+check('金鑰錯：中文說明換一把新的', () => assert.throws(() => ctx.saveOwnerCards('S2.1', []), /金鑰不對/));
 ghMode = 'ok';
 check('testGithub 回報可以用', () => { log.length = 0; ctx.testGithub(); assert.ok(log.some(l => l.startsWith('✅ GitHub')), log.join('|')); });
 delete props.GITHUB_TOKEN;
 check('沒設金鑰：畫面不給指定、存檔時中文說明', () => {
   assert.strictEqual(ctx.getDashboard().canAssign, false);
-  assert.throws(() => ctx.saveOwnerCards('S2.1', []), /指令碼屬性/);
+  assert.throws(() => ctx.saveOwnerCards('S2.1', []), /還沒設定 GitHub 金鑰/);
 });
 props.GITHUB_TOKEN = 'ghp_test';
 viewer = 'someone@17.media';

@@ -300,7 +300,7 @@ footer.src .grid2{margin-top:10px}
       return el("button", { class: "btn primary", type: "button", text: label, "aria-expanded": "false",
         onclick: function (e) { picker.hidden = !picker.hidden; e.target.setAttribute("aria-expanded", picker.hidden ? "false" : "true"); } });
     }
-    var cantAssign = D.canEdit ? "（要在這裡指定，先在 Apps Script「指令碼屬性」加 GITHUB_TOKEN）" : "（由 Cross 指定）";
+    var cantAssign = D.canEdit ? "（要在這裡指定，先照說明文件「在儀表板指定負責的卡」做一次設定）" : "（由 Cross 指定）";
     if (p.cards.length) {
       p.cards.forEach(function (k) {
         var c = D.cards.filter(function (x) { return x.key === k; })[0];
@@ -426,10 +426,10 @@ footer.src .grid2{margin-top:10px}
       save.disabled = true; msg.textContent = "存檔中…";
       call("saveOwnerCards", [p.code, keys], function (r) {
         D.pains.forEach(function (x) { if (x.code === r.code) { x.cards = r.cards; x.noOwner = r.noOwner; x.team = r.team; x.teamFromCards = r.teamFromCards; } });
+        D.unbacked = D.unbacked.filter(function (c) { return r.cards.indexOf(c.key) < 0; });
         keep = { tab: currentTab(), sel: r.code, filter: currentFilter() };
-        init();
-        showStatus("");
-      }, function (m) { save.disabled = false; msg.textContent = "沒存成（" + m + "）"; });
+        init();   // 只重畫畫面；最上面的資料警告保留
+      }, function (m) { save.disabled = false; msg.textContent = "沒存成：" + m; });
     });
     draw();
     wrap.appendChild(q); wrap.appendChild(list);
