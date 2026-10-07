@@ -297,9 +297,10 @@ footer.src .grid2{margin-top:10px}
     } else {
       var ol = el("ol");
       var pmName = p.team ? p.team.split("、").map(pmOf).filter(Boolean).join("、") : "";
+      var teams = Object.keys(D.teamPm || {});
       ol.appendChild(el("li", {}, [p.team
-        ? "找 " + p.team + " 的 PM" + (pmName ? "：" + pmName : "（PM 名字還沒填）") + (p.teamFromCards ? "" : "　·　團隊是預設建議")
-        : "決定要找哪個團隊的 PM"]));
+        ? "找 " + p.team + " 的 PM" + (pmName ? "：" + pmName : "（PM 名字還沒填）")
+        : "決定找哪個團隊的 PM" + (teams.length ? "：" + teams.map(function (t) { return t + (pmOf(t) ? " " + pmOf(t) : ""); }).join("／") : "")]));
       ol.appendChild(el("li", {}, ["開卡", sheet ? el("a", { class: "btn", href: sheet, target: "_blank", rel: "noopener", text: "開卡試算表 ↗" })
         : el("span", { class: "note", text: D.canEdit ? "（開卡試算表網址還沒設定）" : "（由 Cross 開卡）" })]));
       ol.appendChild(el("li", {}, ["卡開好後，回來指定負責的卡", ed ? el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "指定負責的卡 ↗" })
