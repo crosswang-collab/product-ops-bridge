@@ -211,18 +211,25 @@ function saveOwnerCards(code, keys) {
     lock.releaseLock();
   }
 
-  // 快取裡的主資料一起更新，重新整理就看得到，不用等 6 小時
-  var d = cacheGet_('dash'), noOwner = false;
+  // 主資料一起更新並放回快取：重新整理就看得到，不用等 6 小時，也不會讀到舊的對應表
+  var d = cacheGet_('dash');
+  if (!d) { try { d = buildDashboard_(); } catch (e) { d = null; } }
+  var out = { ok: true, code: code, cards: clean, noOwner: false, team: '', teamFromCards: false };
   if (d) {
+    var domainOf = {};
+    d.cards.forEach(function (c) { domainOf[c.key] = c.domain; });
     d.pains.forEach(function (p) {
       if (p.code !== code) return;
+      var teams = clean.map(function (k) { return domainOf[k]; }).filter(function (t, i, a) { return t && a.indexOf(t) === i; });
       p.cards = clean;
       p.noOwner = !clean.length && p.latest >= READ_FLOOR;
-      noOwner = p.noOwner;
+      p.team = teams.length ? teams.join('、') : (PAIN_TEAM[p.code] || '');
+      p.teamFromCards = teams.length > 0;
+      out.noOwner = p.noOwner; out.team = p.team; out.teamFromCards = p.teamFromCards;
     });
     cachePut_('dash', d, d.sttSource !== 'bigquery' || !d.slack.ok);
   }
-  return { ok: true, code: code, cards: clean, noOwner: noOwner };
+  return out;
 }
 
 // ═══════════════ 部署前手動驗證（在 Apps Script 編輯器執行） ═══════════════
@@ -752,6 +759,7 @@ function ghGetFile_(path) {
   if (c === 401 || c === 403) throw new Error('GitHub 金鑰不對、過期或沒有這個 repo 的權限：請到「指令碼屬性」更新 GITHUB_TOKEN');
   if (c !== 200) throw new Error('讀不到「誰負責哪個痛點」的設定（代碼 ' + c + '）');
   var j = JSON.parse(x.getContentText('UTF-8'));
+  if (!j.content) throw new Error('「誰負責哪個痛點」的設定讀到空白，請稍後再試');
   var text = Utilities.newBlob(Utilities.base64Decode(String(j.content || '').replace(/\s/g, ''))).getDataAsString('UTF-8');
   return { sha: j.sha, doc: JSON.parse(text) };
 }
@@ -760,7 +768,7 @@ function ghGetFile_(path) {
 function ghPutFile_(path, text, sha, message) {
   var x = UrlFetchApp.fetch(GH_API + path, {
     method: 'put', contentType: 'application/json', headers: ghHeaders_(), muteHttpExceptions: true,
-    payload: JSON.stringify({ message: message, content: Utilities.base64Encode(Utilities.newBlob(text).getBytes()), sha: sha, branch: 'main' })
+    payload: JSON.stringify({ message: message, content: Utilities.base64Encode(text, Utilities.Charset.UTF_8), sha: sha, branch: 'main' })
   });
   var c = x.getResponseCode();
   if (c === 409 || c === 422) return 'conflict';

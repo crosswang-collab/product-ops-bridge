@@ -147,7 +147,8 @@ const ctx = {
     n === 'VoC_Raw_Log' ? sheet(rawRows) : n === 'VoC_Bot_Log' ? sheet(logRows) : null }) },
   CacheService: { getScriptCache: () => cache },
   Utilities: { formatDate: fmt, sleep: () => {},
-    base64Encode: b => Buffer.from(b).toString('base64'),
+    Charset: { UTF_8: 'UTF-8' },
+    base64Encode: b => Buffer.from(typeof b === 'string' ? Buffer.from(b, 'utf8') : b).toString('base64'),
     base64Decode: s => Array.from(Buffer.from(s, 'base64')),
     newBlob: d => ({ getBytes: () => Array.from(Buffer.from(String(d), 'utf8')), getDataAsString: () => Buffer.from(d).toString('utf8') }) },
   HtmlService: { createHtmlOutput: h => ({ html: h, setTitle() { return this; }, addMetaTag() { return this; } }) },
@@ -377,6 +378,14 @@ check('指定負責的卡：寫回 mapping.json 的 pain_to_cards，其他欄位
   assert.ok(/U6\.0/.test(ghPuts[ghPuts.length - 1].message));
   const p = ctx.getDashboard().pains.filter(x => x.code === 'U6.0')[0];
   same(p.cards, ['APPIDEAS-2251', 'APPIDEAS-2258']); assert.strictEqual(p.noOwner, false);
+});
+check('沒有快取時存檔：一樣算對「沒人負責」並放回快取', () => {
+  store.clear();
+  const r = ctx.saveOwnerCards('S2.1', ['APPIDEAS-2251']);
+  assert.strictEqual(r.noOwner, false); assert.strictEqual(r.team, 'IST');
+  const r2 = ctx.saveOwnerCards('S2.1', []);
+  assert.strictEqual(r2.noOwner, true);
+  assert.strictEqual(ctx.getDashboard().pains.filter(x => x.code === 'S2.1')[0].noOwner, true);
 });
 check('清掉負責的卡：從對應表移除，又變回沒人負責', () => {
   const r = ctx.saveOwnerCards('U6.0', []);

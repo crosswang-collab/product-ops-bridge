@@ -297,7 +297,7 @@ footer.src .grid2{margin-top:10px}
     var sheet = safeUrl(D.cardSheetUrl);
     var picker = D.canAssign ? assignBox(p) : null;
     function openBtn(label) {
-      return el("button", { class: "btn primary", type: "button", text: label,
+      return el("button", { class: "btn primary", type: "button", text: label, "aria-expanded": "false",
         onclick: function (e) { picker.hidden = !picker.hidden; e.target.setAttribute("aria-expanded", picker.hidden ? "false" : "true"); } });
     }
     var cantAssign = D.canEdit ? "（要在這裡指定，先在 Apps Script「指令碼屬性」加 GITHUB_TOKEN）" : "（由 Cross 指定）";
@@ -425,7 +425,7 @@ footer.src .grid2{margin-top:10px}
       var keys = Object.keys(chosen).sort();
       save.disabled = true; msg.textContent = "存檔中…";
       call("saveOwnerCards", [p.code, keys], function (r) {
-        D.pains.forEach(function (x) { if (x.code === r.code) { x.cards = r.cards; x.noOwner = r.noOwner; } });
+        D.pains.forEach(function (x) { if (x.code === r.code) { x.cards = r.cards; x.noOwner = r.noOwner; x.team = r.team; x.teamFromCards = r.teamFromCards; } });
         keep = { tab: currentTab(), sel: r.code, filter: currentFilter() };
         init();
         showStatus("");
