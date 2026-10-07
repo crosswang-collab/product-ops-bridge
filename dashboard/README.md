@@ -21,18 +21,19 @@
 - 舊頁面轉址：Vercel 的 `/voc-graph/web`（對照頁）、`/roadmap-bot/web`（Roadmap 頁）一律轉到上面網址（`vercel.json` 的 `redirects`）。「誰在處理這個痛點」編輯頁與 JP Needs 熱力圖不轉。
 - 舊 VoC Console：repo 的 `voc-bot/Dashboard.gs` 已填好 `NEW_DASHBOARD_URL`；貼進「VoC Daily Bot」專案並部署新版本後生效。
 
-## 原話輸出＋中文摘要＋翻譯（2026-10-06 新增）
+## 原話輸出＋翻譯＋摘要（2026-10-07 改版：不需要任何付費金鑰）
 
-在痛點細節的「全部原話」按「讀取原話」：抓最近 4 週全部原話，可直接下載 CSV（**這一步原話不離開公司**）。要中文摘要和翻譯，再按「送 Claude 做摘要＋翻譯」：Claude 做中文摘要 → 每批最多 10 則（且合計 ≤ 3,000 字）翻成繁中（每 1,000 則約 15–30 分鐘，途中可先下載；失敗的批次會跳過，最後可按「補翻」；金鑰、權限、額度用完或 Claude 持續太忙會直接停下說原因）→ 可下載 CSV 與摘要。
+在痛點細節的「全部原話」按「讀取原話」：抓最近 4 週全部原話，可直接下載 CSV。
+- **翻譯**：按「翻譯成中文（Google 翻譯）」，用 Apps Script 內建的 Google 翻譯逐則翻成繁中（免費、不需金鑰；每批 20 則，每 1,000 則約 5–10 分鐘，途中可先下載）。失敗的批次會跳過，最後可按「補翻」；當天次數用完或太忙會直接停下說原因。
+- **摘要**：下載 CSV → 打開 claude.ai 上傳 → 按頁面上「複製摘要指令」貼過去。
 
-**資料去向（2026-10-06 Cross 決定）**：按「送 Claude 做摘要＋翻譯」才會把原話送到 Claude API（Anthropic，公司外部服務）；只按「讀取原話」並下載 CSV 時，原話不會離開公司。頁面按鈕上也寫明會送到公司外部。
+**資料去向（2026-10-07 Cross 決定）**：翻譯時原話送到 Google 翻譯（公司已在用的 Google 服務，以 Cross 帳號執行）；摘要時由 Cross 自己把 CSV 上傳到 claude.ai。
 
 **更新步驟（約 3 分鐘）**
 1. 打開 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/Dashboard.gs → Ctrl+A、Ctrl+C → 在 Apps Script 的程式檔（`程式碼.gs`）裡 Ctrl+A、Ctrl+V → 儲存。
-2. 打開 `appsscript.json`（左側檔案清單裡；看不到的話：齒輪「專案設定」→ 勾「在編輯器中顯示 appsscript.json」），整份換成 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/appsscript.json 的內容 → 儲存。（這次是把用不到的 GCP 權限收回來。）
-3. 左側齒輪「專案設定」→ 最下面「指令碼屬性」→「新增指令碼屬性」：屬性填 `ANTHROPIC_API_KEY`，值填 Claude 金鑰（`sk-ant-` 開頭；「VoC Daily Bot」專案 `Code.gs` 裡 `ANTHROPIC_API_KEY` 用的那一把即可）→ 儲存。金鑰放這裡，以後重貼程式不會被洗掉。
-4. 函數選單選 `testClaude` → 執行。看到「✅ Claude 可以用」才繼續；看到 ❌ 就把那行貼給 Claude。
-5. 部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署。
+2. 打開 `appsscript.json`（左側檔案清單裡；看不到的話：齒輪「專案設定」→ 勾「在編輯器中顯示 appsscript.json」），整份換成 https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/dashboard/gas/appsscript.json 的內容 → 儲存。
+3. 函數選單選 `testTranslate` → 執行。看到「✅ Google 翻譯可以用」才繼續；看到 ❌ 就把那行貼給 Claude。
+4. 部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署。
 
 下載沒反應時，按「下載沒反應？顯示全文自己複製」，全選複製後貼到 Google 試算表的 A1，會自動分成欄。
 
@@ -46,12 +47,12 @@
 
 ## 安全設計（第 3 輪審查要求）
 
-- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`getPainExport`、`summarizeQuotes`、`translateQuotes`、`refreshNow`、`testDashboard`、`testClaude`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
+- **存取**：每個瀏覽器呼叫得到的函數（`getDashboard`、`getPainDetail`、`getPainExport`、`translateQuotes`、`refreshNow`、`testDashboard`、`testTranslate`）第一行都檢查允許名單；`doGet` 對名單外的人只給「沒有權限」頁。
 - **原話顯示**：頁面一律用 `textContent` 放文字，不把字串當 HTML；不載入任何外部腳本或樣式。`build_gas.py` 打包時會掃描並拒絕違規寫法。
 - **BigQuery**：SQL 寫死，只吃具名參數 `@code`（必須是 25 痛點清單內的代碼）與 `@since`（伺服器算的日期）。
 - **不顯示 userID**：查詢結果不選 userID；Slack＋表單不帶發話者姓名；連結只保留 `https://`。
-- **不寫任何東西**：專案內不需要任何 GitHub 金鑰（repo 是公開的，直接讀統計檔）、沒有寫入函數、不建試算表。原話只存在伺服器端 6 小時快取。Claude 金鑰放在指令碼屬性，不在程式碼、不進 repo。
-- **例外（2026-10-06 Cross 決定）**：按「送 Claude 做摘要＋翻譯」時，原話會送到 Claude API（Anthropic，公司外部服務）。
+- **不寫任何東西**：專案內不需要任何 GitHub 金鑰（repo 是公開的，直接讀統計檔）、沒有寫入函數、不建試算表。原話只存在伺服器端 6 小時快取。不需要任何金鑰。
+- **例外（2026-10-07 Cross 決定）**：按「翻譯成中文」時原話送到 Google 翻譯；摘要由 Cross 自己把 CSV 上傳到 claude.ai。
 - **頁面打包在專案內**：不從 repo 動態讀頁面，改版必須 Cross 重新部署。
 
 ## 時間段規則（每個痛點各自計算，最近 12 週）

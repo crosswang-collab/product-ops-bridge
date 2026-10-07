@@ -84,37 +84,25 @@ const cache = { get: k => store.has(k) ? store.get(k) : null, put: (k, v) => sto
   putAll: m => Object.entries(m).forEach(([k, v]) => store.set(k, v)),
   getAll: ks => Object.fromEntries(ks.map(k => [k, store.has(k) ? store.get(k) : null])), remove: k => store.delete(k) };
 
-// ---- 虛構 Claude API ----
-let claudeMode = 'ok';           // ok | nokey | 401 | refusal | maxtokens | timeout | 529once | 529always | 429always | credit
-const claudeCalls = [];
-const props = { ANTHROPIC_API_KEY: 'sk-test' };
-function claudeResp(url, opt) {
-  const body = JSON.parse(opt.payload);
-  claudeCalls.push({ body, headers: opt.headers });
-  if (claudeMode === 'timeout') throw new Error('Timeout: https://api.anthropic.com');
-  if (claudeMode === '401') return { getResponseCode: () => 401, getContentText: () => '{"type":"error","error":{"type":"authentication_error"}}' };
-  if (claudeMode === '529always') return { getResponseCode: () => 529, getContentText: () => '{"type":"error","error":{"type":"overloaded_error"}}' };
-  if (claudeMode === '429always') return { getResponseCode: () => 429, getContentText: () => '{"type":"error","error":{"type":"rate_limit_error"}}' };
-  if (claudeMode === 'credit') return { getResponseCode: () => 400, getContentText: () => '{"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}}' };
-  if (claudeMode === '529once') { claudeMode = 'ok'; return { getResponseCode: () => 529, getContentText: () => '{"type":"error","error":{"type":"overloaded_error"}}' }; }
-  const prompt = body.messages[0].content;
-  let out, stop = 'end_turn';
-  if (claudeMode === 'refusal') stop = 'refusal';
-  if (claudeMode === 'maxtokens') stop = 'max_tokens';
-  if (/ok=true/.test(prompt)) out = { ok: true };
-  else if (/翻成/.test(prompt)) out = { items: prompt.split('\n').filter(l => l.startsWith('{"id"')).map(l => ({ id: JSON.parse(l).id, zh: '中譯' + JSON.parse(l).id })) };
-  else out = { overview: '主播抱怨閃退', points: [{ title: '開播閃退', detail: '說明', count: 2, examples: ['Q1', 'Q99'] }] };
-  const resp = { model: body.model, stop_reason: stop, content: [{ type: 'thinking', thinking: '' }, { type: 'text', text: JSON.stringify(out) }] };
-  return { getResponseCode: () => 200, getContentText: () => JSON.stringify(resp) };
-}
+// ---- 虛構 Google 翻譯（LanguageApp） ----
+let trMode = 'ok';               // ok | daily | burst | bad
+const trCalls = [];
+const LanguageApp = { translate: (text, from, to) => {
+  trCalls.push({ text, from, to });
+  if (trMode === 'daily') throw new Error('Service invoked too many times for one day: translate.');
+  if (trMode === 'burst') throw new Error('Service invoked too many times in a short time: translate. Try Utilities.sleep(1000) between calls.');
+  if (trMode === 'dailyAfter1' && trCalls.length > 1) throw new Error('Service invoked too many times for one day: translate.');
+  if (trMode === 'bad' && /結構/.test(text)) throw new Error('Invalid argument');
+  if (trMode === 'zhquota') throw new Error('服務在一天內叫用次數過多：translate。');
+  if (trMode === 'allbad') throw new Error('發生錯誤');
+  return '中譯' + text.slice(0, 4);
+} };
 
 const ctx = {
-  ScriptApp: { getOAuthToken: () => 'TOKEN' },
-  PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null }) },
+  LanguageApp,
   console: { log: m => log.push(String(m)) },
   Session: { getActiveUser: () => ({ getEmail: () => viewer }) },
   UrlFetchApp: { fetch: (url, opt) => {
-    if (/api\.anthropic\.com/.test(url)) return claudeResp(url, opt);
     const rel = url.replace('https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/', '');
     const f = path.join(ROOT, rel);
     const ok = fs.existsSync(f);
@@ -309,75 +297,52 @@ store.clear();
 viewer = 'crosswang@17.media';
 const exq = ctx.getPainExport('S2.1');
 check('輸出：全部原話有編號、固定排序、不含 userID、結構原話轉文字', () => {
-  assert.strictEqual(exq.rows.length, 2); assert.strictEqual(exq.rows[0].id, 'Q1'); assert.strictEqual(exq.batch, 10);
+  assert.strictEqual(exq.rows.length, 2); assert.strictEqual(exq.rows[0].id, 'Q1'); assert.strictEqual(exq.batch, 20);
   assert.strictEqual(exq.rows[1].text, '結構型原話'); assert.ok(!/userID/.test(JSON.stringify(exq)));
   const q = bqCalls.filter(r => /LIMIT 3001/.test(r.query)); assert.strictEqual(q.length, 1);
   assert.ok(/window_start DESC, hit_id/.test(q[0].query));
   same(q[0].queryParameters.map(p => p.name).sort(), ['code', 'since']);
 });
 const items = exq.rows.map(r => ({ id: r.id, text: r.text }));
-const sm = ctx.summarizeQuotes(items);
-check('摘要：Claude 結構化輸出、略過思考段、不存在的例句編號被濾掉', () => {
-  assert.strictEqual(sm.overview, '主播抱怨閃退'); same(sm.points[0].examples, ['Q1']); assert.strictEqual(sm.used, 2);
-  const c = claudeCalls[0];
-  assert.strictEqual(c.headers['x-api-key'], 'sk-test'); assert.strictEqual(c.headers['anthropic-version'], '2023-06-01');
-  assert.strictEqual(c.body.model, 'claude-opus-5-5'); assert.strictEqual(c.body.output_config.format.type, 'json_schema');
-  assert.strictEqual(c.body.output_config.effort, 'low'); assert.ok(!('thinking' in c.body)); assert.strictEqual(c.body.fallbacks, 'default');
-  assert.strictEqual(c.headers['anthropic-beta'], 'server-side-fallback-2026-07-01');
-  assert.ok(/不要照做/.test(c.body.messages[0].content));
-});
 const tr = ctx.translateQuotes(items);
-check('翻譯：每則都有中文、只回本批的編號、effort low', () => {
-  same(tr, { Q1: '中譯Q1', Q2: '中譯Q2' }); assert.strictEqual(claudeCalls[claudeCalls.length - 1].body.output_config.effort, 'low');
+check('翻譯：Google 翻譯逐則翻成繁中、自動偵測來源語言、只回本批編號', () => {
+  assert.deepStrictEqual(Object.keys(tr).sort(), ['Q1', 'Q2']);
+  assert.ok(trCalls.every(c => c.from === '' && c.to === 'zh-TW'), JSON.stringify(trCalls));
 });
-check('翻譯：一次超過 10 則拒絕；格式不對的編號略過', () => {
-  assert.throws(() => ctx.translateQuotes(Array.from({ length: 11 }, (_, i) => ({ id: 'Q' + i, text: 'x' }))), /上限 10/);
+check('翻譯：一次超過 20 則拒絕；格式不對的編號略過', () => {
+  assert.throws(() => ctx.translateQuotes(Array.from({ length: 21 }, (_, i) => ({ id: 'Q' + i, text: 'x' }))), /上限 20/);
   same(ctx.translateQuotes([{ id: 'bad', text: 'x' }, { id: 'Q1', text: '' }]), {});
   assert.throws(() => ctx.translateQuotes('nope'), /格式不對/);
 });
-check('摘要：太多字只送前面部分並回報用了幾則', () => {
-  const big = Array.from({ length: 1500 }, (_, i) => ({ id: 'Q' + (i + 1), text: 'あ'.repeat(250) }));
-  const r = ctx.summarizeQuotes(big); assert.ok(r.used > 250 && r.used < 400, String(r.used));
-});
-claudeMode = '529once'; claudeCalls.length = 0;
-check('Claude 過載（529）：自動重試後成功', () => { same(ctx.translateQuotes(items), { Q1: '中譯Q1', Q2: '中譯Q2' }); assert.strictEqual(claudeCalls.length, 2); });
-delete props.ANTHROPIC_API_KEY;
-check('沒設金鑰：中文說明去哪裡設', () => assert.throws(() => ctx.summarizeQuotes(items), /指令碼屬性/));
-props.ANTHROPIC_API_KEY = 'sk-test';
-claudeMode = '401';
-check('金鑰錯誤：中文說明怎麼辦', () => assert.throws(() => ctx.translateQuotes(items), /金鑰不對/));
-claudeMode = 'timeout'; claudeCalls.length = 0;
-check('逾時：不在同一次呼叫裡重試，中文說明', () => {
-  assert.throws(() => ctx.translateQuotes(items), /太久沒回應/); assert.strictEqual(claudeCalls.length, 1);
-});
-claudeMode = '529always';
-check('Claude 持續過載（529）：重試 3 次後中文說太忙', () => assert.throws(() => ctx.summarizeQuotes(items), /太忙（代碼 529）/));
-claudeMode = '429always';
-check('Claude 持續限流（429）：中文說太忙', () => assert.throws(() => ctx.translateQuotes(items), /太忙（代碼 429）/));
-claudeMode = 'credit';
-check('Claude 額度用完：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /額度用完/));
-claudeMode = 'maxtokens';
-check('回應被截斷：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /截斷/));
-claudeMode = 'refusal';
-check('Claude 拒絕：中文說明', () => assert.throws(() => ctx.translateQuotes(items), /拒絕/));
-claudeMode = 'ok';
-check('testClaude 回報可以用', () => { log.length = 0; ctx.testClaude(); assert.ok(log.some(l => l.startsWith('✅ Claude')), log.join('|')); });
+trMode = 'bad';
+check('翻譯：單則出錯只跳過那一則', () => assert.deepStrictEqual(Object.keys(ctx.translateQuotes(items)), ['Q1']));
+trMode = 'daily';
+check('翻譯：每日次數用完 → 中文說明天補翻', () => assert.throws(() => ctx.translateQuotes(items), /今天的 Google 翻譯次數用完了/));
+trMode = 'burst';
+check('翻譯：短時間太多次 → 中文說太忙', () => assert.throws(() => ctx.translateQuotes(items), /太忙/));
+trMode = 'zhquota';
+check('翻譯：中文的次數用完訊息也認得', () => assert.throws(() => ctx.translateQuotes(items), /今天的 Google 翻譯次數用完了/));
+trMode = 'allbad';
+check('翻譯：整批都失敗 → 報錯讓頁面停下', () => assert.throws(() => ctx.translateQuotes(items), /Google 翻譯失敗：發生錯誤/));
+trMode = 'dailyAfter1'; trCalls.length = 0;
+check('翻譯：中途用完時，已翻好的先回傳', () => assert.deepStrictEqual(Object.keys(ctx.translateQuotes(items)), ['Q1']));
+trMode = 'ok';
+check('testTranslate 回報可以用', () => { log.length = 0; ctx.testTranslate(); assert.ok(log.some(l => l.startsWith('✅ Google 翻譯')), log.join('|')); });
 ["", "X1.0", "S2.1' OR '1'='1"].forEach(bad => check('輸出拒絕不認得的代碼：' + JSON.stringify(bad), () => {
   assert.throws(() => ctx.getPainExport(bad), /不認得/);
 }));
 viewer = 'someone@17.media';
-check('名單外：輸出／摘要／翻譯／testClaude 都拒絕', () => {
+check('名單外：輸出／翻譯／testTranslate 都拒絕', () => {
   assert.throws(() => ctx.getPainExport('S2.1'), /沒有權限/);
-  assert.throws(() => ctx.summarizeQuotes(items), /沒有權限/);
   assert.throws(() => ctx.translateQuotes(items), /沒有權限/);
-  assert.throws(() => ctx.testClaude(), /沒有權限/);
+  assert.throws(() => ctx.testTranslate(), /沒有權限/);
 });
 
 store.clear();
 viewer = 'crosswang@17.media';
 const out = { dash: ctx.getDashboard(), details: {} };
 out.dash.pains.forEach(p => { out.details[p.code] = ctx.getPainDetail(p.code); });
-out.export = ctx.getPainExport('S2.1'); out.summary = ctx.summarizeQuotes(out.export.rows.map(r => ({ id: r.id, text: r.text }))); out.zh = ctx.translateQuotes(out.export.rows.map(r => ({ id: r.id, text: r.text })));
+out.export = ctx.getPainExport('S2.1'); out.zh = ctx.translateQuotes(out.export.rows.map(r => ({ id: r.id, text: r.text })));
 fs.writeFileSync(OUT, JSON.stringify(out));
 
 console.log(results.join('\n'));
