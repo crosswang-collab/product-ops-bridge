@@ -300,7 +300,7 @@ footer.src .grid2{margin-top:10px}
         ? "找 " + p.team + " 的 PM" + (pmName ? "：" + pmName : "（PM 名字還沒填）") + (p.teamFromCards ? "" : "　·　團隊是預設建議")
         : "決定要找哪個團隊的 PM"]));
       ol.appendChild(el("li", {}, ["開卡", sheet ? el("a", { class: "btn", href: sheet, target: "_blank", rel: "noopener", text: "開卡試算表 ↗" })
-        : el("span", { class: "note", text: "（開卡試算表網址還沒設定）" })]));
+        : el("span", { class: "note", text: D.canEdit ? "（開卡試算表網址還沒設定）" : "（由 Cross 開卡）" })]));
       ol.appendChild(el("li", {}, ["卡開好後，回來指定負責的卡", ed ? el("a", { class: "btn primary", href: ed, target: "_blank", rel: "noopener", text: "指定負責的卡 ↗" }) : null]));
       nx.appendChild(ol);
       if (ed) nx.appendChild(el("div", { class: "note", text: "指定後隔天這裡會自動更新。" }));
@@ -762,8 +762,10 @@ footer.src .grid2{margin-top:10px}
     into.appendChild(p);
   }
 
-  /* ---- 頁尾：資料來源一行，展開看 Slack＋表單與各來源狀態 ---- */
-  (function () {
+  go("today");
+
+  /* ---- 頁尾：資料來源一行，展開看 Slack＋表單與各來源狀態（出錯也不影響上面的主畫面） ---- */
+  try { (function () {
     var S = D.slack;
     var bad = (D.jiraAgeDays > 2) || !(D.sttSource === "bigquery" && D.sttAgeDays <= 10) || !(S.ok && S.lastRun);
     document.getElementById("srcline").textContent = (bad ? "⚠️ 有資料來源要注意" : "✅ 資料來源都正常") +
@@ -776,9 +778,10 @@ footer.src .grid2{margin-top:10px}
     viewSlack(sl);
     g.appendChild(sl);
     body.appendChild(g);
-  })();
-
-  go("today");
+  })(); } catch (err) {
+    if (window.console) console.error(err);
+    document.getElementById("srcline").textContent = "資料來源詳情整理時出錯。" + HELP;
+  }
   }
 
   /* ---- 跟伺服器拿資料 ---- */
