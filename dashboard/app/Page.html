@@ -436,7 +436,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   function runExport(code, status, out, busy) {
     var ex = null, zh = {}, lastErr = "", sent = false, stopped = false;
     // 次數用完、太忙：之後每一批都會一樣失敗，直接停下說原因（可以晚點再「補翻」）
-    var STOP = /次數用完|太忙|沒有權限/;
+    var STOP = /次數用完|太忙|沒有權限|翻譯失敗/;
     function done() { busy(false); }
     clear(out);
     function say(t) { status.textContent = t; }
@@ -454,7 +454,9 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     function translateAll(n) {
       var todo = missing(), i = 0;
       lastErr = ""; stopped = false; sent = true;
-      busy(true); renderButtons();
+      busy(true);
+      say("翻譯中…");                                  // 先改狀態再重畫按鈕，翻譯途中不會出現「補翻」
+      renderButtons();
       (function next() {
         if (i >= todo.length) { finish(); return; }
         var batch = todo.slice(i, i + n);

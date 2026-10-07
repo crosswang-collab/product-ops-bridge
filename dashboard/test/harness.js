@@ -93,6 +93,8 @@ const LanguageApp = { translate: (text, from, to) => {
   if (trMode === 'burst') throw new Error('Service invoked too many times in a short time: translate. Try Utilities.sleep(1000) between calls.');
   if (trMode === 'dailyAfter1' && trCalls.length > 1) throw new Error('Service invoked too many times for one day: translate.');
   if (trMode === 'bad' && /結構/.test(text)) throw new Error('Invalid argument');
+  if (trMode === 'zhquota') throw new Error('服務在一天內叫用次數過多：translate。');
+  if (trMode === 'allbad') throw new Error('發生錯誤');
   return '中譯' + text.slice(0, 4);
 } };
 
@@ -318,6 +320,10 @@ trMode = 'daily';
 check('翻譯：每日次數用完 → 中文說明天補翻', () => assert.throws(() => ctx.translateQuotes(items), /今天的 Google 翻譯次數用完了/));
 trMode = 'burst';
 check('翻譯：短時間太多次 → 中文說太忙', () => assert.throws(() => ctx.translateQuotes(items), /太忙/));
+trMode = 'zhquota';
+check('翻譯：中文的次數用完訊息也認得', () => assert.throws(() => ctx.translateQuotes(items), /今天的 Google 翻譯次數用完了/));
+trMode = 'allbad';
+check('翻譯：整批都失敗 → 報錯讓頁面停下', () => assert.throws(() => ctx.translateQuotes(items), /Google 翻譯失敗：發生錯誤/));
 trMode = 'dailyAfter1'; trCalls.length = 0;
 check('翻譯：中途用完時，已翻好的先回傳', () => assert.deepStrictEqual(Object.keys(ctx.translateQuotes(items)), ['Q1']));
 trMode = 'ok';

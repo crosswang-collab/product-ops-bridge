@@ -119,20 +119,23 @@ function getPainExport(code) {
 function translateQuotes(items) {
   assertAllowed_();
   var batch = cleanItems_(items, TRANSLATE_BATCH, 1200);
-  var out = {};
+  var out = {}, lastMsg = '';
   for (var i = 0; i < batch.length; i++) {
     try {
       out[batch[i].id] = clip_(String(LanguageApp.translate(batch[i].text, '', 'zh-TW') || ''), 2000);
     } catch (e) {
       var msg = String(e && e.message || e);
       console.log('[ERROR] 翻譯 ' + batch[i].id + '：' + msg);
-      if (!/too many times|invoked too many|quota/i.test(msg)) continue;   // 這一則有問題：跳過
+      lastMsg = msg;
+      if (!/too many times|invoked too many|quota|次數過多|次数过多|回数が多すぎ/i.test(msg)) continue;   // 這一則有問題：跳過
       if (Object.keys(out).length) return out;
-      throw new Error(/one day|per day|daily/i.test(msg)
+      throw new Error(/one day|per day|daily|一天|1日/i.test(msg)
         ? '今天的 Google 翻譯次數用完了，明天再按「補翻」'
         : 'Google 翻譯一時太忙，等一分鐘再按「補翻」');
     }
   }
+  // 整批一則都沒翻到：多半是服務本身出問題（錯誤訊息可能是中文或日文，上面沒認出來），讓頁面停下說原因
+  if (batch.length && !Object.keys(out).length && lastMsg) throw new Error('Google 翻譯失敗：' + clip_(lastMsg, 120));
   return out;
 }
 
