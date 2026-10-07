@@ -32,18 +32,13 @@ var OWNER_EMAIL = 'crosswang@17.media';
  * 「該找哪個 PM」：痛點 → 團隊 → PM。
  * 痛點已有負責的卡時，用卡的團隊；還沒有卡時，用下面 PAIN_TEAM 的預設建議（Cross 可直接改）。
  */
-var TEAM_PM = {            // 團隊 → PM 名字（空白＝畫面顯示「PM 還沒填」）
-  '17App': '', 'IST': '', 'Internal Tool': '', 'Platform': '', 'Live Commerce': ''
+var TEAM_PM = {            // 團隊 → PM（2026-10-07 Cross 提供）
+  '17App': 'Charlene', 'IST': 'YC', 'Internal Tool': 'Stacey', 'Platform': 'Stella', 'Live Commerce': 'Belle'
 };
-var PAIN_TEAM = {          // 2026-10-07 Claude 依痛點內容與現有卡的團隊預填，Cross 確認後可改
-  'S2.0': '17App', 'S2.1': '17App', 'S2.2': '17App', 'S2.3': '17App', 'S2.4': '17App',
-  'U2.0': '17App', 'U2.1': '17App', 'U2.2': '17App', 'U2.3': '17App', 'U2.4': '17App',
-  'U4.0': 'Platform', 'U4.1': 'Internal Tool', 'U4.2': 'IST', 'U4.3': 'IST', 'U4.4': 'IST',
-  'U5.0': '17App', 'U5.1': '17App', 'U5.2': 'IST', 'U5.3': '17App', 'U5.4': '17App',
-  'U6.0': 'IST', 'U6.1': 'IST', 'U6.2': 'IST', 'U6.3': 'IST', 'U6.4': 'IST'
+var PAIN_TEAM = {          // 痛點 → 團隊：Cross 自己對照（2026-10-07 決定），想固定某個痛點的團隊再填，例如 'U6.0': 'IST'
 };
 /** 開卡用的 Google 試算表網址（空白＝畫面不顯示「開卡」按鈕）。 */
-var CARD_SHEET_URL = '';
+var CARD_SHEET_URL = 'https://docs.google.com/spreadsheets/d/16AuZeGSu2z1PwnTvhZI2HazyG16zltOs7eRxEC04rcE/edit?gid=1005872232#gid=1005872232';
 
 var REPO_RAW = 'https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/';
 var BQ_PROJECT = 'media17-1119';
