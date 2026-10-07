@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "generated_at": "2026-10-06T06:26:25+00:00",
+ "generated_at": "2026-10-07T07:21:31+00:00",
  "as_of_date": "2026-10-06",
  "sources": {
   "jira": {
@@ -9,12 +9,12 @@
   },
   "stt": {
    "latest_window": {
-    "start": "2026-09-21",
-    "end": "2026-09-27"
+    "start": "2026-09-28",
+    "end": "2026-10-04"
    },
-   "age_days": 9,
-   "fetched_date": "2026-10-05",
-   "board_streamers": 363,
+   "age_days": 2,
+   "fetched_date": "2026-10-06",
+   "board_streamers": 338,
    "definitions": {
     "board": "priority='P1' ∧ exist='TRUE_PAIN' ∧ actionability ∈ PRODUCT/OPERATION_ACTIONABLE（F 主題母體）",
     "pain": "stt_voc_weekly_metrics 的 pain25（＝週報定点：正規表現檢知，不經 Gemini 判定，無 tier）",
@@ -27,8 +27,8 @@
    "source": "JP_Needs_Heatmap_ZH.html 的 RANK（VoC roadmap 25 痛點，voc_score = N*3+pri*4）"
   },
   "mapping": {
-   "pains_mapped": 0,
-   "cards_mapped": 0
+   "pains_mapped": 1,
+   "cards_mapped": 1
   }
  },
  "rules": {
@@ -42,7 +42,8 @@
   "2026-08-31",
   "2026-09-07",
   "2026-09-14",
-  "2026-09-21"
+  "2026-09-21",
+  "2026-09-28"
  ],
  "nodes": {
   "pains": [
@@ -82,11 +83,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 12
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 14
       }
      ],
-     "latest": 12,
-     "prev": 22,
-     "delta_pct": -0.455,
+     "latest": 14,
+     "prev": 12,
+     "delta_pct": 0.167,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
@@ -131,18 +136,33 @@
       {
        "window_start": "2026-09-21",
        "streamers": 131
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 230
       }
      ],
-     "latest": 131,
-     "prev": 154,
-     "delta_pct": -0.149,
+     "latest": 230,
+     "prev": 131,
+     "delta_pct": 0.756,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
      "sample_hit_ids": []
     },
-    "cards": [],
-    "status": "gap"
+    "cards": [
+     {
+      "key": "APPIDEAS-2251",
+      "active": true,
+      "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room",
+      "stage": "Develop",
+      "last_seen": null,
+      "project_status": "On track",
+      "release_date": "2026-10-28",
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2251"
+     }
+    ],
+    "status": "covered"
    },
    {
     "code": "U2.0",
@@ -180,18 +200,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 8
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 11
       }
      ],
-     "latest": 8,
-     "prev": 5,
-     "delta_pct": 0.6,
-     "readable": false,
+     "latest": 11,
+     "prev": 8,
+     "delta_pct": 0.375,
+     "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
      "sample_hit_ids": []
     },
     "cards": [],
-    "status": "quiet"
+    "status": "gap"
    },
    {
     "code": "U4.4",
@@ -229,11 +253,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 64
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 79
       }
      ],
-     "latest": 64,
-     "prev": 76,
-     "delta_pct": -0.158,
+     "latest": 79,
+     "prev": 64,
+     "delta_pct": 0.234,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
@@ -278,11 +306,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 4
       }
      ],
-     "latest": 1,
-     "prev": 3,
-     "delta_pct": -0.667,
+     "latest": 4,
+     "prev": 1,
+     "delta_pct": 3.0,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -326,6 +358,10 @@
       },
       {
        "window_start": "2026-09-21",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-28",
        "streamers": 0
       }
      ],
@@ -376,11 +412,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 22
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 17
       }
      ],
-     "latest": 22,
-     "prev": 17,
-     "delta_pct": 0.294,
+     "latest": 17,
+     "prev": 22,
+     "delta_pct": -0.227,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
@@ -424,6 +464,10 @@
       },
       {
        "window_start": "2026-09-21",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
        "streamers": 1
       }
      ],
@@ -474,11 +518,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 6
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 8
       }
      ],
-     "latest": 6,
+     "latest": 8,
      "prev": 6,
-     "delta_pct": 0.0,
+     "delta_pct": 0.333,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -523,11 +571,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 5
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 2
       }
      ],
-     "latest": 5,
-     "prev": 4,
-     "delta_pct": 0.25,
+     "latest": 2,
+     "prev": 5,
+     "delta_pct": -0.6,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -572,11 +624,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 28
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 30
       }
      ],
-     "latest": 28,
-     "prev": 23,
-     "delta_pct": 0.217,
+     "latest": 30,
+     "prev": 28,
+     "delta_pct": 0.071,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
@@ -621,11 +677,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 105
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 89
       }
      ],
-     "latest": 105,
-     "prev": 100,
-     "delta_pct": 0.05,
+     "latest": 89,
+     "prev": 105,
+     "delta_pct": -0.152,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
@@ -670,11 +730,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 1
       }
      ],
      "latest": 1,
-     "prev": 2,
-     "delta_pct": -0.5,
+     "prev": 1,
+     "delta_pct": 0.0,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -719,11 +783,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 9
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 6
       }
      ],
-     "latest": 9,
-     "prev": 4,
-     "delta_pct": 1.25,
+     "latest": 6,
+     "prev": 9,
+     "delta_pct": -0.333,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -768,11 +836,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 242
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 244
       }
      ],
-     "latest": 242,
-     "prev": 233,
-     "delta_pct": 0.039,
+     "latest": 244,
+     "prev": 242,
+     "delta_pct": 0.008,
      "readable": true,
      "stop_streamers": null,
      "top_streamers": null,
@@ -817,11 +889,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 1
       }
      ],
      "latest": 1,
-     "prev": 0,
-     "delta_pct": null,
+     "prev": 1,
+     "delta_pct": 0.0,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -866,11 +942,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 4
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 6
       }
      ],
-     "latest": 4,
-     "prev": 5,
-     "delta_pct": -0.2,
+     "latest": 6,
+     "prev": 4,
+     "delta_pct": 0.5,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -914,6 +994,10 @@
       },
       {
        "window_start": "2026-09-21",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-28",
        "streamers": 0
       }
      ],
@@ -964,11 +1048,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 6
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 4
       }
      ],
-     "latest": 6,
-     "prev": 2,
-     "delta_pct": 2.0,
+     "latest": 4,
+     "prev": 6,
+     "delta_pct": -0.333,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -1012,6 +1100,10 @@
       },
       {
        "window_start": "2026-09-21",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-28",
        "streamers": 0
       }
      ],
@@ -1062,14 +1154,18 @@
       {
        "window_start": "2026-09-21",
        "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 0
       }
      ],
-     "latest": 1,
-     "prev": 0,
-     "delta_pct": null,
+     "latest": 0,
+     "prev": 1,
+     "delta_pct": -1.0,
      "readable": false,
-     "stop_streamers": null,
-     "top_streamers": null,
+     "stop_streamers": 0,
+     "top_streamers": 0,
      "sample_hit_ids": []
     },
     "cards": [],
@@ -1111,11 +1207,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 3
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 2
       }
      ],
-     "latest": 3,
+     "latest": 2,
      "prev": 3,
-     "delta_pct": 0.0,
+     "delta_pct": -0.333,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -1160,11 +1260,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 2
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 3
       }
      ],
-     "latest": 2,
-     "prev": 5,
-     "delta_pct": -0.6,
+     "latest": 3,
+     "prev": 2,
+     "delta_pct": 0.5,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -1209,11 +1313,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 3
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 2
       }
      ],
-     "latest": 3,
-     "prev": 1,
-     "delta_pct": 2.0,
+     "latest": 2,
+     "prev": 3,
+     "delta_pct": -0.333,
      "readable": false,
      "stop_streamers": null,
      "top_streamers": null,
@@ -1258,11 +1366,15 @@
       {
        "window_start": "2026-09-21",
        "streamers": 0
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 0
       }
      ],
      "latest": 0,
-     "prev": 2,
-     "delta_pct": -1.0,
+     "prev": 0,
+     "delta_pct": null,
      "readable": false,
      "stop_streamers": 0,
      "top_streamers": 0,
@@ -1306,18 +1418,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 142
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 110
       }
      ],
-     "latest": 142,
-     "prev": 144,
-     "delta_pct": -0.014,
+     "latest": 110,
+     "prev": 142,
+     "delta_pct": -0.225,
      "readable": true,
-     "stop_streamers": 5,
-     "top_streamers": 24,
+     "stop_streamers": 6,
+     "top_streamers": 14,
      "sample_hit_ids": [
-      "H20260921_00042",
-      "H20260921_00144",
-      "H20260921_00145"
+      "H20260928_00100",
+      "H20260928_00132",
+      "H20260928_00133"
      ]
     }
    },
@@ -1354,18 +1470,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 3
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 5
       }
      ],
-     "latest": 3,
+     "latest": 5,
      "prev": 3,
-     "delta_pct": 0.0,
+     "delta_pct": 0.667,
      "readable": false,
-     "stop_streamers": 0,
+     "stop_streamers": 3,
      "top_streamers": 1,
      "sample_hit_ids": [
-      "H20260921_00029",
-      "H20260921_00034",
-      "H20260921_00039"
+      "H20260928_00009",
+      "H20260928_01113",
+      "H20260928_04117"
      ]
     }
    },
@@ -1402,18 +1522,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 18
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 21
       }
      ],
-     "latest": 18,
-     "prev": 26,
-     "delta_pct": -0.308,
+     "latest": 21,
+     "prev": 18,
+     "delta_pct": 0.167,
      "readable": true,
      "stop_streamers": 1,
      "top_streamers": 2,
      "sample_hit_ids": [
-      "H20260921_00106",
-      "H20260921_00554",
-      "H20260921_00654"
+      "H20260928_00140",
+      "H20260928_00150",
+      "H20260928_00228"
      ]
     }
    },
@@ -1450,18 +1574,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 54
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 51
       }
      ],
-     "latest": 54,
-     "prev": 51,
-     "delta_pct": 0.059,
+     "latest": 51,
+     "prev": 54,
+     "delta_pct": -0.056,
      "readable": true,
-     "stop_streamers": 6,
-     "top_streamers": 9,
+     "stop_streamers": 1,
+     "top_streamers": 5,
      "sample_hit_ids": [
-      "H20260921_00273",
-      "H20260921_00449",
-      "H20260921_00503"
+      "H20260928_00140",
+      "H20260928_00233",
+      "H20260928_00409"
      ]
     }
    },
@@ -1498,18 +1626,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 111
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 108
       }
      ],
-     "latest": 111,
-     "prev": 97,
-     "delta_pct": 0.144,
+     "latest": 108,
+     "prev": 111,
+     "delta_pct": -0.027,
      "readable": true,
-     "stop_streamers": 8,
-     "top_streamers": 11,
+     "stop_streamers": 12,
+     "top_streamers": 24,
      "sample_hit_ids": [
-      "H20260921_00018",
-      "H20260921_00029",
-      "H20260921_00034"
+      "H20260928_00002",
+      "H20260928_00010",
+      "H20260928_00051"
      ]
     }
    },
@@ -1546,18 +1678,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 43
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 38
       }
      ],
-     "latest": 43,
-     "prev": 48,
-     "delta_pct": -0.104,
+     "latest": 38,
+     "prev": 43,
+     "delta_pct": -0.116,
      "readable": true,
-     "stop_streamers": 4,
-     "top_streamers": 7,
+     "stop_streamers": 9,
+     "top_streamers": 5,
      "sample_hit_ids": [
-      "H20260921_00034",
-      "H20260921_00039",
-      "H20260921_00250"
+      "H20260928_00092",
+      "H20260928_00162",
+      "H20260928_00384"
      ]
     }
    },
@@ -1594,18 +1730,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 22
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 21
       }
      ],
-     "latest": 22,
-     "prev": 20,
-     "delta_pct": 0.1,
+     "latest": 21,
+     "prev": 22,
+     "delta_pct": -0.045,
      "readable": true,
-     "stop_streamers": 3,
-     "top_streamers": 2,
+     "stop_streamers": 4,
+     "top_streamers": 7,
      "sample_hit_ids": [
-      "H20260921_00478",
-      "H20260921_00503",
-      "H20260921_00768"
+      "H20260928_00051",
+      "H20260928_00601",
+      "H20260928_01113"
      ]
     }
    },
@@ -1642,17 +1782,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 3
       }
      ],
-     "latest": 1,
-     "prev": 9,
-     "delta_pct": -0.889,
+     "latest": 3,
+     "prev": 1,
+     "delta_pct": 2.0,
      "readable": false,
-     "stop_streamers": 0,
+     "stop_streamers": 1,
      "top_streamers": 0,
      "sample_hit_ids": [
-      "H20260921_04582",
-      "H20260921_04583"
+      "H20260928_02059",
+      "H20260928_02406",
+      "H20260928_04701"
      ]
     }
    },
@@ -1689,18 +1834,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 37
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 38
       }
      ],
-     "latest": 37,
-     "prev": 49,
-     "delta_pct": -0.245,
+     "latest": 38,
+     "prev": 37,
+     "delta_pct": 0.027,
      "readable": true,
-     "stop_streamers": 4,
-     "top_streamers": 9,
+     "stop_streamers": 3,
+     "top_streamers": 5,
      "sample_hit_ids": [
-      "H20260921_00211",
-      "H20260921_00307",
-      "H20260921_00551"
+      "H20260928_00383",
+      "H20260928_00705",
+      "H20260928_00880"
      ]
     }
    },
@@ -1737,18 +1886,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 12
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 8
       }
      ],
-     "latest": 12,
-     "prev": 8,
-     "delta_pct": 0.5,
-     "readable": true,
-     "stop_streamers": 1,
-     "top_streamers": 3,
+     "latest": 8,
+     "prev": 12,
+     "delta_pct": -0.333,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 1,
      "sample_hit_ids": [
-      "H20260921_00106",
-      "H20260921_00335",
-      "H20260921_00729"
+      "H20260928_01196",
+      "H20260928_01228",
+      "H20260928_01229"
      ]
     }
    },
@@ -1785,18 +1938,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 4
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 2
       }
      ],
-     "latest": 4,
-     "prev": 2,
-     "delta_pct": 1.0,
+     "latest": 2,
+     "prev": 4,
+     "delta_pct": -0.5,
      "readable": false,
      "stop_streamers": 0,
-     "top_streamers": 2,
+     "top_streamers": 0,
      "sample_hit_ids": [
-      "H20260921_00750",
-      "H20260921_01224",
-      "H20260921_03293"
+      "H20260928_05602",
+      "H20260928_05603",
+      "H20260928_05737"
      ]
     }
    },
@@ -1833,18 +1990,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 4
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 3
       }
      ],
-     "latest": 4,
+     "latest": 3,
      "prev": 4,
-     "delta_pct": 0.0,
+     "delta_pct": -0.25,
      "readable": false,
      "stop_streamers": 0,
-     "top_streamers": 2,
+     "top_streamers": 1,
      "sample_hit_ids": [
-      "H20260921_03391",
-      "H20260921_03468",
-      "H20260921_04009"
+      "H20260928_01885",
+      "H20260928_02418",
+      "H20260928_04168"
      ]
     }
    },
@@ -1881,18 +2042,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 3
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 7
       }
      ],
-     "latest": 3,
-     "prev": 7,
-     "delta_pct": -0.571,
+     "latest": 7,
+     "prev": 3,
+     "delta_pct": 1.333,
      "readable": false,
-     "stop_streamers": 1,
-     "top_streamers": 0,
+     "stop_streamers": 3,
+     "top_streamers": 3,
      "sample_hit_ids": [
-      "H20260921_00307",
-      "H20260921_00680",
-      "H20260921_03758"
+      "H20260928_00307",
+      "H20260928_00414",
+      "H20260928_00705"
      ]
     }
    },
@@ -1929,18 +2094,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 3
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 17
       }
      ],
-     "latest": 3,
-     "prev": 6,
-     "delta_pct": -0.5,
-     "readable": false,
-     "stop_streamers": 0,
-     "top_streamers": 1,
+     "latest": 17,
+     "prev": 3,
+     "delta_pct": 4.667,
+     "readable": true,
+     "stop_streamers": 2,
+     "top_streamers": 2,
      "sample_hit_ids": [
-      "H20260921_00232",
-      "H20260921_03093",
-      "H20260921_03210"
+      "H20260928_00300",
+      "H20260928_01228",
+      "H20260928_01229"
      ]
     }
    },
@@ -1977,18 +2146,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 42
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 33
       }
      ],
-     "latest": 42,
-     "prev": 39,
-     "delta_pct": 0.077,
+     "latest": 33,
+     "prev": 42,
+     "delta_pct": -0.214,
      "readable": true,
-     "stop_streamers": 12,
-     "top_streamers": 15,
+     "stop_streamers": 9,
+     "top_streamers": 7,
      "sample_hit_ids": [
-      "H20260921_00018",
-      "H20260921_00039",
-      "H20260921_00042"
+      "H20260928_00008",
+      "H20260928_00009",
+      "H20260928_00010"
      ]
     }
    },
@@ -2025,18 +2198,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 21
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 16
       }
      ],
-     "latest": 21,
-     "prev": 11,
-     "delta_pct": 0.909,
+     "latest": 16,
+     "prev": 21,
+     "delta_pct": -0.238,
      "readable": true,
-     "stop_streamers": 4,
-     "top_streamers": 5,
+     "stop_streamers": 6,
+     "top_streamers": 6,
      "sample_hit_ids": [
-      "H20260921_00018",
-      "H20260921_00354",
-      "H20260921_00880"
+      "H20260928_00596",
+      "H20260928_00769",
+      "H20260928_01274"
      ]
     }
    },
@@ -2073,18 +2250,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 20
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 19
       }
      ],
-     "latest": 20,
-     "prev": 24,
-     "delta_pct": -0.167,
+     "latest": 19,
+     "prev": 20,
+     "delta_pct": -0.05,
      "readable": true,
-     "stop_streamers": 3,
+     "stop_streamers": 5,
      "top_streamers": 5,
      "sample_hit_ids": [
-      "H20260921_00309",
-      "H20260921_00313",
-      "H20260921_00551"
+      "H20260928_00251",
+      "H20260928_00269",
+      "H20260928_00307"
      ]
     }
    },
@@ -2121,16 +2302,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 1
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 4
       }
      ],
-     "latest": 1,
-     "prev": 4,
-     "delta_pct": -0.75,
+     "latest": 4,
+     "prev": 1,
+     "delta_pct": 3.0,
      "readable": false,
      "stop_streamers": 0,
-     "top_streamers": 1,
+     "top_streamers": 0,
      "sample_hit_ids": [
-      "H20260921_00903"
+      "H20260928_01667",
+      "H20260928_01668",
+      "H20260928_01669"
      ]
     }
    },
@@ -2167,18 +2354,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 8
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 11
       }
      ],
-     "latest": 8,
-     "prev": 19,
-     "delta_pct": -0.579,
-     "readable": false,
+     "latest": 11,
+     "prev": 8,
+     "delta_pct": 0.375,
+     "readable": true,
      "stop_streamers": 0,
-     "top_streamers": 2,
+     "top_streamers": 0,
      "sample_hit_ids": [
-      "H20260921_00229",
-      "H20260921_00765",
-      "H20260921_01911"
+      "H20260928_01382",
+      "H20260928_02038",
+      "H20260928_02149"
      ]
     }
    },
@@ -2215,18 +2406,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 3
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 7
       }
      ],
-     "latest": 3,
-     "prev": 8,
-     "delta_pct": -0.625,
+     "latest": 7,
+     "prev": 3,
+     "delta_pct": 1.333,
      "readable": false,
-     "stop_streamers": 0,
+     "stop_streamers": 2,
      "top_streamers": 1,
      "sample_hit_ids": [
-      "H20260921_02095",
-      "H20260921_04499",
-      "H20260921_06311"
+      "H20260928_00479",
+      "H20260928_00515",
+      "H20260928_01943"
      ]
     }
    },
@@ -2263,18 +2458,22 @@
       {
        "window_start": "2026-09-21",
        "streamers": 9
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 16
       }
      ],
-     "latest": 9,
-     "prev": 13,
-     "delta_pct": -0.308,
-     "readable": false,
-     "stop_streamers": 1,
-     "top_streamers": 2,
+     "latest": 16,
+     "prev": 9,
+     "delta_pct": 0.778,
+     "readable": true,
+     "stop_streamers": 3,
+     "top_streamers": 5,
      "sample_hit_ids": [
-      "H20260921_00006",
-      "H20260921_00309",
-      "H20260921_01225"
+      "H20260928_00100",
+      "H20260928_00220",
+      "H20260928_00307"
      ]
     }
    },
@@ -2311,18 +2510,21 @@
       {
        "window_start": "2026-09-21",
        "streamers": 10
+      },
+      {
+       "window_start": "2026-09-28",
+       "streamers": 2
       }
      ],
-     "latest": 10,
-     "prev": 3,
-     "delta_pct": 2.333,
-     "readable": true,
-     "stop_streamers": 1,
-     "top_streamers": 0,
+     "latest": 2,
+     "prev": 10,
+     "delta_pct": -0.8,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 2,
      "sample_hit_ids": [
-      "H20260921_00841",
-      "H20260921_03516",
-      "H20260921_03517"
+      "H20260928_03023",
+      "H20260928_03107"
      ]
     }
    }
@@ -2502,7 +2704,9 @@
     "release_date": "2026-10-28",
     "url": "https://17media.atlassian.net/browse/APPIDEAS-2251",
     "voc_tagged": true,
-    "pains": []
+    "pains": [
+     "S2.0"
+    ]
    },
    {
     "key": "APPIDEAS-2253",
@@ -2748,22 +2952,10 @@
    "from": "F05",
    "to": "S2.1",
    "type": "theme_pain",
-   "weight": 139
+   "weight": 138
   },
   {
    "from": "F16",
-   "to": "U6.0",
-   "type": "theme_pain",
-   "weight": 8
-  },
-  {
-   "from": "F07",
-   "to": "S2.1",
-   "type": "theme_pain",
-   "weight": 8
-  },
-  {
-   "from": "F05",
    "to": "U6.0",
    "type": "theme_pain",
    "weight": 7
@@ -2778,13 +2970,25 @@
    "from": "F04",
    "to": "S2.1",
    "type": "theme_pain",
-   "weight": 5
+   "weight": 6
   },
   {
-   "from": "F09",
+   "from": "F07",
    "to": "S2.1",
    "type": "theme_pain",
    "weight": 5
+  },
+  {
+   "from": "F06",
+   "to": "S2.0",
+   "type": "theme_pain",
+   "weight": 4
+  },
+  {
+   "from": "F17",
+   "to": "U6.0",
+   "type": "theme_pain",
+   "weight": 4
   },
   {
    "from": "F20",
@@ -2793,91 +2997,89 @@
    "weight": 4
   },
   {
-   "from": "F17",
+   "from": "F05",
    "to": "U6.0",
    "type": "theme_pain",
-   "weight": 3
-  },
-  {
-   "from": "F16",
-   "to": "S2.1",
-   "type": "theme_pain",
-   "weight": 3
-  },
-  {
-   "from": "F17",
-   "to": "U6.3",
-   "type": "theme_pain",
-   "weight": 2
-  },
-  {
-   "from": "F04",
-   "to": "U6.3",
-   "type": "theme_pain",
-   "weight": 2
-  },
-  {
-   "from": "F02",
-   "to": "S2.1",
-   "type": "theme_pain",
-   "weight": 2
+   "weight": 4
   },
   {
    "from": "F17",
    "to": "S2.1",
    "type": "theme_pain",
+   "weight": 4
+  },
+  {
+   "from": "F09",
+   "to": "S2.1",
+   "type": "theme_pain",
    "weight": 2
+  },
+  {
+   "from": "S2.0",
+   "to": "APPIDEAS-2251",
+   "type": "pain_card",
+   "active": true
   }
  ],
  "views": {
   "rising": [
    {
     "kind": "theme",
-    "code": "NEW",
-    "name": "カタログ外(新規)",
-    "latest": 10,
+    "code": "F15",
+    "name": "アーミー・帰属",
+    "latest": 17,
     "prev": 3,
-    "delta_pct": 2.333,
-    "stop_streamers": 1,
+    "delta_pct": 4.667,
+    "stop_streamers": 2,
     "status": null
    },
    {
     "kind": "theme",
-    "code": "F17",
-    "name": "対戦・コラボ中UX",
-    "latest": 21,
-    "prev": 11,
-    "delta_pct": 0.909,
-    "stop_streamers": 4,
-    "status": null
-   },
-   {
-    "kind": "theme",
-    "code": "F11",
-    "name": "価格・課金設計",
-    "latest": 12,
-    "prev": 8,
-    "delta_pct": 0.5,
-    "stop_streamers": 1,
+    "code": "E01",
+    "name": "イベント企画インプット",
+    "latest": 16,
+    "prev": 9,
+    "delta_pct": 0.778,
+    "stop_streamers": 3,
     "status": null
    },
    {
     "kind": "pain",
-    "code": "U4.2",
-    "name": "禮物爆量卻找不到，也擋不掉不想要的 Army",
-    "latest": 22,
-    "prev": 17,
-    "delta_pct": 0.294,
+    "code": "S2.0",
+    "name": "直播畫面被免費 ticker 蓋住、擋工作",
+    "latest": 230,
+    "prev": 131,
+    "delta_pct": 0.756,
+    "stop_streamers": null,
+    "status": "covered"
+   },
+   {
+    "kind": "pain",
+    "code": "U2.0",
+    "name": "畫面被系統元素塞滿又關不掉",
+    "latest": 11,
+    "prev": 8,
+    "delta_pct": 0.375,
     "stop_streamers": null,
     "status": "gap"
    },
    {
+    "kind": "theme",
+    "code": "F20",
+    "name": "プロフィール保全・表示",
+    "latest": 11,
+    "prev": 8,
+    "delta_pct": 0.375,
+    "stop_streamers": 0,
+    "status": null
+   },
+   {
     "kind": "pain",
-    "code": "U6.0",
-    "name": "VS 模式切換會錯亂、比賽資訊亂掉",
-    "latest": 28,
-    "prev": 23,
-    "delta_pct": 0.217,
+    "code": "U4.4",
+    "name": "高額禮物誤送不能取消、送出還閃退",
+    "latest": 79,
+    "prev": 64,
+    "delta_pct": 0.234,
     "stop_streamers": null,
     "status": "gap"
    }
@@ -2886,61 +3088,54 @@
    {
     "code": "S2.1",
     "title": "開播中一直閃退、鍵盤還卡",
-    "latest": 242,
-    "delta_pct": 0.039,
+    "latest": 244,
+    "delta_pct": 0.008,
     "voc_score": 29
-   },
-   {
-    "code": "S2.0",
-    "title": "直播畫面被免費 ticker 蓋住、擋工作",
-    "latest": 131,
-    "delta_pct": -0.149,
-    "voc_score": 53
    },
    {
     "code": "U4.1",
     "title": "課金金額有斷層，中間價位想課也難課",
-    "latest": 105,
-    "delta_pct": 0.05,
+    "latest": 89,
+    "delta_pct": -0.152,
     "voc_score": 31
    },
    {
     "code": "U4.4",
     "title": "高額禮物誤送不能取消、送出還閃退",
-    "latest": 64,
-    "delta_pct": -0.158,
+    "latest": 79,
+    "delta_pct": 0.234,
     "voc_score": 47
    },
    {
     "code": "U6.0",
     "title": "VS 模式切換會錯亂、比賽資訊亂掉",
-    "latest": 28,
-    "delta_pct": 0.217,
+    "latest": 30,
+    "delta_pct": 0.071,
     "voc_score": 32
    },
    {
     "code": "U4.2",
     "title": "禮物爆量卻找不到，也擋不掉不想要的 Army",
-    "latest": 22,
-    "delta_pct": 0.294,
+    "latest": 17,
+    "delta_pct": -0.227,
     "voc_score": 40
    },
    {
     "code": "U4.0",
     "title": "抽選被海外 bot 鑽、玩法不公平",
-    "latest": 12,
-    "delta_pct": -0.455,
+    "latest": 14,
+    "delta_pct": 0.167,
     "voc_score": 55
+   },
+   {
+    "code": "U2.0",
+    "title": "畫面被系統元素塞滿又關不掉",
+    "latest": 11,
+    "delta_pct": 0.375,
+    "voc_score": 50
    }
   ],
   "unbacked_voc_cards": [
-   {
-    "key": "APPIDEAS-2251",
-    "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room",
-    "stage": "Develop",
-    "project_status": "On track",
-    "url": "https://17media.atlassian.net/browse/APPIDEAS-2251"
-   },
    {
     "key": "APPIDEAS-2258",
     "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown",
@@ -2966,7 +3161,7 @@
   "outside_catalog": [
    {
     "code": "X1.0",
-    "latest": 292
+    "latest": 287
    }
   ]
  },
