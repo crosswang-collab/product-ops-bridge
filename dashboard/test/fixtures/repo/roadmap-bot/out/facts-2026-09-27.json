@@ -1,0 +1,1159 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-27T02:16:02+00:00",
+  "as_of_date": "2026-09-27",
+  "source": "Jira REST live pull（filter = 16245 ORDER BY key ASC ＋ filter = 15906 ORDER BY key ASC）",
+  "jql": "filter = 16245 ORDER BY key ASC",
+  "excluded_statuses": [
+    "Parking lot"
+  ],
+  "baseline": {
+    "locked_at": "2026-08-21",
+    "expires_at": "2026-10-01",
+    "expired": false,
+    "values": {
+      "17App": {
+        "pts_per_month": 10.3,
+        "n": null,
+        "cards_per_month": 4.7
+      },
+      "Internal Tool": {
+        "pts_per_month": 8.3,
+        "n": null,
+        "cards_per_month": 3.0
+      },
+      "IST": {
+        "pts_per_month": 4.3,
+        "n": 5,
+        "cards_per_month": 1.7
+      },
+      "Live Commerce": {
+        "pts_per_month": 2.7,
+        "n": 3,
+        "cards_per_month": 1.0
+      },
+      "Platform": {
+        "pts_per_month": null,
+        "n": null,
+        "cards_per_month": null
+      }
+    }
+  },
+  "counts": {
+    "raw_from_source": 32,
+    "active": 22,
+    "excluded": 10,
+    "unmapped_status": 0
+  },
+  "aggregate": {
+    "stages": {
+      "Impact": 4,
+      "Develop": 14,
+      "Design": 4
+    },
+    "domains_by_owner": {
+      "17App": {
+        "cards": 5,
+        "points": 14.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Impact": 1,
+          "Develop": 3,
+          "Design": 1
+        },
+        "rag": {
+          "Warning": 2,
+          "On track": 3
+        },
+        "keys": [
+          "APPIDEAS-1927",
+          "APPIDEAS-1928",
+          "APPIDEAS-2172",
+          "APPIDEAS-2238",
+          "APPIDEAS-2277"
+        ]
+      },
+      "Internal Tool": {
+        "cards": 5,
+        "points": 16.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Develop": 4,
+          "Design": 1
+        },
+        "rag": {
+          "On track": 4,
+          "Warning": 1
+        },
+        "keys": [
+          "APPIDEAS-1938",
+          "APPIDEAS-1986",
+          "APPIDEAS-2004",
+          "APPIDEAS-2211",
+          "APPIDEAS-2253"
+        ]
+      },
+      "Platform": {
+        "cards": 3,
+        "points": 10.0,
+        "upstream_cards": 0,
+        "by_stage": {
+          "Develop": 3
+        },
+        "rag": {
+          "On track": 3
+        },
+        "keys": [
+          "APPIDEAS-2104",
+          "APPIDEAS-2161",
+          "APPIDEAS-2224"
+        ]
+      },
+      "IST": {
+        "cards": 7,
+        "points": 18.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Develop": 3,
+          "Impact": 3,
+          "Design": 1
+        },
+        "rag": {
+          "On track": 6,
+          "At Risk": 1
+        },
+        "keys": [
+          "APPIDEAS-2116",
+          "APPIDEAS-2148",
+          "APPIDEAS-2192",
+          "APPIDEAS-2243",
+          "APPIDEAS-2251",
+          "APPIDEAS-2258",
+          "APPIDEAS-2265"
+        ]
+      },
+      "Live Commerce": {
+        "cards": 2,
+        "points": 5.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Design": 1,
+          "Develop": 1
+        },
+        "rag": {
+          "At Risk": 1,
+          "On track": 1
+        },
+        "keys": [
+          "APPIDEAS-2137",
+          "APPIDEAS-2219"
+        ]
+      }
+    },
+    "domains_by_capacity": {
+      "17App": {
+        "cards": 6,
+        "points": 16.0,
+        "upstream_cards": 2,
+        "by_stage": {
+          "Impact": 1,
+          "Develop": 3,
+          "Design": 2
+        },
+        "rag": {},
+        "keys": [
+          "APPIDEAS-1927",
+          "APPIDEAS-1928",
+          "APPIDEAS-2137",
+          "APPIDEAS-2172",
+          "APPIDEAS-2238",
+          "APPIDEAS-2277"
+        ],
+        "baseline_pts_per_month": 10.3,
+        "baseline_n": null,
+        "wip_months": 1.55,
+        "wip_verdict": "healthy",
+        "upstream_months": 0.43,
+        "upstream_verdict": "starving",
+        "baseline_thin": false
+      },
+      "IST": {
+        "cards": 8,
+        "points": 22.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Develop": 4,
+          "Impact": 3,
+          "Design": 1
+        },
+        "rag": {},
+        "keys": [
+          "APPIDEAS-1928",
+          "APPIDEAS-2116",
+          "APPIDEAS-2148",
+          "APPIDEAS-2192",
+          "APPIDEAS-2243",
+          "APPIDEAS-2251",
+          "APPIDEAS-2258",
+          "APPIDEAS-2265"
+        ],
+        "baseline_pts_per_month": 4.3,
+        "baseline_n": 5,
+        "wip_months": 5.12,
+        "wip_verdict": "overload",
+        "upstream_months": 0.59,
+        "upstream_verdict": "medium",
+        "baseline_thin": false
+      },
+      "Internal Tool": {
+        "cards": 5,
+        "points": 16.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Develop": 4,
+          "Design": 1
+        },
+        "rag": {},
+        "keys": [
+          "APPIDEAS-1938",
+          "APPIDEAS-1986",
+          "APPIDEAS-2004",
+          "APPIDEAS-2211",
+          "APPIDEAS-2253"
+        ],
+        "baseline_pts_per_month": 8.3,
+        "baseline_n": null,
+        "wip_months": 1.93,
+        "wip_verdict": "healthy",
+        "upstream_months": 0.33,
+        "upstream_verdict": "starving",
+        "baseline_thin": false
+      },
+      "Platform": {
+        "cards": 3,
+        "points": 10.0,
+        "upstream_cards": 0,
+        "by_stage": {
+          "Develop": 3
+        },
+        "rag": {},
+        "keys": [
+          "APPIDEAS-2104",
+          "APPIDEAS-2161",
+          "APPIDEAS-2224"
+        ],
+        "baseline_pts_per_month": null,
+        "baseline_n": null,
+        "wip_months": null,
+        "wip_verdict": null,
+        "upstream_months": null,
+        "upstream_verdict": null,
+        "baseline_thin": false
+      },
+      "Live Commerce": {
+        "cards": 2,
+        "points": 5.0,
+        "upstream_cards": 1,
+        "by_stage": {
+          "Design": 1,
+          "Develop": 1
+        },
+        "rag": {},
+        "keys": [
+          "APPIDEAS-2137",
+          "APPIDEAS-2219"
+        ],
+        "baseline_pts_per_month": 2.7,
+        "baseline_n": 3,
+        "wip_months": 1.85,
+        "wip_verdict": "healthy",
+        "upstream_months": 1.0,
+        "upstream_verdict": "medium",
+        "baseline_thin": true
+      }
+    },
+    "team_participation_count": 24,
+    "cards_with_no_teams": [],
+    "unmapped_teams": [],
+    "upcoming_releases": [
+      {
+        "date": "2026-09-29",
+        "key": "APPIDEAS-1928",
+        "summary": "Call in - Army only stream",
+        "domain": "17App",
+        "project_status": "On track",
+        "config_on": "2026-10-06"
+      },
+      {
+        "date": "2026-09-29",
+        "key": "APPIDEAS-2116",
+        "summary": "[IST O1O3][Gift Animation] High-value Gifts Animation Prioritization",
+        "domain": "IST",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-09-30",
+        "key": "APPIDEAS-2211",
+        "summary": "3rd party payment framework for outsourcing",
+        "domain": "Internal Tool",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-01",
+        "key": "APPIDEAS-2004",
+        "summary": "Add atone payment gateway in JP region",
+        "domain": "Internal Tool",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-01",
+        "key": "APPIDEAS-2104",
+        "summary": "Content Evaluation Automation Integration",
+        "domain": "Platform",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-01",
+        "key": "APPIDEAS-2265",
+        "summary": "[IST][VoC] Make the Gifter Leaderboard visible only to the streamer",
+        "domain": "IST",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-01",
+        "key": "APPIDEAS-2191",
+        "summary": "[TECH][SEO] Optimize Search Performance and Google Search Console Infrastructure",
+        "domain": "Internal Tool",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-01",
+        "key": "APPIDEAS-2263",
+        "summary": "Cube System v2 with the Gacha Mechanism",
+        "domain": "Platform",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-01",
+        "key": "APPIDEAS-2274",
+        "summary": "[TECH][Web] Upgrade X (Twitter) SDK to Auth v2",
+        "domain": "Internal Tool",
+        "project_status": null,
+        "config_on": null
+      },
+      {
+        "date": "2026-10-13",
+        "key": "APPIDEAS-2258",
+        "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown",
+        "domain": "IST",
+        "project_status": "On track",
+        "config_on": "2026-10-15"
+      },
+      {
+        "date": "2026-10-20",
+        "key": "APPIDEAS-2161",
+        "summary": "[Mini Event Template]Eventory and cube system integrate to App mini event Phase 1",
+        "domain": "Platform",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-28",
+        "key": "APPIDEAS-2172",
+        "summary": "In-stream discovery: 90sec clips as first impression",
+        "domain": "17App",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-10-28",
+        "key": "APPIDEAS-2251",
+        "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room",
+        "domain": "IST",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-11-01",
+        "key": "APPIDEAS-1938",
+        "summary": "2026/10/1 Japan Consumption Tax Reform ph-3",
+        "domain": "Internal Tool",
+        "project_status": "On track",
+        "config_on": "2026-11-01"
+      },
+      {
+        "date": "2026-11-01",
+        "key": "APPIDEAS-2224",
+        "summary": "Mini event support target missions with specific gift quantities, and Random Gift Sub-bags",
+        "domain": "Platform",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-11-04",
+        "key": "APPIDEAS-1986",
+        "summary": "New application flow in JP region ph-4, Auto contract",
+        "domain": "Internal Tool",
+        "project_status": "Warning",
+        "config_on": "2026-11-04"
+      },
+      {
+        "date": "2026-11-24",
+        "key": "APPIDEAS-2238",
+        "summary": "Profile Badge Customization ",
+        "domain": "17App",
+        "project_status": "On track",
+        "config_on": null
+      },
+      {
+        "date": "2026-12-01",
+        "key": "APPIDEAS-2137",
+        "summary": "[Commercial] Gacha Leaderboard",
+        "domain": "Live Commerce",
+        "project_status": "At Risk",
+        "config_on": null
+      },
+      {
+        "date": "2027-02-18",
+        "key": "APPIDEAS-2122",
+        "summary": "Ponta Point 服務系統遷移相關測試",
+        "domain": "Internal Tool",
+        "project_status": "On track",
+        "config_on": null
+      }
+    ],
+    "release_pool_partial": false,
+    "release_concentration": [
+      {
+        "date": "2026-10-01",
+        "count": 6,
+        "keys": [
+          "APPIDEAS-2004",
+          "APPIDEAS-2104",
+          "APPIDEAS-2265",
+          "APPIDEAS-2191",
+          "APPIDEAS-2263",
+          "APPIDEAS-2274"
+        ]
+      },
+      {
+        "date": "2026-09-29",
+        "count": 2,
+        "keys": [
+          "APPIDEAS-1928",
+          "APPIDEAS-2116"
+        ]
+      },
+      {
+        "date": "2026-10-28",
+        "count": 2,
+        "keys": [
+          "APPIDEAS-2172",
+          "APPIDEAS-2251"
+        ]
+      },
+      {
+        "date": "2026-11-01",
+        "count": 2,
+        "keys": [
+          "APPIDEAS-1938",
+          "APPIDEAS-2224"
+        ]
+      }
+    ]
+  },
+  "cards": [
+    {
+      "key": "APPIDEAS-1927",
+      "id": "1927",
+      "summary": "Enable Direct Message in JP",
+      "status": "Impact - Data Collecting",
+      "stage": "Impact",
+      "domain": "17App",
+      "domain_raw": "17App",
+      "horizon": "Now",
+      "size": "XL＋M＋M",
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "Warning",
+      "stage_duration_bd": 11.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Feature team"
+      ],
+      "discovery_start": "2026-05-25",
+      "design_start": "2026-06-03",
+      "tech_design_end": "2026-07-10",
+      "release_date": "2026-09-01",
+      "config_on": "2026-09-11",
+      "capacity_domains": [
+        "17App"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-1927"
+    },
+    {
+      "key": "APPIDEAS-1928",
+      "id": "1928",
+      "summary": "Call in - Army only stream",
+      "status": "Dev/QA Done",
+      "stage": "Develop",
+      "domain": "17App",
+      "domain_raw": "17App",
+      "horizon": "Now",
+      "size": "L",
+      "effort_points": 4.0,
+      "effort_points_from_size": 4,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 0.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Feature team",
+        "IST"
+      ],
+      "discovery_start": "2026-06-01",
+      "design_start": "2026-06-23",
+      "tech_design_end": "2026-07-23",
+      "release_date": "2026-09-29",
+      "config_on": "2026-10-06",
+      "capacity_domains": [
+        "17App",
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-1928"
+    },
+    {
+      "key": "APPIDEAS-1938",
+      "id": "1938",
+      "summary": "2026/10/1 Japan Consumption Tax Reform ph-3",
+      "status": "Dev/QA Done",
+      "stage": "Develop",
+      "domain": "Internal Tool",
+      "domain_raw": "Internal Tool",
+      "horizon": "Now",
+      "size": "S",
+      "effort_points": 2.0,
+      "effort_points_from_size": 2,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 0.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Billing",
+        "Webapp"
+      ],
+      "discovery_start": "2026-02-10",
+      "design_start": "2026-05-15",
+      "tech_design_end": "2026-07-10",
+      "release_date": "2026-11-01",
+      "config_on": "2026-11-01",
+      "capacity_domains": [
+        "Internal Tool"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-1938"
+    },
+    {
+      "key": "APPIDEAS-1986",
+      "id": "1986",
+      "summary": "New application flow in JP region ph-4, Auto contract",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "Internal Tool",
+      "domain_raw": "Internal Tool",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "Warning",
+      "stage_duration_bd": 26.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Billing",
+        "Webapp"
+      ],
+      "discovery_start": "2026-06-01",
+      "design_start": "2026-07-20",
+      "tech_design_end": "2026-08-21",
+      "release_date": "2026-11-04",
+      "config_on": "2026-11-04",
+      "capacity_domains": [
+        "Internal Tool"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-1986"
+    },
+    {
+      "key": "APPIDEAS-2004",
+      "id": "2004",
+      "summary": "Add atone payment gateway in JP region",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "Internal Tool",
+      "domain_raw": "Internal Tool",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 16.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Billing",
+        "Webapp"
+      ],
+      "discovery_start": "2026-08-03",
+      "design_start": "2026-08-21",
+      "tech_design_end": "2026-09-04",
+      "release_date": "2026-10-01",
+      "config_on": null,
+      "capacity_domains": [
+        "Internal Tool"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2004"
+    },
+    {
+      "key": "APPIDEAS-2104",
+      "id": "2104",
+      "summary": "Content Evaluation Automation Integration",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "Platform",
+      "domain_raw": "Platform",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 19.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Platform"
+      ],
+      "discovery_start": "2026-07-06",
+      "design_start": "2026-07-01",
+      "tech_design_end": "2026-09-01",
+      "release_date": "2026-10-01",
+      "config_on": null,
+      "capacity_domains": [
+        "Platform"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2104"
+    },
+    {
+      "key": "APPIDEAS-2116",
+      "id": "2116",
+      "summary": "[IST O1O3][Gift Animation] High-value Gifts Animation Prioritization",
+      "status": "Dev/QA Done",
+      "stage": "Develop",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 0.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-07-22",
+      "design_start": "2026-08-03",
+      "tech_design_end": "2026-08-20",
+      "release_date": "2026-09-29",
+      "config_on": null,
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2116"
+    },
+    {
+      "key": "APPIDEAS-2137",
+      "id": "2137",
+      "summary": "[Commercial] Gacha Leaderboard",
+      "status": "Design - Refinement",
+      "stage": "Design",
+      "domain": "Live Commerce",
+      "domain_raw": "Live commerce",
+      "horizon": "Next",
+      "size": "S＋S",
+      "effort_points": 2.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "At Risk",
+      "stage_duration_bd": 14.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Feature team",
+        "Live Commerce"
+      ],
+      "discovery_start": "2026-08-20",
+      "design_start": "2026-08-28",
+      "tech_design_end": null,
+      "release_date": "2026-12-01",
+      "config_on": null,
+      "capacity_domains": [
+        "17App",
+        "Live Commerce"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2137"
+    },
+    {
+      "key": "APPIDEAS-2148",
+      "id": "2148",
+      "summary": "[IST O3] Pre-stream Speed Test & Streaming Quality Selection",
+      "status": "Impact - Data Collecting",
+      "stage": "Impact",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 7.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-07-09",
+      "design_start": "2026-07-16",
+      "tech_design_end": "2026-08-11",
+      "release_date": "2026-09-15",
+      "config_on": "2026-09-17",
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2148"
+    },
+    {
+      "key": "APPIDEAS-2161",
+      "id": "2161",
+      "summary": "[Mini Event Template]Eventory and cube system integrate to App mini event Phase 1",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "Platform",
+      "domain_raw": "Platform",
+      "horizon": "Now",
+      "size": "L",
+      "effort_points": 4.0,
+      "effort_points_from_size": 4,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 14.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Eventory",
+        "Platform"
+      ],
+      "discovery_start": "2026-07-20",
+      "design_start": "2026-08-12",
+      "tech_design_end": "2026-09-08",
+      "release_date": "2026-10-20",
+      "config_on": null,
+      "capacity_domains": [
+        "Platform"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2161"
+    },
+    {
+      "key": "APPIDEAS-2172",
+      "id": "2172",
+      "summary": "In-stream discovery: 90sec clips as first impression",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "17App",
+      "domain_raw": "17App",
+      "horizon": "Now",
+      "size": "M＋M",
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 6.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Feature team"
+      ],
+      "discovery_start": "2026-08-17",
+      "design_start": "2026-08-28",
+      "tech_design_end": "2026-09-18",
+      "release_date": "2026-10-28",
+      "config_on": null,
+      "capacity_domains": [
+        "17App"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2172"
+    },
+    {
+      "key": "APPIDEAS-2192",
+      "id": "2192",
+      "summary": "[IST O2][Search Enhancements] V2: Elastic search Query Simplification & Partial Match Ranking",
+      "status": "Impact - Data Collecting",
+      "stage": "Impact",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "At Risk",
+      "stage_duration_bd": 18.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-07-13",
+      "design_start": "2026-07-30",
+      "tech_design_end": "2026-08-11",
+      "release_date": "2026-09-02",
+      "config_on": null,
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2192"
+    },
+    {
+      "key": "APPIDEAS-2211",
+      "id": "2211",
+      "summary": "3rd party payment framework for outsourcing",
+      "status": "Dev/QA Done",
+      "stage": "Develop",
+      "domain": "Internal Tool",
+      "domain_raw": "Internal Tool",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 4.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 0.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Billing",
+        "Webapp"
+      ],
+      "discovery_start": "2026-07-22",
+      "design_start": "2026-08-05",
+      "tech_design_end": "2026-08-07",
+      "release_date": "2026-09-30",
+      "config_on": null,
+      "capacity_domains": [
+        "Internal Tool"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2211"
+    },
+    {
+      "key": "APPIDEAS-2219",
+      "id": "2219",
+      "summary": "[Commercial] New Feature Notification",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "Live Commerce",
+      "domain_raw": "Live commerce",
+      "horizon": "Now",
+      "size": "M＋M",
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 14.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Live Commerce"
+      ],
+      "discovery_start": "2026-08-05",
+      "design_start": "2026-07-23",
+      "tech_design_end": "2026-09-08",
+      "release_date": "2026-09-01",
+      "config_on": null,
+      "capacity_domains": [
+        "Live Commerce"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2219"
+    },
+    {
+      "key": "APPIDEAS-2224",
+      "id": "2224",
+      "summary": "Mini event support target missions with specific gift quantities, and Random Gift Sub-bags",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "Platform",
+      "domain_raw": "Platform",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 3.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Platform"
+      ],
+      "discovery_start": "2026-08-10",
+      "design_start": "2026-08-20",
+      "tech_design_end": "2026-09-23",
+      "release_date": "2026-11-01",
+      "config_on": null,
+      "capacity_domains": [
+        "Platform"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2224"
+    },
+    {
+      "key": "APPIDEAS-2238",
+      "id": "2238",
+      "summary": "Profile Badge Customization ",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "17App",
+      "domain_raw": "17App",
+      "horizon": "Now",
+      "size": "M",
+      "effort_points": 3.0,
+      "effort_points_from_size": 3,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 8.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Feature team"
+      ],
+      "discovery_start": "2026-08-11",
+      "design_start": "2026-08-21",
+      "tech_design_end": "2026-09-16",
+      "release_date": "2026-11-24",
+      "config_on": null,
+      "capacity_domains": [
+        "17App"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2238"
+    },
+    {
+      "key": "APPIDEAS-2243",
+      "id": "2243",
+      "summary": "[IST O1O3][VoC] Prevent paid-gift-comments from merging",
+      "status": "Impact - Data Collecting",
+      "stage": "Impact",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 2.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 9.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-08-11",
+      "design_start": "2026-08-18",
+      "tech_design_end": "2026-09-01",
+      "release_date": "2026-09-15",
+      "config_on": null,
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2243"
+    },
+    {
+      "key": "APPIDEAS-2251",
+      "id": "2251",
+      "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 3.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 2.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-08-27",
+      "design_start": "2026-09-03",
+      "tech_design_end": "2026-09-24",
+      "release_date": "2026-10-28",
+      "config_on": null,
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2251"
+    },
+    {
+      "key": "APPIDEAS-2253",
+      "id": "2253",
+      "summary": "Renew contract ph-1,  JP Direct streamer",
+      "status": "Design - Refinement",
+      "stage": "Design",
+      "domain": "Internal Tool",
+      "domain_raw": "Internal Tool",
+      "horizon": "Next",
+      "size": null,
+      "effort_points": 4.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 2.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Billing",
+        "Webapp"
+      ],
+      "discovery_start": "2026-08-31",
+      "design_start": "2026-09-18",
+      "tech_design_end": null,
+      "release_date": null,
+      "config_on": null,
+      "capacity_domains": [
+        "Internal Tool"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2253"
+    },
+    {
+      "key": "APPIDEAS-2258",
+      "id": "2258",
+      "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown",
+      "status": "Delivery - Develop In Progress",
+      "stage": "Develop",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Now",
+      "size": null,
+      "effort_points": 2.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 8.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-08-27",
+      "design_start": "2026-09-03",
+      "tech_design_end": "2026-09-16",
+      "release_date": "2026-10-13",
+      "config_on": "2026-10-15",
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2258"
+    },
+    {
+      "key": "APPIDEAS-2265",
+      "id": "2265",
+      "summary": "[IST][VoC] Make the Gifter Leaderboard visible only to the streamer",
+      "status": "Design - Story map",
+      "stage": "Design",
+      "domain": "IST",
+      "domain_raw": "IST",
+      "horizon": "Next",
+      "size": null,
+      "effort_points": 2.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "On track",
+      "stage_duration_bd": 3.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "IST"
+      ],
+      "discovery_start": "2026-09-03",
+      "design_start": "2026-09-23",
+      "tech_design_end": null,
+      "release_date": "2026-10-01",
+      "config_on": null,
+      "capacity_domains": [
+        "IST"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2265"
+    },
+    {
+      "key": "APPIDEAS-2277",
+      "id": "2277",
+      "summary": "Profile Revamp Improvement: Improve Following Navigation ",
+      "status": "DESIGN - UX/UI",
+      "stage": "Design",
+      "domain": "17App",
+      "domain_raw": "17App",
+      "horizon": "Next",
+      "size": "S＋XS",
+      "effort_points": 1.0,
+      "effort_points_from_size": null,
+      "effort_mismatch": false,
+      "project_status": "Warning",
+      "stage_duration_bd": 7.0,
+      "stage_duration_estimated": false,
+      "teams": [
+        "Feature team"
+      ],
+      "discovery_start": "2026-09-14",
+      "design_start": "2026-09-17",
+      "tech_design_end": null,
+      "release_date": null,
+      "config_on": null,
+      "capacity_domains": [
+        "17App"
+      ],
+      "unmapped_teams": [],
+      "url": "https://17media.atlassian.net/browse/APPIDEAS-2277"
+    }
+  ],
+  "data_quality": [],
+  "changes": {
+    "has_previous": true,
+    "since": "2026-09-26",
+    "days_ago": 1,
+    "added": [],
+    "removed": [],
+    "stage_moved": [],
+    "status_changed": [],
+    "release_moved": [],
+    "load_changed": [],
+    "active_from": 22,
+    "active_to": 22,
+    "total": 0
+  }
+}

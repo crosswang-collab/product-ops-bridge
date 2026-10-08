@@ -115,7 +115,7 @@ function getPainDetail(code) {
   var key = 'pain:' + code;
   var hit = cacheGet_(key);
   if (hit) return hit;
-  var res = buildPainDetail_(code, dash ? dash.detailSince : addDays_(today_(), -DETAIL_WEEKS * 7));
+  var res = buildPainDetail_(code, dash ? dash.detailSince : detailSince_());
   cachePut_(key, res, !res.ok || !!res.voicesProblem);
   return res;
 }
@@ -402,7 +402,7 @@ function buildDashboard_() {
     generatedAt: Utilities.formatDate(new Date(), TZ, 'yyyy/MM/dd HH:mm'),
     weeks: weeks,
     latestWeek: { start: lastStart, end: endDate },
-    detailSince: addDays_(today_(), -DETAIL_WEEKS * 7),
+    detailSince: detailSince_(),
     sttSource: sttSource, sttProblem: sttProblem, missingWeeks: series.missing,
     sttAgeDays: daysBetween_(endDate, today_()),
     jiraAsOf: rm.as_of_date,
@@ -450,11 +450,11 @@ function painSeries_() {
     "  REGEXP_EXTRACT(metric_key, r'^([SUX][0-9]\\.[0-9])') AS code, n_liver AS streamers",
     'FROM `' + METRICS_TABLE + '`',
     "WHERE metric_type = 'pain25' AND REGEXP_CONTAINS(metric_key, r'^[SUX][0-9]\\.[0-9]')",
-    '  AND window_start >= @since',
+    '  AND window_start >= @since AND window_start < @before',   // 還沒過完的本週不算（避免把半週當最新週）
     'QUALIFY ROW_NUMBER() OVER (PARTITION BY window_start, metric_key ORDER BY loaded_at DESC) = 1'
   ].join('\n');
   var since = addDays_(today_(), -(SERIES_WEEKS + 8) * 7);   // 多抓 8 週：週報晚到時也不會誤報缺週
-  var rows = bqQuery_(sql, [dateParam_('since', since)], '25 痛點週人數');
+  var rows = bqQuery_(sql, [dateParam_('since', since), dateParam_('before', monday_(today_()))], '25 痛點週人數');
   if (!rows.length) throw new Error('週報最近 ' + SERIES_WEEKS + ' 週沒有痛點人數');
   var seen = {};
   rows.forEach(function (r) { seen[r.window_start] = true; });
@@ -495,7 +495,7 @@ function olderFacts_(asOf) {
 /** 細分類＋代表原話。SQL 固定，只吃 @code 與 @since；最終結果不含 userID。 */
 function buildPainDetail_(code, since) {
   var out = { ok: true, code: code, since: since, judgedStreamers: 0, groups: [], quotes: [], voices: [], problem: '' };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(since))) since = addDays_(today_(), -DETAIL_WEEKS * 7);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(since))) since = detailSince_();
   var params = [strParam_('code', code), dateParam_('since', since)];
   var base = [
     'WITH t AS (',
@@ -548,7 +548,7 @@ function buildPainDetail_(code, since) {
 
 /** 單一痛點最近 4 週的全部原話（sTop → Top → 其他，新到舊，同週依 hit_id）。最外層不選 userID。不快取（可能上 MB）。 */
 function exportRows_(code) {
-  var since = addDays_(today_(), -DETAIL_WEEKS * 7);
+  var since = detailSince_();
   var rows = bqQuery_([
     'SELECT CAST(window_start AS STRING) AS week, IFNULL(tier, \'\') AS tier,',
     "  IFNULL(issue_kind, '') AS issue_kind, IFNULL(failure_layer, '') AS failure_layer,",
@@ -846,6 +846,16 @@ function withRetry_(fn, label) {
 }
 
 function today_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'); }
+
+/** 該日所在那週的週一（週報以週一為一週開始）。 */
+function monday_(ymd) {
+  var p = String(ymd).split('-');
+  var dow = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay();   // 0=日
+  return addDays_(ymd, -((dow + 6) % 7));
+}
+
+/** 「最近 4 週」＝最近 4 個完整的週（從週一算），加上本週已有的部分。 */
+function detailSince_() { return addDays_(monday_(today_()), -DETAIL_WEEKS * 7); }
 
 function addDays_(ymd, n) {
   var p = String(ymd).split('-');
