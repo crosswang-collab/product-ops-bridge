@@ -377,6 +377,12 @@ check('週人數不讀還沒過完的本週', () => {
   const b = q.queryParameters.filter(x => x.name === 'before')[0];
   assert.strictEqual(b.parameterValue.value, '2026-10-05');
 });
+check('Slack 來源依頻道分開，討論串回覆算同一頻道', () => {
+  const r = new Array(21).fill(''); r[4] = 'Slack'; r[5] = '#jp-user-feedback（スレッド）';
+  assert.strictEqual(ctx.sourceLabel_(r), 'Slack #jp-user-feedback');
+  r[5] = ''; assert.strictEqual(ctx.sourceLabel_(r), 'Slack');
+  r[4] = 'VIP Feedback'; r[5] = 'x'; assert.strictEqual(ctx.sourceLabel_(r), 'VIP Feedback');
+});
 // ---- 指定負責的卡（寫回 mapping.json） ----
 viewer = 'crosswang@17.media';
 check('Cross 看得到指定功能（有金鑰）', () => { const d = ctx.getDashboard(); assert.strictEqual(d.canAssign, true); });

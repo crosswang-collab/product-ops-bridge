@@ -622,7 +622,7 @@ function slackSummary_() {
   var src = {};
   rows.forEach(function (r) {
     var d = ymd_(r[RAW.ingested]);
-    var o = collapse_(r[RAW.origin]) || '（未知）';
+    var o = sourceLabel_(r);
     var s = src[o] || (src[o] = { source: o, yesterday: 0, week: 0, matched: 0, cand: 0 });
     if (d === yest) s.yesterday++;
     if (d >= wk) {
@@ -648,11 +648,19 @@ function slackVoicesFor_(code) {
 }
 
 /** 一列 → 畫面用的聲音。不帶發話者（起票者）。 */
+/** 來源名稱：Slack 依頻道分開（「Slack #jp-user-feedback」），討論串回覆算同一個頻道。 */
+function sourceLabel_(r) {
+  var o = collapse_(r[RAW.origin]) || '（未知）';
+  if (o !== 'Slack') return o;
+  var ch = collapse_(r[RAW.originDet]).replace(/（スレッド）$/, '');
+  return ch ? o + ' ' + ch : o;
+}
+
 function voice_(r) {
   var link = String(r[RAW.link] || '');
   return {
     date: ymd_(r[RAW.occurred]) || ymd_(r[RAW.ingested]),
-    source: collapse_(r[RAW.origin]),
+    source: sourceLabel_(r),
     summary: clip_(collapse_(r[RAW.summary]), 200),
     body: clip_(String(r[RAW.body] || ''), 600),
     verdict: collapse_(r[RAW.verdict]),

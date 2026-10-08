@@ -49,7 +49,16 @@ var SOURCE_SHEETS = [
  * 取得方式見 RUNBOOK.md。
  */
 var SLACK_TOKEN = 'xoxb-PASTE-YOUR-17MEDIA-SLACK-TOKEN-HERE';
-var SLACK_CHANNEL_ID = 'C06PRMJ6HRD';
+/**
+ * 要收的 Slack 頻道（2026-10-08 Cross 指定）。label 留空＝執行時向 Slack 查頻道名稱。
+ * bot token 必須先被 /invite 進每一個頻道；某個頻道讀不到時只跳過那個頻道，其他照收。
+ * 每個頻道各自記住讀到哪裡（從 VoC_Raw_Log 裡該頻道的連結推算），新加的頻道第一次往回抓 FIRST_RUN_LOOKBACK_DAYS 天。
+ */
+var SLACK_CHANNELS = [
+  { id: 'C06PRMJ6HRD', label: '#UserFeedback' },
+  { id: 'C066KBJP3C1', label: '' },
+  { id: 'CLWJ58BB9', label: '' }
+];
 
 /**
  * Claude API key —— 強烈建議填。
@@ -340,8 +349,10 @@ function runDailyDigest() {
   try {
     var slack = fetchSlack_(ss, started);
     messages = messages.concat(slack.messages);
-    logRow_(ss, 'SLACK', 'OK', '取得 ' + slack.messages.length + ' 則' +
+    logRow_(ss, 'SLACK', slack.failed.length ? 'WARN' : 'OK', '合計取得 ' + slack.messages.length + ' 則（' +
+      SLACK_CHANNELS.length + ' 個頻道' + (slack.failed.length ? '，其中 ' + slack.failed.length + ' 個讀不到' : '') + '）' +
       (slack.truncated ? '（達單次上限，剩下的下次自動接續）' : ''));
+    if (slack.failed.length) problems.push('Slack 部分頻道讀不到: ' + slack.failed.join(' | '));
   } catch (e) {
     problems.push('Slack: ' + e.message);
     logRow_(ss, 'SLACK', 'ERROR', e.message);
@@ -527,9 +538,16 @@ function testConnections() {
     logRow_(ss, 'TEST', 'FAIL', 'Slack token 還是 placeholder，請先換成 17media workspace 的真 token');
   } else {
     try {
-      var probe = slackCall_('conversations.history', { channel: SLACK_CHANNEL_ID, limit: 1 });
-      logRow_(ss, 'TEST', 'OK', 'Slack 連線成功，頻道可讀（測試取得 ' +
-        ((probe.messages || []).length) + ' 則）');
+      SLACK_CHANNELS.forEach(function (ch) {
+        var name = slackChannelName_(ch);
+        try {
+          slackChannelLabel_(ch);
+          var probe = slackCall_('conversations.history', { channel: ch.id, limit: 1 });
+          logRow_(ss, 'TEST', 'OK', 'Slack ' + name + ' 可讀（測試取得 ' + ((probe.messages || []).length) + ' 則）');
+        } catch (e1) {
+          logRow_(ss, 'TEST', 'FAIL', 'Slack ' + name + '：' + e1.message);
+        }
+      });
     } catch (e) {
       logRow_(ss, 'TEST', 'FAIL', 'Slack：' + e.message);
     }
@@ -632,6 +650,10 @@ function resetRawLogAndRebuild() {
   var cand = ss.getSheetByName(TAB_NEW);
   var candLast = cand.getLastRow();
   if (candLast > 1) cand.getRange(2, 1, candLast - 1, cand.getLastColumn()).clearContent();
+
+  // Slack 的「整段只有 bot 訊息」進度下限也清掉，否則重建後 Slack 不會回抓 30 天
+  var props = PropertiesService.getScriptProperties();
+  SLACK_CHANNELS.forEach(function (ch) { props.deleteProperty('SLACK_EMPTY_UNTIL_' + ch.id); });
 
   logRow_(ss, 'RESET', 'OK',
     'VoC_Raw_Log 已清空（' + (rawLast - 1) + ' 列）、VoC_New_Candidates 已清空（' +
@@ -927,32 +949,86 @@ function slackCall_(method, params) {
   return body;
 }
 
+/**
+ * 依序讀每個頻道。單一頻道失敗（例如 bot 沒被邀進去）只記一列警告、跳過那個頻道；
+ * 全部頻道都失敗才算這次 Slack 失敗。沒讀完的（時間或筆數到上限）下次從各自的進度接著讀。
+ */
 function fetchSlack_(ss, started) {
   if (SLACK_TOKEN.indexOf('PASTE') >= 0) {
     throw new Error('Slack token 尚未設定（還是 placeholder）');
   }
+  var out = [], truncated = false, failed = [], ok = 0;
+  for (var c = 0; c < SLACK_CHANNELS.length; c++) {
+    var ch = SLACK_CHANNELS[c];
+    if (outOfTime_(started)) { truncated = true; break; }
+    try {
+      var r = fetchSlackChannel_(ss, started, ch);
+      out = out.concat(r.messages);
+      if (r.truncated) truncated = true;
+      ok++;
+      logRow_(ss, 'SLACK', 'OK', slackChannelName_(ch) + '：取得 ' + r.messages.length + ' 則' +
+        (r.truncated ? '（達單次上限，剩下的下次自動接續）' : ''));
+    } catch (e) {
+      failed.push(slackChannelName_(ch) + '：' + e.message);
+      logRow_(ss, 'SLACK', 'WARN', slackChannelName_(ch) + ' 讀不到，先跳過：' + e.message);
+    }
+  }
+  if (!ok && failed.length) throw new Error(failed.join(' | '));
+  return { messages: out, truncated: truncated, failed: failed };
+}
 
-  var oldest = lastSlackTs_(ss);
+function fetchSlackChannel_(ss, started, ch) {
+  var label = slackChannelLabel_(ch);
+  var oldest = lastSlackTs_(ss, ch.id);
+  // 一整段都是 bot／系統訊息時 Raw_Log 推不出進度 → 另記「已確認沒東西可收」的位置，避免每天重讀同一段
+  var props = PropertiesService.getScriptProperties();
+  var floorKey = 'SLACK_EMPTY_UNTIL_' + ch.id;
+  var floor = props.getProperty(floorKey);
+  if (floor && parseFloat(floor) > parseFloat(oldest)) oldest = floor;
   var raw = [];
   var cursor = '';
-  var guard = 0;
+  var latest = '';          // 空＝讀到現在
+  var narrowed = false;
 
-  // 先把整個時間窗的訊息都抓下來（history 是新→舊）
-  while (guard < 25) {
-    guard++;
-    var page = slackCall_('conversations.history', {
-      channel: SLACK_CHANNEL_ID, oldest: oldest, limit: 200, cursor: cursor
-    });
-    var msgs = page.messages || [];
-    for (var i = 0; i < msgs.length; i++) raw.push(msgs[i]);
-    cursor = (page.response_metadata && page.response_metadata.next_cursor) || '';
+  // 把「進度～latest」整段都抓下來（history 是新→舊）。
+  // 一段超過 25 頁（約 5000 則）就把時間窗砍半再試，確保拿到的是「最舊、連續」的一段，進度不會跳過也不會卡死。
+  for (var attempt = 0; attempt < 12; attempt++) {
+    raw = []; cursor = '';
+    for (var guard = 0; guard < 25; guard++) {
+      var page = slackCall_('conversations.history', {
+        channel: ch.id, oldest: oldest, latest: latest, limit: 200, cursor: cursor
+      });
+      var msgs = page.messages || [];
+      for (var i = 0; i < msgs.length; i++) raw.push(msgs[i]);
+      cursor = (page.response_metadata && page.response_metadata.next_cursor) || '';
+      if (!cursor) break;
+      // 沒翻完就時間到：手上只有較新的頁，寫進去會讓進度跳過較舊的訊息 → 這次這個頻道一則都不寫，下次重讀
+      if (outOfTime_(started)) return { messages: [], truncated: true };
+    }
     if (!cursor) break;
-    if (outOfTime_(started)) break;
+    var hi = latest ? parseFloat(latest) : new Date().getTime() / 1000;
+    latest = String((parseFloat(oldest) + hi) / 2);
+    narrowed = true;
   }
+  if (cursor) throw new Error('積壓訊息太多，時間窗縮到很小仍讀不完');
 
+  var fetchedCount = raw.length;
+  // 先丟掉不會寫進 Raw_Log 的訊息（系統訊息、bot、空白或純寒暄且沒有討論串），
+  // 否則它們會佔掉單次額度、但不推進進度 → 超過額度時進度卡死
+  raw = raw.filter(function (x) {
+    if (x.subtype && x.subtype !== 'thread_broadcast') return false;
+    if (x.bot_id) return false;
+    if (x.thread_ts && x.reply_count > 0) return true;
+    return segment_(cleanSlackText_(x.text || '')).length > 0;
+  });
+  // 這段已整段讀完、有訊息但全都不可收（例如全是 bot）→ 記下「到這裡都確認過了」（沒有東西會因此漏掉）
+  if (!raw.length) {
+    if (fetchedCount) props.setProperty(floorKey, latest || String(new Date().getTime() / 1000 - 60));
+    return { messages: [], truncated: narrowed };
+  }
   // 由舊到新排序，再從最舊端截斷 → 時間水位一定連續前進，不會永久跳過舊訊息
   raw.sort(function (a, b) { return parseFloat(a.ts) - parseFloat(b.ts); });
-  var truncated = raw.length > SLACK_MAX_MESSAGES;
+  var truncated = narrowed || raw.length > SLACK_MAX_MESSAGES;
   if (truncated) raw = raw.slice(0, SLACK_MAX_MESSAGES);
 
   var out = [];
@@ -963,25 +1039,30 @@ function fetchSlack_(ss, started) {
     var msg = raw[m];
     if (msg.subtype && msg.subtype !== 'thread_broadcast') continue; // 略過 join/leave 等系統訊息
     if (msg.bot_id) continue;                                        // 略過 bot 貼文
+    // 有討論串但這次已沒額度／時間讀它：停在這則之前，下次從這則開始（否則進度越過它，討論串永遠收不到）
+    if (msg.thread_ts && msg.reply_count > 0 &&
+        (threadsFetched >= SLACK_MAX_THREADS || outOfTime_(started))) {
+      truncated = true;
+      break;
+    }
     var text = cleanSlackText_(msg.text || '');
     if (text) {
       out.push(makeMessage_({
         date: tsToDate_(msg.ts),
         origin: 'Slack',
-        originDetail: '#UserFeedback',
+        originDetail: label,
         body: text,
         owner: slackUserName_(msg.user, userCache),
-        link: slackPermalink_(msg.ts)
+        link: slackPermalink_(ch.id, msg.ts)
       }));
     }
 
     // 討論串回覆常常才是真正的需求細節
-    if (msg.thread_ts && msg.reply_count > 0 &&
-        threadsFetched < SLACK_MAX_THREADS && !outOfTime_(started)) {
+    if (msg.thread_ts && msg.reply_count > 0) {
       threadsFetched++;
       try {
         var rep = slackCall_('conversations.replies',
-          { channel: SLACK_CHANNEL_ID, ts: msg.thread_ts, limit: 50 });
+          { channel: ch.id, ts: msg.thread_ts, limit: 50 });
         var rs = rep.messages || [];
         for (var r = 1; r < rs.length; r++) {   // index 0 是母訊息本身
           if (rs[r].bot_id) continue;
@@ -990,14 +1071,14 @@ function fetchSlack_(ss, started) {
           out.push(makeMessage_({
             date: tsToDate_(rs[r].ts),
             origin: 'Slack',
-            originDetail: '#UserFeedback（スレッド）',
+            originDetail: label + '（スレッド）',
             body: rt,
             owner: slackUserName_(rs[r].user, userCache),
-            link: slackPermalink_(rs[r].ts)
+            link: slackPermalink_(ch.id, rs[r].ts) + '?thread_ts=' + msg.thread_ts
           }));
         }
       } catch (e) {
-        logRow_(ss, 'SLACK', 'WARN', '討論串 ' + msg.thread_ts + ' 讀取失敗：' + e.message);
+        logRow_(ss, 'SLACK', 'WARN', label + ' 討論串 ' + msg.thread_ts + ' 讀取失敗：' + e.message);
       }
     }
   }
@@ -1005,12 +1086,38 @@ function fetchSlack_(ss, started) {
   return { messages: out, truncated: truncated };
 }
 
+/**
+ * 頻道顯示名稱：設定裡有就用；沒有就向 Slack 查一次。
+ * 查不到就丟錯（那個頻道這次跳過），不拿頻道代號湊合 —— 否則同一頻道之後會變成兩種名稱，儀表板會算成兩個來源。
+ */
+function slackChannelLabel_(ch) {
+  if (ch.label) return ch.label;
+  var info;
+  try {
+    info = slackCall_('conversations.info', { channel: ch.id });
+  } catch (e) {
+    throw new Error('查不到頻道名稱（token 要加 channels:read，私人頻道再加 groups:read）：' + e.message);
+  }
+  if (!info.channel || !info.channel.name) throw new Error('查不到頻道名稱');
+  ch.label = '#' + info.channel.name;
+  return ch.label;
+}
+
+/** 記錄用：查不到名稱時用頻道代號，不丟錯。 */
+function slackChannelName_(ch) {
+  try { return slackChannelLabel_(ch); } catch (e) { return '#' + ch.id; }
+}
+
 function outOfTime_(started) {
   return (new Date().getTime() - started.getTime()) > TIME_BUDGET_MS;
 }
 
-/** 從 Raw_Log 的 Slack 連結推算上次抓到哪，不需要額外存狀態 */
-function lastSlackTs_(ss) {
+/**
+ * 從 Raw_Log 裡「這個頻道」的 Slack 連結推算上次抓到哪，不需要額外存狀態。
+ * 只看母訊息的時間：回覆本身的時間可能比還沒收進來的母訊息更新，拿它當進度會永久跳過那些母訊息。
+ * 回覆列的連結帶 ?thread_ts=母訊息時間 → 用它（母訊息本身沒寫進來，例如只貼圖，也能推進進度）；舊格式的回覆列略過。
+ */
+function lastSlackTs_(ss, channelId) {
   var fallback = String(Math.floor(new Date().getTime() / 1000) - FIRST_RUN_LOOKBACK_DAYS * 86400);
   var sh = ss.getSheetByName(TAB_RAW);
   var last = sh.getLastRow();
@@ -1023,13 +1130,21 @@ function lastSlackTs_(ss) {
 
   var vals = sh.getRange(last - n + 1, colOrigin, n, width).getValues();
   var maxTs = 0;
+  var re = new RegExp('/archives/' + channelId + '/p(\\d{10})(\\d{6})');
   for (var i = 0; i < vals.length; i++) {
     if (vals[i][0] !== 'Slack') continue;
-    var mm = String(vals[i][width - 1]).match(/\/p(\d{10})(\d{6})/);
-    if (mm) {
-      var ts = parseFloat(mm[1] + '.' + mm[2]);
-      if (ts > maxTs) maxTs = ts;
+    var link = String(vals[i][width - 1]);
+    var mm = link.match(re);
+    if (!mm) continue;
+    var ts;
+    if (String(vals[i][1]).indexOf('スレッド') >= 0) {
+      var tm = link.match(/[?&]thread_ts=(\d+\.\d+)/);
+      if (!tm) continue;
+      ts = parseFloat(tm[1]);
+    } else {
+      ts = parseFloat(mm[1] + '.' + mm[2]);
     }
+    if (ts > maxTs) maxTs = ts;
   }
   return maxTs === 0 ? fallback : String(maxTs + 0.000001);
 }
@@ -1048,8 +1163,8 @@ function slackUserName_(userId, cache) {
   }
 }
 
-function slackPermalink_(ts) {
-  return 'https://17media.slack.com/archives/' + SLACK_CHANNEL_ID + '/p' + String(ts).replace('.', '');
+function slackPermalink_(channelId, ts) {
+  return 'https://17media.slack.com/archives/' + channelId + '/p' + String(ts).replace('.', '');
 }
 
 /**
