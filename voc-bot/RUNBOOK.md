@@ -149,7 +149,7 @@ var ANTHROPIC_API_KEY = 'sk-ant-你的key';          // ← 強烈建議填，�
    之後如果**改了那些列的標題**，累計件數會斷掉重新從 0 算。
    建議每列都給一個代碼（S2.x / U4.x / Z…），追蹤才穩定。
    `testConnections` 會告訴你有幾列沒代碼。
-4. **Slack 只讀 `C06PRMJ6HRD` 這一個頻道。** 要加頻道目前要改 code。
+4. **Slack 讀 `Code.gs` 最上面 `SLACK_CHANNELS` 列的頻道**（2026-10-08 起：`C06PRMJ6HRD` #UserFeedback、`C066KBJP3C1`、`CLWJ58BB9`）。加頻道＝在清單加一行 `{ id: 'C…', label: '' }` → 重貼 → 用 bot token 時記得 `/invite` 進新頻道。每個頻道各自記進度；某個頻道讀不到只會跳過它並在 VoC_Bot_Log 留 WARN，其他照收。
 5. **單次執行上限**：300 則 Slack 訊息、40 個討論串、10 批比對（每批 15 筆）。
    超過的下次自動接續，不會遺漏（水位從已寫入的最新訊息推算）。
    第一次跑訊息很多時，可能要連跑兩三次才追完 —— `VoC_Bot_Log` 會寫「達單次上限」。
