@@ -651,6 +651,10 @@ function resetRawLogAndRebuild() {
   var candLast = cand.getLastRow();
   if (candLast > 1) cand.getRange(2, 1, candLast - 1, cand.getLastColumn()).clearContent();
 
+  // Slack 的「整段只有 bot 訊息」進度下限也清掉，否則重建後 Slack 不會回抓 30 天
+  var props = PropertiesService.getScriptProperties();
+  SLACK_CHANNELS.forEach(function (ch) { props.deleteProperty('SLACK_EMPTY_UNTIL_' + ch.id); });
+
   logRow_(ss, 'RESET', 'OK',
     'VoC_Raw_Log 已清空（' + (rawLast - 1) + ' 列）、VoC_New_Candidates 已清空（' +
     (candLast - 1) + ' 列），接著重新抓取');
@@ -1008,6 +1012,7 @@ function fetchSlackChannel_(ss, started, ch) {
   }
   if (cursor) throw new Error('積壓訊息太多，時間窗縮到很小仍讀不完');
 
+  var fetchedCount = raw.length;
   // 先丟掉不會寫進 Raw_Log 的訊息（系統訊息、bot、空白或純寒暄且沒有討論串），
   // 否則它們會佔掉單次額度、但不推進進度 → 超過額度時進度卡死
   raw = raw.filter(function (x) {
@@ -1016,9 +1021,9 @@ function fetchSlackChannel_(ss, started, ch) {
     if (x.thread_ts && x.reply_count > 0) return true;
     return segment_(cleanSlackText_(x.text || '')).length > 0;
   });
-  // 這段已整段讀完、而且沒有任何可收的訊息 → 記下「到這裡都確認過了」（沒有東西會因此漏掉）
+  // 這段已整段讀完、有訊息但全都不可收（例如全是 bot）→ 記下「到這裡都確認過了」（沒有東西會因此漏掉）
   if (!raw.length) {
-    props.setProperty(floorKey, latest || String(new Date().getTime() / 1000 - 60));
+    if (fetchedCount) props.setProperty(floorKey, latest || String(new Date().getTime() / 1000 - 60));
     return { messages: [], truncated: narrowed };
   }
   // 由舊到新排序，再從最舊端截斷 → 時間水位一定連續前進，不會永久跳過舊訊息
