@@ -380,7 +380,7 @@ footer.src .grid2{margin-top:10px}
     loadDetail(p.code, function (det) {
       if (state.sel !== p.code) return;
       try {
-        fillDetail(det, subBox, qBox, vBox);
+        fillDetail(det, subBox, qBox, vBox, p);
       } catch (err) {
         if (window.console) console.error(err);
         [subBox, qBox, vBox].forEach(function (b) { clear(b); b.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "這個痛點的細節整理時出錯。" + HELP })); });
@@ -457,7 +457,7 @@ footer.src .grid2{margin-top:10px}
       .getPainDetail(code);
   }
 
-  function fillDetail(det, subBox, qBox, vBox) {
+  function fillDetail(det, subBox, qBox, vBox, p) {
     clear(subBox); clear(qBox); clear(vBox);
     if (!det.ok) {
       subBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.problem }));
@@ -474,6 +474,11 @@ footer.src .grid2{margin-top:10px}
         md(det.since) + " 起）。和上面週報人數的來源不同，數字不會一樣；一位主播可能同時出現在多組。" }));
     }
 
+    /* 原話來自 AI 判讀過的聲音，週報人數來自關鍵字統計；判讀量遠少於週報時要講清楚，避免誤以為原話就是全部 */
+    if (det.ok && p && p.latest >= 10 && det.judgedStreamers < p.latest / 2) {
+      qBox.appendChild(el("div", { class: "note", style: "margin:0 0 8px;color:var(--warn)", text: "⚠️ 這個痛點的原話不完整：週報上週有 " + p.latest +
+        " 位主播提到，但最近 4 週只有 " + det.judgedStreamers + " 位的聲音經過 AI 判讀，下面和「全部原話」只看得到這些。要補齊需請資料團隊把這個痛點也送判讀。" }));
+    }
     if (det.ok && !det.quotes.length) qBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: "最近 4 週沒有原話。" }));
     if (!det.ok) qBox.appendChild(el("div", { class: "empty", style: "padding-left:0", text: det.problem }));
     det.quotes.forEach(function (q) {

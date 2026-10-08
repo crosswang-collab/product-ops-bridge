@@ -107,7 +107,7 @@ const LanguageApp = { translate: (text, from, to) => {
 let ghMode = 'ok';               // ok | 401 | conflictOnce | conflictAlways
 const ghPuts = [];
 const props = { GITHUB_TOKEN: 'ghp_test' };
-const gh = { sha: 's1', text: fs.readFileSync(path.join(ROOT, 'voc-graph/mapping.json'), 'utf8') };
+const gh = { sha: 's1', text: fs.readFileSync(path.join(__dirname, 'fixtures/repo/voc-graph/mapping.json'), 'utf8') };
 function ghResp(url, opt) {
   assert.strictEqual(opt.headers.Authorization, 'Bearer ghp_test');
   assert.ok(/contents\/voc-graph\/mapping\.json/.test(url), url);
@@ -132,7 +132,9 @@ const ctx = {
   UrlFetchApp: { fetch: (url, opt) => {
     if (/^https:\/\/api\.github\.com\//.test(url)) return ghResp(url, opt || {});
     const rel = url.replace('https://raw.githubusercontent.com/crosswang-collab/product-ops-bridge/main/', '');
-    const f = path.join(ROOT, rel);
+    // repo 的資料檔每天會被機器人更新 → 測試一律讀固定的快照（fixtures/repo），沒有快照的才讀 repo
+    const fx = path.join(__dirname, 'fixtures', 'repo', rel);
+    const f = fs.existsSync(fx) ? fx : path.join(ROOT, rel);
     const ok = fs.existsSync(f);
     return { getResponseCode: () => ok ? 200 : 404, getContentText: () => ok ? fs.readFileSync(f, 'utf8') : '' };
   } },
@@ -365,6 +367,16 @@ check('testTranslate 回報可以用', () => { log.length = 0; ctx.testTranslate
   assert.throws(() => ctx.getPainExport(bad), /不認得/);
 }));
 viewer = 'someone@17.media';
+check('「最近 4 週」從週一算：今天 10/06（週二）→ 9/07 起', () => {
+  assert.strictEqual(ctx.monday_('2026-10-06'), '2026-10-05'); assert.strictEqual(ctx.monday_('2026-10-04'), '2026-09-28');
+  assert.strictEqual(ctx.monday_('2026-10-05'), '2026-10-05'); assert.strictEqual(ctx.detailSince_(), '2026-09-07');
+});
+check('週人數不讀還沒過完的本週', () => {
+  const q = bqCalls.filter(r => /metric_type = 'pain25'/.test(r.query))[0];
+  assert.ok(/window_start < @before/.test(q.query));
+  const b = q.queryParameters.filter(x => x.name === 'before')[0];
+  assert.strictEqual(b.parameterValue.value, '2026-10-05');
+});
 // ---- 指定負責的卡（寫回 mapping.json） ----
 viewer = 'crosswang@17.media';
 check('Cross 看得到指定功能（有金鑰）', () => { const d = ctx.getDashboard(); assert.strictEqual(d.canAssign, true); });

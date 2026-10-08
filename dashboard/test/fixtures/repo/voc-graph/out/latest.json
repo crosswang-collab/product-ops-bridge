@@ -1,0 +1,2974 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-10-06T06:26:25+00:00",
+ "as_of_date": "2026-10-06",
+ "sources": {
+  "jira": {
+   "as_of_date": "2026-10-06",
+   "active_cards": 24
+  },
+  "stt": {
+   "latest_window": {
+    "start": "2026-09-21",
+    "end": "2026-09-27"
+   },
+   "age_days": 9,
+   "fetched_date": "2026-10-05",
+   "board_streamers": 363,
+   "definitions": {
+    "board": "priority='P1' ∧ exist='TRUE_PAIN' ∧ actionability ∈ PRODUCT/OPERATION_ACTIONABLE（F 主題母體）",
+    "pain": "stt_voc_weekly_metrics 的 pain25（＝週報定点：正規表現檢知，不經 Gemini 判定，無 tier）",
+    "streamers": "COUNT(DISTINCT userID)，主指標",
+    "precision_note": "Gemini 判定適合率 77–86%、再現率 96–100%（ayana n=90 盲檢）→ F 主題人數約多算 1–2 成"
+   }
+  },
+  "voc_roadmap": {
+   "pains": 25,
+   "source": "JP_Needs_Heatmap_ZH.html 的 RANK（VoC roadmap 25 痛點，voc_score = N*3+pri*4）"
+  },
+  "mapping": {
+   "pains_mapped": 0,
+   "cards_mapped": 0
+  }
+ },
+ "rules": {
+  "read_floor": 10,
+  "rising_pct": 0.2
+ },
+ "windows": [
+  "2026-08-10",
+  "2026-08-17",
+  "2026-08-24",
+  "2026-08-31",
+  "2026-09-07",
+  "2026-09-14",
+  "2026-09-21"
+ ],
+ "nodes": {
+  "pains": [
+   {
+    "code": "U4.0",
+    "card": "U4",
+    "title": "抽選被海外 bot 鑽、玩法不公平",
+    "voc_n": 13,
+    "voc_pri": 4,
+    "voc_score": 55,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 18
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 27
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 19
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 21
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 49
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 22
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 12
+      }
+     ],
+     "latest": 12,
+     "prev": 22,
+     "delta_pct": -0.455,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "S2.0",
+    "card": "S2",
+    "title": "直播畫面被免費 ticker 蓋住、擋工作",
+    "voc_n": 11,
+    "voc_pri": 5,
+    "voc_score": 53,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 92
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 105
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 117
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 129
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 108
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 154
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 131
+      }
+     ],
+     "latest": 131,
+     "prev": 154,
+     "delta_pct": -0.149,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "U2.0",
+    "card": "U2",
+    "title": "畫面被系統元素塞滿又關不掉",
+    "voc_n": 10,
+    "voc_pri": 5,
+    "voc_score": 50,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 15
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 8
+      }
+     ],
+     "latest": 8,
+     "prev": 5,
+     "delta_pct": 0.6,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U4.4",
+    "card": "U4",
+    "title": "高額禮物誤送不能取消、送出還閃退",
+    "voc_n": 9,
+    "voc_pri": 5,
+    "voc_score": 47,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 55
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 60
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 86
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 88
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 59
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 76
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 64
+      }
+     ],
+     "latest": 64,
+     "prev": 76,
+     "delta_pct": -0.158,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "U5.0",
+    "card": "U5",
+    "title": "徽章太小又擠，成就感看不見",
+    "voc_n": 10,
+    "voc_pri": 4,
+    "voc_score": 46,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 3,
+     "delta_pct": -0.667,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U6.1",
+    "card": "U6",
+    "title": "PK 玩法太單薄，贏了也沒成就感",
+    "voc_n": 8,
+    "voc_pri": 5,
+    "voc_score": 44,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 0
+      }
+     ],
+     "latest": 0,
+     "prev": 0,
+     "delta_pct": null,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 0,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U4.2",
+    "card": "U4",
+    "title": "禮物爆量卻找不到，也擋不掉不想要的 Army",
+    "voc_n": 8,
+    "voc_pri": 4,
+    "voc_score": 40,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 15
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 14
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 17
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 22
+      }
+     ],
+     "latest": 22,
+     "prev": 17,
+     "delta_pct": 0.294,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "U5.1",
+    "card": "U5",
+    "title": "Army 想要階級與更強的歸屬感",
+    "voc_n": 6,
+    "voc_pri": 5,
+    "voc_score": 38,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 1,
+     "delta_pct": 0.0,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U2.1",
+    "card": "U2",
+    "title": "個人檔案改版恐讓實況主一夜失去自介",
+    "voc_n": 6,
+    "voc_pri": 4,
+    "voc_score": 34,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 15
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 12
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 6
+      }
+     ],
+     "latest": 6,
+     "prev": 6,
+     "delta_pct": 0.0,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U5.2",
+    "card": "U5",
+    "title": "排行邏輯看不懂、想要更多維度",
+    "voc_n": 6,
+    "voc_pri": 4,
+    "voc_score": 34,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 5
+      }
+     ],
+     "latest": 5,
+     "prev": 4,
+     "delta_pct": 0.25,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U6.0",
+    "card": "U6",
+    "title": "VS 模式切換會錯亂、比賽資訊亂掉",
+    "voc_n": 4,
+    "voc_pri": 5,
+    "voc_score": 32,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 12
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 10
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 11
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 19
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 11
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 23
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 28
+      }
+     ],
+     "latest": 28,
+     "prev": 23,
+     "delta_pct": 0.217,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "U4.1",
+    "card": "U4",
+    "title": "課金金額有斷層，中間價位想課也難課",
+    "voc_n": 5,
+    "voc_pri": 4,
+    "voc_score": 31,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 63
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 68
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 91
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 80
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 77
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 100
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 105
+      }
+     ],
+     "latest": 105,
+     "prev": 100,
+     "delta_pct": 0.05,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "U4.3",
+    "card": "U4",
+    "title": "VIP 禮物動線繞、看不懂怎麼用",
+    "voc_n": 6,
+    "voc_pri": 3,
+    "voc_score": 30,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 2,
+     "delta_pct": -0.5,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U2.2",
+    "card": "U2",
+    "title": "重要分頁被藏起來、找不到入口",
+    "voc_n": 6,
+    "voc_pri": 3,
+    "voc_score": 30,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 9
+      }
+     ],
+     "latest": 9,
+     "prev": 4,
+     "delta_pct": 1.25,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "S2.1",
+    "card": "S2",
+    "title": "開播中一直閃退、鍵盤還卡",
+    "voc_n": 3,
+    "voc_pri": 5,
+    "voc_score": 29,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 201
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 240
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 213
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 221
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 197
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 233
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 242
+      }
+     ],
+     "latest": 242,
+     "prev": 233,
+     "delta_pct": 0.039,
+     "readable": true,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "gap"
+   },
+   {
+    "code": "U5.3",
+    "card": "U5",
+    "title": "等級被強制顯示、想自己控制",
+    "voc_n": 3,
+    "voc_pri": 5,
+    "voc_score": 29,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 0,
+     "delta_pct": null,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U2.3",
+    "card": "U2",
+    "title": "看實況/回放沒有快轉，像沒遙控器",
+    "voc_n": 4,
+    "voc_pri": 4,
+    "voc_score": 28,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 4
+      }
+     ],
+     "latest": 4,
+     "prev": 5,
+     "delta_pct": -0.2,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U6.2",
+    "card": "U6",
+    "title": "好友戰能刷勝、封鎖了還是被配對",
+    "voc_n": 4,
+    "voc_pri": 4,
+    "voc_score": 28,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 0
+      }
+     ],
+     "latest": 0,
+     "prev": 0,
+     "delta_pct": null,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 0,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U5.4",
+    "card": "U5",
+    "title": "稱號與認證徽章想要能客製",
+    "voc_n": 4,
+    "voc_pri": 3,
+    "voc_score": 24,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 6
+      }
+     ],
+     "latest": 6,
+     "prev": 2,
+     "delta_pct": 2.0,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U6.4",
+    "card": "U6",
+    "title": "線上線下賽制脫節、規則不清",
+    "voc_n": 5,
+    "voc_pri": 1,
+    "voc_score": 19,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 0
+      }
+     ],
+     "latest": 0,
+     "prev": 0,
+     "delta_pct": null,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 0,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "S2.4",
+    "card": "S2",
+    "title": "BC 達標里程碑想要有 ticker 提示",
+    "voc_n": 2,
+    "voc_pri": 3,
+    "voc_score": 18,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 0,
+     "delta_pct": null,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U6.3",
+    "card": "U6",
+    "title": "比賽中看不到留言、待機又乾等",
+    "voc_n": 4,
+    "voc_pri": 1,
+    "voc_score": 16,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 3
+      }
+     ],
+     "latest": 3,
+     "prev": 3,
+     "delta_pct": 0.0,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "S2.2",
+    "card": "S2",
+    "title": "AI 助手有 bug、回應不準",
+    "voc_n": 4,
+    "voc_pri": 1,
+    "voc_score": 16,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 2
+      }
+     ],
+     "latest": 2,
+     "prev": 5,
+     "delta_pct": -0.6,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "U2.4",
+    "card": "U2",
+    "title": "以前狂點螢幕出愛心的爽快感被砍了",
+    "voc_n": 2,
+    "voc_pri": 2,
+    "voc_score": 14,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 3
+      }
+     ],
+     "latest": 3,
+     "prev": 1,
+     "delta_pct": 2.0,
+     "readable": false,
+     "stop_streamers": null,
+     "top_streamers": null,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   },
+   {
+    "code": "S2.3",
+    "card": "S2",
+    "title": "留言太多看不完、想要自動摘要",
+    "voc_n": 1,
+    "voc_pri": 1,
+    "voc_score": 7,
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 0
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 0
+      }
+     ],
+     "latest": 0,
+     "prev": 2,
+     "delta_pct": -1.0,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 0,
+     "sample_hit_ids": []
+    },
+    "cards": [],
+    "status": "quiet"
+   }
+  ],
+  "themes": [
+   {
+    "code": "F01",
+    "name": "通知・フォロー保全",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 102
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 135
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 117
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 132
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 161
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 144
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 142
+      }
+     ],
+     "latest": 142,
+     "prev": 144,
+     "delta_pct": -0.014,
+     "readable": true,
+     "stop_streamers": 5,
+     "top_streamers": 24,
+     "sample_hit_ids": [
+      "H20260921_00042",
+      "H20260921_00144",
+      "H20260921_00145"
+     ]
+    }
+   },
+   {
+    "code": "F02",
+    "name": "アーカイブ・録画・クリップ",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 3
+      }
+     ],
+     "latest": 3,
+     "prev": 3,
+     "delta_pct": 0.0,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 1,
+     "sample_hit_ids": [
+      "H20260921_00029",
+      "H20260921_00034",
+      "H20260921_00039"
+     ]
+    }
+   },
+   {
+    "code": "F03",
+    "name": "視聴UI・導線",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 12
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 36
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 33
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 18
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 30
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 26
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 18
+      }
+     ],
+     "latest": 18,
+     "prev": 26,
+     "delta_pct": -0.308,
+     "readable": true,
+     "stop_streamers": 1,
+     "top_streamers": 2,
+     "sample_hit_ids": [
+      "H20260921_00106",
+      "H20260921_00554",
+      "H20260921_00654"
+     ]
+    }
+   },
+   {
+    "code": "F04",
+    "name": "コメント体験",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 41
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 110
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 42
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 52
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 58
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 51
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 54
+      }
+     ],
+     "latest": 54,
+     "prev": 51,
+     "delta_pct": 0.059,
+     "readable": true,
+     "stop_streamers": 6,
+     "top_streamers": 9,
+     "sample_hit_ids": [
+      "H20260921_00273",
+      "H20260921_00449",
+      "H20260921_00503"
+     ]
+    }
+   },
+   {
+    "code": "F05",
+    "name": "配信安定性",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 86
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 179
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 81
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 106
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 77
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 97
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 111
+      }
+     ],
+     "latest": 111,
+     "prev": 97,
+     "delta_pct": 0.144,
+     "readable": true,
+     "stop_streamers": 8,
+     "top_streamers": 11,
+     "sample_hit_ids": [
+      "H20260921_00018",
+      "H20260921_00029",
+      "H20260921_00034"
+     ]
+    }
+   },
+   {
+    "code": "F06",
+    "name": "ティッカー/エフェクト表示・制御",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 40
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 50
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 48
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 49
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 69
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 48
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 43
+      }
+     ],
+     "latest": 43,
+     "prev": 48,
+     "delta_pct": -0.104,
+     "readable": true,
+     "stop_streamers": 4,
+     "top_streamers": 7,
+     "sample_hit_ids": [
+      "H20260921_00034",
+      "H20260921_00039",
+      "H20260921_00250"
+     ]
+    }
+   },
+   {
+    "code": "F07",
+    "name": "配信設定・配信モード",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 20
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 28
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 20
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 22
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 16
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 20
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 22
+      }
+     ],
+     "latest": 22,
+     "prev": 20,
+     "delta_pct": 0.1,
+     "readable": true,
+     "stop_streamers": 3,
+     "top_streamers": 2,
+     "sample_hit_ids": [
+      "H20260921_00478",
+      "H20260921_00503",
+      "H20260921_00768"
+     ]
+    }
+   },
+   {
+    "code": "F08",
+    "name": "AIアシスタント",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 9,
+     "delta_pct": -0.889,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 0,
+     "sample_hit_ids": [
+      "H20260921_04582",
+      "H20260921_04583"
+     ]
+    }
+   },
+   {
+    "code": "F09",
+    "name": "ギフト送受信・ボックス",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 30
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 60
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 38
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 50
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 58
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 49
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 37
+      }
+     ],
+     "latest": 37,
+     "prev": 49,
+     "delta_pct": -0.245,
+     "readable": true,
+     "stop_streamers": 4,
+     "top_streamers": 9,
+     "sample_hit_ids": [
+      "H20260921_00211",
+      "H20260921_00307",
+      "H20260921_00551"
+     ]
+    }
+   },
+   {
+    "code": "F11",
+    "name": "価格・課金設計",
+    "routing": "R",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 34
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 12
+      }
+     ],
+     "latest": 12,
+     "prev": 8,
+     "delta_pct": 0.5,
+     "readable": true,
+     "stop_streamers": 1,
+     "top_streamers": 3,
+     "sample_hit_ids": [
+      "H20260921_00106",
+      "H20260921_00335",
+      "H20260921_00729"
+     ]
+    }
+   },
+   {
+    "code": "F12",
+    "name": "VIPギフト導線・マイボックス",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 4
+      }
+     ],
+     "latest": 4,
+     "prev": 2,
+     "delta_pct": 1.0,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 2,
+     "sample_hit_ids": [
+      "H20260921_00750",
+      "H20260921_01224",
+      "H20260921_03293"
+     ]
+    }
+   },
+   {
+    "code": "F13",
+    "name": "バッジ・称号",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 4
+      }
+     ],
+     "latest": 4,
+     "prev": 4,
+     "delta_pct": 0.0,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 2,
+     "sample_hit_ids": [
+      "H20260921_03391",
+      "H20260921_03468",
+      "H20260921_04009"
+     ]
+    }
+   },
+   {
+    "code": "F14",
+    "name": "ランキング",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 3
+      }
+     ],
+     "latest": 3,
+     "prev": 7,
+     "delta_pct": -0.571,
+     "readable": false,
+     "stop_streamers": 1,
+     "top_streamers": 0,
+     "sample_hit_ids": [
+      "H20260921_00307",
+      "H20260921_00680",
+      "H20260921_03758"
+     ]
+    }
+   },
+   {
+    "code": "F15",
+    "name": "アーミー・帰属",
+    "routing": "R",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 12
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 16
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 3
+      }
+     ],
+     "latest": 3,
+     "prev": 6,
+     "delta_pct": -0.5,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 1,
+     "sample_hit_ids": [
+      "H20260921_00232",
+      "H20260921_03093",
+      "H20260921_03210"
+     ]
+    }
+   },
+   {
+    "code": "F16",
+    "name": "PK・VS/グルコ機能仕様",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 24
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 30
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 23
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 34
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 20
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 39
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 42
+      }
+     ],
+     "latest": 42,
+     "prev": 39,
+     "delta_pct": 0.077,
+     "readable": true,
+     "stop_streamers": 12,
+     "top_streamers": 15,
+     "sample_hit_ids": [
+      "H20260921_00018",
+      "H20260921_00039",
+      "H20260921_00042"
+     ]
+    }
+   },
+   {
+    "code": "F17",
+    "name": "対戦・コラボ中UX",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 17
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 14
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 19
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 14
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 11
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 21
+      }
+     ],
+     "latest": 21,
+     "prev": 11,
+     "delta_pct": 0.909,
+     "readable": true,
+     "stop_streamers": 4,
+     "top_streamers": 5,
+     "sample_hit_ids": [
+      "H20260921_00018",
+      "H20260921_00354",
+      "H20260921_00880"
+     ]
+    }
+   },
+   {
+    "code": "F18",
+    "name": "イベント表示・形式・ルール",
+    "routing": "E",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 12
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 15
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 10
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 9
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 18
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 24
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 20
+      }
+     ],
+     "latest": 20,
+     "prev": 24,
+     "delta_pct": -0.167,
+     "readable": true,
+     "stop_streamers": 3,
+     "top_streamers": 5,
+     "sample_hit_ids": [
+      "H20260921_00309",
+      "H20260921_00313",
+      "H20260921_00551"
+     ]
+    }
+   },
+   {
+    "code": "F19",
+    "name": "公平性・モデレーション・ポリシー",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 7
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 1
+      }
+     ],
+     "latest": 1,
+     "prev": 4,
+     "delta_pct": -0.75,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 1,
+     "sample_hit_ids": [
+      "H20260921_00903"
+     ]
+    }
+   },
+   {
+    "code": "F20",
+    "name": "プロフィール保全・表示",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 44
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 51
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 37
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 23
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 19
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 8
+      }
+     ],
+     "latest": 8,
+     "prev": 19,
+     "delta_pct": -0.579,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 2,
+     "sample_hit_ids": [
+      "H20260921_00229",
+      "H20260921_00765",
+      "H20260921_01911"
+     ]
+    }
+   },
+   {
+    "code": "F21",
+    "name": "運営サポート対応",
+    "routing": "ops",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 5
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 3
+      }
+     ],
+     "latest": 3,
+     "prev": 8,
+     "delta_pct": -0.625,
+     "readable": false,
+     "stop_streamers": 0,
+     "top_streamers": 1,
+     "sample_hit_ids": [
+      "H20260921_02095",
+      "H20260921_04499",
+      "H20260921_06311"
+     ]
+    }
+   },
+   {
+    "code": "E01",
+    "name": "イベント企画インプット",
+    "routing": "E",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 6
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 8
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 14
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 13
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 9
+      }
+     ],
+     "latest": 9,
+     "prev": 13,
+     "delta_pct": -0.308,
+     "readable": false,
+     "stop_streamers": 1,
+     "top_streamers": 2,
+     "sample_hit_ids": [
+      "H20260921_00006",
+      "H20260921_00309",
+      "H20260921_01225"
+     ]
+    }
+   },
+   {
+    "code": "NEW",
+    "name": "カタログ外(新規)",
+    "routing": "dev",
+    "stt": {
+     "series": [
+      {
+       "window_start": "2026-08-10",
+       "streamers": 2
+      },
+      {
+       "window_start": "2026-08-17",
+       "streamers": 1
+      },
+      {
+       "window_start": "2026-08-24",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-08-31",
+       "streamers": 4
+      },
+      {
+       "window_start": "2026-09-07",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-14",
+       "streamers": 3
+      },
+      {
+       "window_start": "2026-09-21",
+       "streamers": 10
+      }
+     ],
+     "latest": 10,
+     "prev": 3,
+     "delta_pct": 2.333,
+     "readable": true,
+     "stop_streamers": 1,
+     "top_streamers": 0,
+     "sample_hit_ids": [
+      "H20260921_00841",
+      "H20260921_03516",
+      "H20260921_03517"
+     ]
+    }
+   }
+  ],
+  "cards": [
+   {
+    "key": "APPIDEAS-1928",
+    "summary": "Call in - Army only stream",
+    "stage": "Impact",
+    "project_status": "On track",
+    "domain": "17App",
+    "release_date": "2026-09-29",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1928",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-1938",
+    "summary": "2026/10/1 Japan Consumption Tax Reform ph-3",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Internal Tool",
+    "release_date": "2026-11-01",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1938",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-1986",
+    "summary": "New application flow in JP region ph-4, Auto contract",
+    "stage": "Develop",
+    "project_status": "Warning",
+    "domain": "Internal Tool",
+    "release_date": "2026-11-04",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1986",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2004",
+    "summary": "Add atone payment gateway in JP region",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Internal Tool",
+    "release_date": "2026-11-06",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2004",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2104",
+    "summary": "Content Evaluation Automation Integration",
+    "stage": "Develop",
+    "project_status": "Warning",
+    "domain": "Platform",
+    "release_date": "2026-10-27",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2104",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2116",
+    "summary": "[IST O1O3][Gift Animation] High-value Gifts Animation Prioritization",
+    "stage": "Impact",
+    "project_status": "On track",
+    "domain": "IST",
+    "release_date": "2026-09-29",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2116",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2121",
+    "summary": "[AI Cohost] Help Streamer Grow with Real-time Support (Gift Recommendation)",
+    "stage": "Design",
+    "project_status": "On track",
+    "domain": "17App",
+    "release_date": null,
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2121",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2137",
+    "summary": "[Commercial] Gacha Leaderboard",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Live Commerce",
+    "release_date": "2026-11-16",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2137",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2161",
+    "summary": "[Mini Event Template]Eventory and cube system integrate to App mini event Phase 1",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Platform",
+    "release_date": "2026-10-28",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2161",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2172",
+    "summary": "In-stream discovery: 90sec clips as first impression",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "17App",
+    "release_date": "2026-10-28",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2172",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2211",
+    "summary": "3rd party payment framework for outsourcing",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Internal Tool",
+    "release_date": "2026-11-06",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2211",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2219",
+    "summary": "[Commercial] New Feature Notification",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Live Commerce",
+    "release_date": "2026-10-19",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2219",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2224",
+    "summary": "Mini event support target missions with specific gift quantities, and Random Gift Sub-bags",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "Platform",
+    "release_date": "2026-11-01",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2224",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2226",
+    "summary": "[Mini Event Template]Webview mini event develop 1 game template - phase 2",
+    "stage": "Design",
+    "project_status": "On track",
+    "domain": "Platform",
+    "release_date": null,
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2226",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2238",
+    "summary": "Profile Badge Customization ",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "17App",
+    "release_date": "2026-11-10",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2238",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2251",
+    "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "IST",
+    "release_date": "2026-10-28",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2251",
+    "voc_tagged": true,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2253",
+    "summary": "Renew contract ph-1,  JP Direct streamer",
+    "stage": "Design",
+    "project_status": "On track",
+    "domain": "Internal Tool",
+    "release_date": null,
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2253",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2258",
+    "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "IST",
+    "release_date": "2026-10-13",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2258",
+    "voc_tagged": true,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2265",
+    "summary": "[IST][VoC] Make the Gifter Leaderboard visible only to the streamer",
+    "stage": "Design",
+    "project_status": "On track",
+    "domain": "IST",
+    "release_date": "2026-10-01",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2265",
+    "voc_tagged": true,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2277",
+    "summary": "Profile Revamp Improvement: Improve Following Navigation ",
+    "stage": "Develop",
+    "project_status": "On track",
+    "domain": "17App",
+    "release_date": "2026-10-13",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2277",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2281",
+    "summary": "[IST O1O3][VoC] Fix Achievement Score Inflation",
+    "stage": "Design",
+    "project_status": "On track",
+    "domain": "IST",
+    "release_date": null,
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2281",
+    "voc_tagged": true,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2284",
+    "summary": "Support Korean Streamer Translation in TW",
+    "stage": "Impact",
+    "project_status": "On track",
+    "domain": "IST",
+    "release_date": "2026-10-05",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2284",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2286",
+    "summary": "Straight to Highlight content section after the onboarding",
+    "stage": "Design",
+    "project_status": "On track",
+    "domain": "17App",
+    "release_date": null,
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2286",
+    "voc_tagged": false,
+    "pains": []
+   },
+   {
+    "key": "APPIDEAS-2287",
+    "summary": "Shorten Viewer Join Notice Delay 30s -> 10s",
+    "stage": "Discovery",
+    "project_status": "At Risk",
+    "domain": "17App",
+    "release_date": null,
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2287",
+    "voc_tagged": false,
+    "pains": []
+   }
+  ],
+  "left_cards": [
+   {
+    "key": "APPIDEAS-2148",
+    "summary": "[IST O3] Pre-stream Speed Test & Streaming Quality Selection",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-30",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2148"
+   },
+   {
+    "key": "APPIDEAS-2243",
+    "summary": "[IST O1O3][VoC] Prevent paid-gift-comments from merging",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-30",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2243"
+   },
+   {
+    "key": "APPIDEAS-1927",
+    "summary": "Enable Direct Message in JP",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-29",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1927"
+   },
+   {
+    "key": "APPIDEAS-2192",
+    "summary": "[IST O2][Search Enhancements] V2: Elastic search Query Simplification & Partial Match Ranking",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-28",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2192"
+   },
+   {
+    "key": "APPIDEAS-2169",
+    "summary": "[Commercial] Enable PK and Group Call for Streamers Using 17Shop and Gacha",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-24",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2169"
+   },
+   {
+    "key": "APPIDEAS-2241",
+    "summary": "User Red Envelope Grabbing Conditions",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-24",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2241"
+   },
+   {
+    "key": "APPIDEAS-1822",
+    "summary": "Prize system ph-1 (Cash)",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-24",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1822"
+   },
+   {
+    "key": "APPIDEAS-2135",
+    "summary": "[Commercial] Stream Room Gacha Reveal - Comment",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-20",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2135"
+   },
+   {
+    "key": "APPIDEAS-2170",
+    "summary": "Streamer Incentive: Exposure Rewards",
+    "last_stage": "Design",
+    "last_seen": "2026-09-20",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2170"
+   },
+   {
+    "key": "APPIDEAS-2133",
+    "summary": "[Commercial] Gacha Management - Archive / Delete",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-18",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2133"
+   },
+   {
+    "key": "APPIDEAS-2230",
+    "summary": "[JP] Change streamers income display date to 10th every month. (BBR)",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-18",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2230"
+   },
+   {
+    "key": "APPIDEAS-1985",
+    "summary": "[IST O3][Group PK VoC] Fix iPad UI Layout and Display Issues Across Features",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-17",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1985"
+   },
+   {
+    "key": "APPIDEAS-2179",
+    "summary": "Streamer Incentive: Exposure Rewards",
+    "last_stage": "Develop",
+    "last_seen": "2026-09-17",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2179"
+   },
+   {
+    "key": "APPIDEAS-1910",
+    "summary": "[Event] Use the standard extension flow when users receive the same virtual reward",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-11",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1910"
+   },
+   {
+    "key": "APPIDEAS-2171",
+    "summary": "[AI Cohost] Ice-Breaking Topic Suggestion v2 -1 ",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-09",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2171"
+   },
+   {
+    "key": "APPIDEAS-1797",
+    "summary": "Profile Revamp Phase 1",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-07",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1797"
+   },
+   {
+    "key": "APPIDEAS-2112",
+    "summary": "[IST O2][Stream Highlight Clips] Highlight Auto Suggestion",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-04",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2112"
+   },
+   {
+    "key": "APPIDEAS-2225",
+    "summary": "Allow streamer to switch mini event designated gifts midway",
+    "last_stage": "Design",
+    "last_seen": "2026-09-04",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2225"
+   },
+   {
+    "key": "APPIDEAS-1933",
+    "summary": "[Tech] Scriptable Event entrance/Mission progress/Leaderboard UI modulex",
+    "last_stage": "Impact",
+    "last_seen": "2026-09-03",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1933"
+   },
+   {
+    "key": "APPIDEAS-1758",
+    "summary": "[New Leaderboard System] Phase 2.1 - Relevant Feature Handover",
+    "last_stage": "Develop",
+    "last_seen": "2026-08-24",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-1758"
+   },
+   {
+    "key": "APPIDEAS-2212",
+    "summary": "[Android] upgrade targetSdkVersion to 36",
+    "last_stage": "Develop",
+    "last_seen": "2026-08-24",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2212"
+   }
+  ]
+ },
+ "edges": [
+  {
+   "from": "F05",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 139
+  },
+  {
+   "from": "F16",
+   "to": "U6.0",
+   "type": "theme_pain",
+   "weight": 8
+  },
+  {
+   "from": "F07",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 8
+  },
+  {
+   "from": "F05",
+   "to": "U6.0",
+   "type": "theme_pain",
+   "weight": 7
+  },
+  {
+   "from": "F06",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 7
+  },
+  {
+   "from": "F04",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 5
+  },
+  {
+   "from": "F09",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 5
+  },
+  {
+   "from": "F20",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 4
+  },
+  {
+   "from": "F17",
+   "to": "U6.0",
+   "type": "theme_pain",
+   "weight": 3
+  },
+  {
+   "from": "F16",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 3
+  },
+  {
+   "from": "F17",
+   "to": "U6.3",
+   "type": "theme_pain",
+   "weight": 2
+  },
+  {
+   "from": "F04",
+   "to": "U6.3",
+   "type": "theme_pain",
+   "weight": 2
+  },
+  {
+   "from": "F02",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 2
+  },
+  {
+   "from": "F17",
+   "to": "S2.1",
+   "type": "theme_pain",
+   "weight": 2
+  }
+ ],
+ "views": {
+  "rising": [
+   {
+    "kind": "theme",
+    "code": "NEW",
+    "name": "カタログ外(新規)",
+    "latest": 10,
+    "prev": 3,
+    "delta_pct": 2.333,
+    "stop_streamers": 1,
+    "status": null
+   },
+   {
+    "kind": "theme",
+    "code": "F17",
+    "name": "対戦・コラボ中UX",
+    "latest": 21,
+    "prev": 11,
+    "delta_pct": 0.909,
+    "stop_streamers": 4,
+    "status": null
+   },
+   {
+    "kind": "theme",
+    "code": "F11",
+    "name": "価格・課金設計",
+    "latest": 12,
+    "prev": 8,
+    "delta_pct": 0.5,
+    "stop_streamers": 1,
+    "status": null
+   },
+   {
+    "kind": "pain",
+    "code": "U4.2",
+    "name": "禮物爆量卻找不到，也擋不掉不想要的 Army",
+    "latest": 22,
+    "prev": 17,
+    "delta_pct": 0.294,
+    "stop_streamers": null,
+    "status": "gap"
+   },
+   {
+    "kind": "pain",
+    "code": "U6.0",
+    "name": "VS 模式切換會錯亂、比賽資訊亂掉",
+    "latest": 28,
+    "prev": 23,
+    "delta_pct": 0.217,
+    "stop_streamers": null,
+    "status": "gap"
+   }
+  ],
+  "gaps": [
+   {
+    "code": "S2.1",
+    "title": "開播中一直閃退、鍵盤還卡",
+    "latest": 242,
+    "delta_pct": 0.039,
+    "voc_score": 29
+   },
+   {
+    "code": "S2.0",
+    "title": "直播畫面被免費 ticker 蓋住、擋工作",
+    "latest": 131,
+    "delta_pct": -0.149,
+    "voc_score": 53
+   },
+   {
+    "code": "U4.1",
+    "title": "課金金額有斷層，中間價位想課也難課",
+    "latest": 105,
+    "delta_pct": 0.05,
+    "voc_score": 31
+   },
+   {
+    "code": "U4.4",
+    "title": "高額禮物誤送不能取消、送出還閃退",
+    "latest": 64,
+    "delta_pct": -0.158,
+    "voc_score": 47
+   },
+   {
+    "code": "U6.0",
+    "title": "VS 模式切換會錯亂、比賽資訊亂掉",
+    "latest": 28,
+    "delta_pct": 0.217,
+    "voc_score": 32
+   },
+   {
+    "code": "U4.2",
+    "title": "禮物爆量卻找不到，也擋不掉不想要的 Army",
+    "latest": 22,
+    "delta_pct": 0.294,
+    "voc_score": 40
+   },
+   {
+    "code": "U4.0",
+    "title": "抽選被海外 bot 鑽、玩法不公平",
+    "latest": 12,
+    "delta_pct": -0.455,
+    "voc_score": 55
+   }
+  ],
+  "unbacked_voc_cards": [
+   {
+    "key": "APPIDEAS-2251",
+    "summary": "[IST O1][VoC] Allow users to drag UI element on central area of the stream room",
+    "stage": "Develop",
+    "project_status": "On track",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2251"
+   },
+   {
+    "key": "APPIDEAS-2258",
+    "summary": "[IST O3][PK VoC] PK Tutorial & Progressive Invite Cooldown",
+    "stage": "Develop",
+    "project_status": "On track",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2258"
+   },
+   {
+    "key": "APPIDEAS-2265",
+    "summary": "[IST][VoC] Make the Gifter Leaderboard visible only to the streamer",
+    "stage": "Design",
+    "project_status": "On track",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2265"
+   },
+   {
+    "key": "APPIDEAS-2281",
+    "summary": "[IST O1O3][VoC] Fix Achievement Score Inflation",
+    "stage": "Design",
+    "project_status": "On track",
+    "url": "https://17media.atlassian.net/browse/APPIDEAS-2281"
+   }
+  ],
+  "outside_catalog": [
+   {
+    "code": "X1.0",
+    "latest": 292
+   }
+  ]
+ },
+ "data_quality": []
+}
