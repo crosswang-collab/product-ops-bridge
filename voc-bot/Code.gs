@@ -976,24 +976,37 @@ function fetchSlack_(ss, started) {
 function fetchSlackChannel_(ss, started, ch) {
   var label = slackChannelLabel_(ch);
   var oldest = lastSlackTs_(ss, ch.id);
+  // 一整段都是 bot／系統訊息時 Raw_Log 推不出進度 → 另記「已確認沒東西可收」的位置，避免每天重讀同一段
+  var props = PropertiesService.getScriptProperties();
+  var floorKey = 'SLACK_EMPTY_UNTIL_' + ch.id;
+  var floor = props.getProperty(floorKey);
+  if (floor && parseFloat(floor) > parseFloat(oldest)) oldest = floor;
   var raw = [];
   var cursor = '';
-  var guard = 0;
+  var latest = '';          // 空＝讀到現在
+  var narrowed = false;
 
-  // 先把整個時間窗的訊息都抓下來（history 是新→舊）
-  while (guard < 25) {
-    guard++;
-    var page = slackCall_('conversations.history', {
-      channel: ch.id, oldest: oldest, limit: 200, cursor: cursor
-    });
-    var msgs = page.messages || [];
-    for (var i = 0; i < msgs.length; i++) raw.push(msgs[i]);
-    cursor = (page.response_metadata && page.response_metadata.next_cursor) || '';
+  // 把「進度～latest」整段都抓下來（history 是新→舊）。
+  // 一段超過 25 頁（約 5000 則）就把時間窗砍半再試，確保拿到的是「最舊、連續」的一段，進度不會跳過也不會卡死。
+  for (var attempt = 0; attempt < 12; attempt++) {
+    raw = []; cursor = '';
+    for (var guard = 0; guard < 25; guard++) {
+      var page = slackCall_('conversations.history', {
+        channel: ch.id, oldest: oldest, latest: latest, limit: 200, cursor: cursor
+      });
+      var msgs = page.messages || [];
+      for (var i = 0; i < msgs.length; i++) raw.push(msgs[i]);
+      cursor = (page.response_metadata && page.response_metadata.next_cursor) || '';
+      if (!cursor) break;
+      // 沒翻完就時間到：手上只有較新的頁，寫進去會讓進度跳過較舊的訊息 → 這次這個頻道一則都不寫，下次重讀
+      if (outOfTime_(started)) return { messages: [], truncated: true };
+    }
     if (!cursor) break;
-    if (outOfTime_(started)) break;
+    var hi = latest ? parseFloat(latest) : new Date().getTime() / 1000;
+    latest = String((parseFloat(oldest) + hi) / 2);
+    narrowed = true;
   }
-  // 沒翻完就停（時間到）：手上只有較新的頁，寫進去會讓進度跳過較舊的訊息 → 這次這個頻道一則都不寫，下次重讀
-  if (cursor) return { messages: [], truncated: true };
+  if (cursor) throw new Error('積壓訊息太多，時間窗縮到很小仍讀不完');
 
   // 先丟掉不會寫進 Raw_Log 的訊息（系統訊息、bot、空白或純寒暄且沒有討論串），
   // 否則它們會佔掉單次額度、但不推進進度 → 超過額度時進度卡死
@@ -1003,9 +1016,14 @@ function fetchSlackChannel_(ss, started, ch) {
     if (x.thread_ts && x.reply_count > 0) return true;
     return segment_(cleanSlackText_(x.text || '')).length > 0;
   });
+  // 這段已整段讀完、而且沒有任何可收的訊息 → 記下「到這裡都確認過了」（沒有東西會因此漏掉）
+  if (!raw.length) {
+    props.setProperty(floorKey, latest || String(new Date().getTime() / 1000 - 60));
+    return { messages: [], truncated: narrowed };
+  }
   // 由舊到新排序，再從最舊端截斷 → 時間水位一定連續前進，不會永久跳過舊訊息
   raw.sort(function (a, b) { return parseFloat(a.ts) - parseFloat(b.ts); });
-  var truncated = raw.length > SLACK_MAX_MESSAGES;
+  var truncated = narrowed || raw.length > SLACK_MAX_MESSAGES;
   if (truncated) raw = raw.slice(0, SLACK_MAX_MESSAGES);
 
   var out = [];
@@ -1051,7 +1069,7 @@ function fetchSlackChannel_(ss, started, ch) {
             originDetail: label + '（スレッド）',
             body: rt,
             owner: slackUserName_(rs[r].user, userCache),
-            link: slackPermalink_(ch.id, rs[r].ts)
+            link: slackPermalink_(ch.id, rs[r].ts) + '?thread_ts=' + msg.thread_ts
           }));
         }
       } catch (e) {
@@ -1091,7 +1109,8 @@ function outOfTime_(started) {
 
 /**
  * 從 Raw_Log 裡「這個頻道」的 Slack 連結推算上次抓到哪，不需要額外存狀態。
- * 只看母訊息（不看討論串回覆）：回覆可能比還沒收進來的母訊息更新，拿它當進度會永久跳過那些母訊息。
+ * 只看母訊息的時間：回覆本身的時間可能比還沒收進來的母訊息更新，拿它當進度會永久跳過那些母訊息。
+ * 回覆列的連結帶 ?thread_ts=母訊息時間 → 用它（母訊息本身沒寫進來，例如只貼圖，也能推進進度）；舊格式的回覆列略過。
  */
 function lastSlackTs_(ss, channelId) {
   var fallback = String(Math.floor(new Date().getTime() / 1000) - FIRST_RUN_LOOKBACK_DAYS * 86400);
@@ -1109,12 +1128,18 @@ function lastSlackTs_(ss, channelId) {
   var re = new RegExp('/archives/' + channelId + '/p(\\d{10})(\\d{6})');
   for (var i = 0; i < vals.length; i++) {
     if (vals[i][0] !== 'Slack') continue;
-    if (String(vals[i][1]).indexOf('スレッド') >= 0) continue;
-    var mm = String(vals[i][width - 1]).match(re);
-    if (mm) {
-      var ts = parseFloat(mm[1] + '.' + mm[2]);
-      if (ts > maxTs) maxTs = ts;
+    var link = String(vals[i][width - 1]);
+    var mm = link.match(re);
+    if (!mm) continue;
+    var ts;
+    if (String(vals[i][1]).indexOf('スレッド') >= 0) {
+      var tm = link.match(/[?&]thread_ts=(\d+\.\d+)/);
+      if (!tm) continue;
+      ts = parseFloat(tm[1]);
+    } else {
+      ts = parseFloat(mm[1] + '.' + mm[2]);
     }
+    if (ts > maxTs) maxTs = ts;
   }
   return maxTs === 0 ? fallback : String(maxTs + 0.000001);
 }
