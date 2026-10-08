@@ -539,8 +539,9 @@ function testConnections() {
   } else {
     try {
       SLACK_CHANNELS.forEach(function (ch) {
-        var name = slackChannelLabel_(ch);
+        var name = slackChannelName_(ch);
         try {
+          slackChannelLabel_(ch);
           var probe = slackCall_('conversations.history', { channel: ch.id, limit: 1 });
           logRow_(ss, 'TEST', 'OK', 'Slack ' + name + ' 可讀（測試取得 ' + ((probe.messages || []).length) + ' 則）');
         } catch (e1) {
@@ -961,11 +962,11 @@ function fetchSlack_(ss, started) {
       out = out.concat(r.messages);
       if (r.truncated) truncated = true;
       ok++;
-      logRow_(ss, 'SLACK', 'OK', slackChannelLabel_(ch) + '：取得 ' + r.messages.length + ' 則' +
+      logRow_(ss, 'SLACK', 'OK', slackChannelName_(ch) + '：取得 ' + r.messages.length + ' 則' +
         (r.truncated ? '（達單次上限，剩下的下次自動接續）' : ''));
     } catch (e) {
-      failed.push(slackChannelLabel_(ch) + '：' + e.message);
-      logRow_(ss, 'SLACK', 'WARN', slackChannelLabel_(ch) + ' 讀不到，先跳過：' + e.message);
+      failed.push(slackChannelName_(ch) + '：' + e.message);
+      logRow_(ss, 'SLACK', 'WARN', slackChannelName_(ch) + ' 讀不到，先跳過：' + e.message);
     }
   }
   if (!ok && failed.length) throw new Error(failed.join(' | '));
@@ -991,7 +992,17 @@ function fetchSlackChannel_(ss, started, ch) {
     if (!cursor) break;
     if (outOfTime_(started)) break;
   }
+  // 沒翻完就停（時間到）：手上只有較新的頁，寫進去會讓進度跳過較舊的訊息 → 這次這個頻道一則都不寫，下次重讀
+  if (cursor) return { messages: [], truncated: true };
 
+  // 先丟掉不會寫進 Raw_Log 的訊息（系統訊息、bot、空白或純寒暄且沒有討論串），
+  // 否則它們會佔掉單次額度、但不推進進度 → 超過額度時進度卡死
+  raw = raw.filter(function (x) {
+    if (x.subtype && x.subtype !== 'thread_broadcast') return false;
+    if (x.bot_id) return false;
+    if (x.thread_ts && x.reply_count > 0) return true;
+    return segment_(cleanSlackText_(x.text || '')).length > 0;
+  });
   // 由舊到新排序，再從最舊端截斷 → 時間水位一定連續前進，不會永久跳過舊訊息
   raw.sort(function (a, b) { return parseFloat(a.ts) - parseFloat(b.ts); });
   var truncated = raw.length > SLACK_MAX_MESSAGES;
@@ -1005,6 +1016,12 @@ function fetchSlackChannel_(ss, started, ch) {
     var msg = raw[m];
     if (msg.subtype && msg.subtype !== 'thread_broadcast') continue; // 略過 join/leave 等系統訊息
     if (msg.bot_id) continue;                                        // 略過 bot 貼文
+    // 有討論串但這次已沒額度／時間讀它：停在這則之前，下次從這則開始（否則進度越過它，討論串永遠收不到）
+    if (msg.thread_ts && msg.reply_count > 0 &&
+        (threadsFetched >= SLACK_MAX_THREADS || outOfTime_(started))) {
+      truncated = true;
+      break;
+    }
     var text = cleanSlackText_(msg.text || '');
     if (text) {
       out.push(makeMessage_({
@@ -1018,8 +1035,7 @@ function fetchSlackChannel_(ss, started, ch) {
     }
 
     // 討論串回覆常常才是真正的需求細節
-    if (msg.thread_ts && msg.reply_count > 0 &&
-        threadsFetched < SLACK_MAX_THREADS && !outOfTime_(started)) {
+    if (msg.thread_ts && msg.reply_count > 0) {
       threadsFetched++;
       try {
         var rep = slackCall_('conversations.replies',
@@ -1047,16 +1063,26 @@ function fetchSlackChannel_(ss, started, ch) {
   return { messages: out, truncated: truncated };
 }
 
-/** 頻道顯示名稱：設定裡有就用；沒有就向 Slack 查一次（查不到用頻道代號）。 */
+/**
+ * 頻道顯示名稱：設定裡有就用；沒有就向 Slack 查一次。
+ * 查不到就丟錯（那個頻道這次跳過），不拿頻道代號湊合 —— 否則同一頻道之後會變成兩種名稱，儀表板會算成兩個來源。
+ */
 function slackChannelLabel_(ch) {
   if (ch.label) return ch.label;
+  var info;
   try {
-    var info = slackCall_('conversations.info', { channel: ch.id });
-    ch.label = '#' + ((info.channel && info.channel.name) || ch.id);
+    info = slackCall_('conversations.info', { channel: ch.id });
   } catch (e) {
-    ch.label = '#' + ch.id;
+    throw new Error('查不到頻道名稱（token 要加 channels:read，私人頻道再加 groups:read）：' + e.message);
   }
+  if (!info.channel || !info.channel.name) throw new Error('查不到頻道名稱');
+  ch.label = '#' + info.channel.name;
   return ch.label;
+}
+
+/** 記錄用：查不到名稱時用頻道代號，不丟錯。 */
+function slackChannelName_(ch) {
+  try { return slackChannelLabel_(ch); } catch (e) { return '#' + ch.id; }
 }
 
 function outOfTime_(started) {
