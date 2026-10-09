@@ -2,7 +2,7 @@
 
 **目的：** 儀表板「清單外的聲音」有兩群主播的抱怨，沒有對到 25 個痛點：
 
-- **沒有痛點代碼的真痛點：** AI 判成真痛點，但沒標上任何痛點代碼。每週約 400–540 位主播（9/28 那週 464 位），約占全部真痛點的 2/3。
+- **沒有痛點代碼的真痛點：** AI 判成真痛點，但沒標上任何痛點代碼。每週約 400–540 位主播（9/28 那週 464 位），粗估約占全部真痛點的 2/3（有代碼的人數是逐痛點加總，一人可能被算多次）。
 - **X1.0：** 週報有統計，但不在痛點清單。每週約 290 位主播，多數落在主題 F01「通知・フォロー保全」。
 
 這份說明讓另一個 Claude 對話把這些聲音分類，交出固定格式的結果。結果只含人數、代碼、關鍵字，**不含原話與主播 ID**。所以可以貼回 Claude Code，再更新儀表板與給資料團隊的需求說明。
@@ -18,29 +18,42 @@
 3. 結果出來後，按 **Save results → CSV（下載到本機）**。
 
 ```sql
--- 清單外的聲音：最近 4 週，AI 判成真痛點、但沒有痛點代碼（或只標 X1.0）的聲音
+-- 清單外的聲音：最近 4 個完整週，AI 判成真痛點、但沒有痛點代碼（或只標 X1.0）的聲音
 -- 每位主播最多 1 則，隨機取 800 則。userID 只用來去重，不會出現在結果裡。
+-- summary／stt 若是結構欄位，會先把看起來像 ID、名字的欄位清掉。
+WITH t AS (
+  SELECT *,
+    ARRAY(SELECT DISTINCT c FROM UNNEST(REGEXP_EXTRACT_ALL(IFNULL(pain25_tags, ''), r'[SUX][0-9]\.[0-9]')) c) AS codes
+  FROM `media17-1119.DataLab_Ayana.stt_voc_judgments`
+  WHERE exist = 'TRUE_PAIN'
+    AND window_start >= DATE_SUB(DATE_TRUNC(CURRENT_DATE('Asia/Tokyo'), WEEK(MONDAY)), INTERVAL 28 DAY)
+    AND window_start <  DATE_TRUNC(CURRENT_DATE('Asia/Tokyo'), WEEK(MONDAY))
+)
 SELECT
   hit_id,
   CAST(window_start AS STRING) AS week,
   IFNULL(tier, '') AS tier,
-  IF(REGEXP_CONTAINS(IFNULL(pain25_tags, ''), r'X1\.0'), 'X1.0', 'no_code') AS grp,
+  IF(ARRAY_LENGTH(codes) = 0, 'no_code', 'X1.0') AS grp,
   IFNULL(catalog, '') AS themes,
   IFNULL(issue_kind, '') AS issue_kind,
   IFNULL(failure_layer, '') AS failure_layer,
-  SUBSTR(TO_JSON_STRING(voc_summary_secondary), 1, 300) AS summary,
-  SUBSTR(TO_JSON_STRING(stt), 1, 600) AS stt
-FROM `media17-1119.DataLab_Ayana.stt_voc_judgments`
-WHERE exist = 'TRUE_PAIN'
-  AND window_start >= DATE_SUB(CURRENT_DATE('Asia/Tokyo'), INTERVAL 28 DAY)
-  AND (NOT REGEXP_CONTAINS(IFNULL(pain25_tags, ''), r'[SUX][0-9]\.[0-9]')
-       OR REGEXP_CONTAINS(IFNULL(pain25_tags, ''), r'X1\.0'))
-QUALIFY ROW_NUMBER() OVER (PARTITION BY userID ORDER BY window_start DESC, hit_id) = 1
+  SUBSTR(REGEXP_REPLACE(TO_JSON_STRING(voc_summary_secondary),
+    r'"[A-Za-z_]*(?i:id|name|nick|user|account)[A-Za-z_]*"\s*:\s*("[^"]*"|-?\d+)', '"_":""'), 1, 300) AS summary,
+  SUBSTR(REGEXP_REPLACE(TO_JSON_STRING(stt),
+    r'"[A-Za-z_]*(?i:id|name|nick|user|account)[A-Za-z_]*"\s*:\s*("[^"]*"|-?\d+)', '"_":""'), 1, 600) AS stt
+FROM t
+WHERE ARRAY_LENGTH(codes) = 0
+   OR (ARRAY_LENGTH(codes) = 1 AND codes[OFFSET(0)] = 'X1.0')
+QUALIFY ROW_NUMBER() OVER (PARTITION BY COALESCE(userID, hit_id) ORDER BY window_start DESC, hit_id) = 1
 ORDER BY FARM_FINGERPRINT(hit_id)
 LIMIT 800
 ```
 
 結果應該是 800 列以內、9 欄，而且沒有 `userID` 欄。
+
+**下載前看一眼 `summary`、`stt` 兩欄：** 應該只有日文的話。如果看到像主播 ID、帳號、名字的欄位或一長串數字，先不要下載，把那一列的欄位名稱（不用內容）貼給我。
+
+注意：這裡的 X1.0 是「AI 判讀時標了 X1.0」的聲音；儀表板上 X1.0 的人數來自週報的關鍵字統計。兩者範圍不同，人數不會一樣，但講的是同一類抱怨，分類結果可以互相對照。
 
 ## 第 2 步：開一個新的 claude.ai 對話（1 分鐘）
 
@@ -151,8 +164,10 @@ U6.4 線上線下賽制脫節、規則不清
 - 每一列只算進一個桶子。existing_matches、new_pains、not_actionable 的 rows 加起來必須等於 sample.rows。
 - new_pains 依 rows 由多到少排；id 依序 N1、N2…。
 - top_tier_rows＝tier 是 sTop 或 Top 的列數。x1_rows＝grp 是 X1.0 的列數。
+- share＝這個桶子的 rows ÷ sample.rows。
+- x1_0_explained.split_into 可以放 new_pains 的 id，也可以放既有痛點代碼（例如 S2.1）。
 - JSON 裡不准出現整句原話、主播名稱或任何個人資料；要舉例只用 hit_id。keywords_ja 只放短詞。
 - 判斷不確定的寫進 caveats，不要硬分。
 
-第二段：台灣繁體中文摘要，8 行以內：最大的 3 個新痛點各一句、X1.0 是什麼、有多少其實屬於既有痛點。
+第二段：台灣繁體中文摘要，8 行以內：最大的 3 個新痛點各一句、X1.0 是什麼、有多少其實屬於既有痛點。摘要同樣不准引用原話、主播名稱或個人資料。
 ````

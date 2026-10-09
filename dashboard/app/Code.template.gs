@@ -367,7 +367,7 @@ function buildDashboard_() {
     (themesOf[e.to] = themesOf[e.to] || []).push({ code: e.from, name: themeNames[e.from] || '', n: e.weight });
   });
 
-  var trust = trust_(g.nodes.themes);
+  var trust = trust_(g.nodes.themes, weeks.slice(-4));   // 和畫面的週次對齊：最近 4 個已過完的週
 
   var domainOf = {};
   rm.cards.forEach(function (c) { domainOf[c.key] = c.domain; });
@@ -447,14 +447,14 @@ function buildDashboard_() {
  * 來源：STT Export 每天推進 repo 的 stt-latest.json（pains＝週報、coverage＝判讀覆蓋率），只有人數，沒有原話。
  * ok＝可信（原話夠）／thin＝有人數但原話不足／unknown＝還沒有覆蓋率資料。週報全是 0 的痛點在呼叫端標 none。
  */
-function trust_(themeNodes) {
+function trust_(themeNodes, last4) {
   var out = { byCode: {}, unknown: { state: 'unknown' }, untagged: null, topTheme: {}, since: '' };
   var doc = null;
   try { doc = repoJson_('voc-graph/out/stt-latest.json', true); } catch (e) { console.log('[WARN] 覆蓋率讀不到：' + e.message); }
-  if (!doc || !doc.coverage || !doc.pains) return out;
-  var weeks = (doc.windows || []).map(function (w) { return w.window_start; }).sort();
-  var last4 = weeks.slice(-4), last = weeks[weeks.length - 1];
-  if (!last4.length) return out;
+  if (!doc || !doc.coverage || !doc.pains || !last4 || !last4.length) return out;
+  var last = last4[last4.length - 1];
+  // 覆蓋率必須涵蓋畫面的最近一週，否則不下判斷（避免整片誤標成「原話不足」）
+  if (!doc.coverage.some(function (r) { return r.window_start === last; })) return out;
   out.since = last4[0];
   var metric = {}, judged = {}, untag = {}, tagged = {};
   doc.pains.forEach(function (r) {

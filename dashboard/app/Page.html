@@ -40,7 +40,7 @@ nav.toc a{color:var(--ink-2);text-decoration:none;padding:2px 0;border-bottom:2p
 nav.toc a:hover,nav.toc a:focus-visible{color:var(--ink);border-bottom-color:var(--accent)}
 
 /* ---- 段落 ---- */
-section.sec{padding-top:34px}
+section.sec{padding-top:34px;scroll-margin-top:52px}
 .sec-k{font-family:var(--font-sans);font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:700}
 h2.sec-h{font-family:var(--font-display);font-size:clamp(22px,3.4vw,27px);line-height:1.3;margin:4px 0 6px}
 .sec-dek{color:var(--ink-2);margin:0 0 12px;font-size:16px}
@@ -55,7 +55,7 @@ article.story{border-bottom:1px solid var(--hairline)}
 .sh:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .rank{font-family:var(--font-display);font-size:30px;line-height:1;color:var(--ink-2)}
 .sh-k{font-family:var(--font-sans);font-size:12px;letter-spacing:.06em;color:var(--ink-2)}
-.sh-k .code{color:var(--accent);font-weight:700;letter-spacing:.04em}
+.sh-k .code{color:var(--ink);font-weight:700;letter-spacing:.04em}
 .sh-t{font-family:var(--font-display);font-size:clamp(19px,2.8vw,23px);line-height:1.35;margin:2px 0 4px;font-weight:700}
 .sh-l{margin:0;font-size:16px;line-height:1.7}
 .sh-l b{font-variant-numeric:tabular-nums}
@@ -67,7 +67,7 @@ article.story{border-bottom:1px solid var(--hairline)}
 .open-hint{font-family:var(--font-sans);font-size:12px;color:var(--series-2);margin-top:6px}
 .compact .sh{grid-template-columns:52px minmax(0,1fr) 92px;padding:11px 0}
 .compact .sh-t{font-size:17px;margin:0}
-.compact .rank{font-family:var(--font-sans);font-size:12px;color:var(--accent);font-weight:700;padding-top:4px}
+.compact .rank{font-family:var(--font-sans);font-size:12px;color:var(--ink);font-weight:700;padding-top:4px}
 .more-stories{margin-top:12px}
 @media (max-width:520px){.sh{grid-template-columns:26px minmax(0,1fr)}.spark{grid-column:2;flex-direction:row;align-items:baseline;gap:8px;justify-content:flex-start}
   .compact .sh{grid-template-columns:44px minmax(0,1fr)}.rank{font-size:24px}}
@@ -76,7 +76,8 @@ article.story{border-bottom:1px solid var(--hairline)}
 .trust{font-family:var(--font-sans);font-size:12.5px;white-space:nowrap}
 .t-ok{color:var(--ok)} .t-thin{color:var(--warn)} .t-none{color:var(--accent)}
 .tag{font-family:var(--font-sans);font-size:12px;color:var(--ink-2)}
-.tag.hot{color:var(--accent);font-weight:700}
+.tag.hot{color:var(--ink);font-weight:700}
+.tag.fire{color:var(--accent);font-weight:700}
 
 /* ---- 展開的細節 ---- */
 .dbody{padding:4px 0 26px 46px}
@@ -133,7 +134,7 @@ details.more>summary{cursor:pointer;font-family:var(--font-sans);font-size:13px;
 /* ---- 清單外 ---- */
 .off{display:grid;grid-template-columns:minmax(0,1fr);gap:0;border-top:1px solid var(--ink)}
 .off-i{display:grid;grid-template-columns:112px minmax(0,1fr);gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--hairline);align-items:start}
-.off-n{font-family:var(--font-display);font-size:38px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.off-n{font-family:var(--font-display);font-size:38px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
 .off-n small{display:block;font-family:var(--font-sans);font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.4}
 .off-t{font-family:var(--font-display);font-size:19px;font-weight:700;line-height:1.35}
 .off-i p{margin:4px 0 0;font-size:16px}
@@ -152,7 +153,7 @@ thead th{border-top:1px solid var(--ink);color:var(--ink-2);font-weight:700;font
 td.n{text-align:right;font-variant-numeric:tabular-nums}
 .stagebar{display:flex;height:24px;margin:8px 0}
 .stagebar div{display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:12px;color:var(--paper);background:var(--ink);min-width:0;overflow:hidden;white-space:nowrap;border-right:2px solid var(--paper)}
-.stagebar div:nth-child(2){background:var(--series-2)}.stagebar div:nth-child(3){background:var(--context)}.stagebar div:nth-child(4){background:var(--accent)}
+.stagebar div:nth-child(2){background:var(--series-2)}.stagebar div:nth-child(3){background:var(--context)}.stagebar div:nth-child(4){background:var(--ink-2)}
 .legend{font-family:var(--font-sans);font-size:12px;color:var(--ink-2)}
 .sub-h{font-family:var(--font-display);font-size:19px;margin:26px 0 6px}
 footer.src{margin-top:40px;border-top:1px solid var(--ink);padding-top:10px}
@@ -251,10 +252,12 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     var pm = p.team.split("、").map(pmOf).filter(Boolean);
     return p.team + (pm.length ? "（" + pm.join("、") + "）" : "");
   }
+  /* 上週 vs 緊接在前的 4 週平均（和新興／持續規則用的週段不同，這裡只是給人看的比較） */
+  function prev4(p) { var a = p.series.slice(-5, -1); return a.length === 4 ? a.reduce(function (x, y) { return x + y; }, 0) / 4 : null; }
   function trendWords(p) {
-    var r = p.rule;
-    if (!(r.prior4 >= 2)) return "";
-    var pct = Math.round((p.latest / r.prior4 - 1) * 100), avg = Math.round(r.prior4);
+    var b = prev4(p);
+    if (!(b >= 2)) return "";
+    var pct = Math.round((p.latest / b - 1) * 100), avg = Math.round(b);
     if (Math.abs(pct) < 10) return "，和前 4 週平均（" + avg + " 位）差不多";
     return "，比前 4 週平均（" + avg + " 位）" + (pct > 0 ? "多 " : "少 ") + Math.abs(pct) + "%";
   }
@@ -266,7 +269,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
   function trustOf(p) { return (p.trust && TRUST[p.trust.state]) ? p.trust.state : ""; }
   function trustTitle(p) {
     var t = p.trust || {};
-    if (t.state === "none") return "週報 " + D.weeks.length + " 週都是 0 位：週報沒有這個痛點的偵測規則，不代表沒人抱怨。";
+    if (t.state === "none") return "週報 " + D.weeks.length + " 週都是 0 位：最可能是週報沒有這個痛點的偵測規則，不代表沒人抱怨。";
     if (t.metric4 == null) return "";
     return "最近 4 週（" + md(D.trustSince) + " 起）：週報 " + t.metric4 + " 人週，其中經 AI 判讀為真痛點的 " + t.judged4 + " 人週。";
   }
@@ -276,7 +279,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
   }
   function tags(p) {
     var c = [];
-    if (p.rule.emerging) c.push(el("span", { class: "tag hot", text: "🔥 新興高熱" }));
+    if (p.rule.emerging) c.push(el("span", { class: "tag fire", text: "🔥 新興高熱" }));
     if (p.rule.persistent) c.push(el("span", { class: "tag", text: "🔁 持續高熱" }));
     if (p.rule.fading) c.push(el("span", { class: "tag", text: "📉 消退" }));
     if (p.noOwner) c.push(el("span", { class: "tag hot", text: "沒人負責" }));
@@ -319,6 +322,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
 
   /* ---- 展開／收合：同一時間只展開一則 ---- */
   var openNow = null;   // {art, body, head}
+  var booting = true;   // 只有畫面重建時（例如存檔後）才自動重開原本展開的那一則
   var state = keep || { sel: null, where: "", filter: "all", showAll: false };
   keep = null;
   function closeOpen() {
@@ -374,7 +378,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     function go() { openStory(o, p, where, true); }
     head.addEventListener("click", go);
     head.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
-    if (state.sel === p.code && state.where === where) setTimeout(function () { openStory(o, p, where, false); o.head.scrollIntoView({ block: "start" }); }, 0);
+    if (booting && state.sel === p.code && state.where === where) setTimeout(function () { openStory(o, p, where, false); o.head.scrollIntoView({ block: "start" }); }, 0);
     return art;
   }
 
@@ -408,24 +412,26 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
   /* ---- 清單外的聲音：X1.0 與沒有痛點代碼的真痛點 ---- */
   function viewOff() {
     if (!hasOff) return;
-    var u = D.untagged, total = (u && u.latest || 0) + D.outside.reduce(function (a, o) { return a + o.latest; }, 0);
+    var u = D.untagged;
+    var groups = (D.outside.length ? 1 : 0) + (u && u.latest ? 1 : 0);
     var sec = el("section", { class: "sec", id: "s-off", "aria-labelledby": "s-off-h" },
-      secHead("s-off", "清單外的聲音｜OFF THE LIST", "上週約 " + total + " 位主播的抱怨，不在 25 個痛點裡",
-        "這些聲音在上面的要聞與痛點清單裡都看不到。只有人數，沒有分類。"));
+      secHead("s-off", "清單外的聲音｜OFF THE LIST", groups + " 群主播的抱怨，不在 25 個痛點裡",
+        "這些聲音在上面的要聞與痛點清單裡都看不到。兩群的統計方式與週次不同，人數不能相加；只有人數，沒有分類。"));
+    var maxListed = Math.max.apply(null, D.pains.map(function (p) { return p.latest; }).concat([0]));
     var box = el("div", { class: "off" });
     D.outside.forEach(function (o) {
       box.appendChild(el("div", { class: "off-i" }, [
-        el("div", { class: "off-n" }, [String(o.latest), el("small", { text: "位主播／上週" })]),
+        el("div", { class: "off-n" }, [String(o.latest), el("small", { text: "位主播／" + md(D.latestWeek.start) + " 那週（週報）" })]),
         el("div", {}, [el("div", { class: "off-t", text: o.code + "：週報有統計、但不在痛點清單" }),
-          el("p", { text: o.theme ? "多數落在主題 " + o.theme.code + "「" + o.theme.name + "」（追蹤、通知類）。人數比清單上任何一個痛點都多。" : "人數比清單上大多數痛點都多。" })])
+          el("p", { text: (o.theme ? "多數落在主題 " + o.theme.code + "「" + o.theme.name + "」。" : "") +
+            (o.latest > maxListed ? "人數比清單上任何一個痛點都多。" : "清單上最多的痛點上週 " + maxListed + " 位。") })])
       ]));
     });
     if (u && u.latest) {
       box.appendChild(el("div", { class: "off-i" }, [
-        el("div", { class: "off-n" }, [String(u.latest), el("small", { text: "位主播／" + md(u.week) + " 那週" })]),
+        el("div", { class: "off-n" }, [String(u.latest), el("small", { text: "位主播／" + md(u.week) + " 那週（AI 判讀）" })]),
         el("div", {}, [el("div", { class: "off-t", text: "AI 判成真痛點，卻沒有對到任何痛點代碼" }),
-          el("p", { text: "同一週有代碼的只有 " + u.taggedLatest + " 位。最近 4 週平均每週 " + u.avg4 + " 位沒有代碼，約占真痛點的 " +
-            Math.round(u.latest / Math.max(1, u.latest + u.taggedLatest) * 100) + "%。" })])
+          el("p", { text: "同一週對到痛點代碼的約 " + u.taggedLatest + " 人次（一人可能對到多個痛點）。最近 4 週平均每週 " + u.avg4 + " 位沒有代碼。" })])
       ]));
     }
     sec.appendChild(box);
@@ -445,7 +451,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     var fl = el("div", { class: "filters", role: "group", "aria-label": "篩選" });
     var list = el("div", { class: "stories" });
     function draw() {
-      if (openNow && openNow.art.parentNode === list) openNow = null;
+      if (openNow && openNow.art.parentNode === list) { openNow = null; state.sel = null; }
       clear(list);
       var rows = D.pains.slice().sort(function (a, b) { return b.latest - a.latest; }).filter(function (p) {
         var f = state.filter;
@@ -460,7 +466,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
         onclick: function () { state.filter = f[0]; draw(); } }));
     });
     sec.appendChild(fl); sec.appendChild(list);
-    sec.appendChild(el("div", { class: "note", text: "✅ 原話充足＝最近 4 週週報人數中，至少 2 成經 AI 判讀為真痛點。⚠️ 原話不足＝週報有人數，但幾乎沒經過判讀，點進去看不到多少原話。❌ 量不到＝週報沒有這個痛點的偵測規則，數字永遠是 0，不代表沒人抱怨。" }));
+    sec.appendChild(el("div", { class: "note", text: "✅ 原話充足＝最近 4 週週報人數中，至少 2 成經 AI 判讀為真痛點。⚠️ 原話不足＝週報有人數，但幾乎沒經過判讀，點進去看不到多少原話。❌ 量不到＝週報這幾週都是 0，最可能是沒有偵測規則，不代表沒人抱怨。" }));
     draw();
     view.appendChild(sec);
   }
@@ -517,7 +523,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     if (ts) {
       var words = ts === "ok" ? "下面的代表原話能代表多數主播的說法。"
         : ts === "thin" ? "週報有人數，但幾乎沒經過 AI 判讀。下面的原話只是一小部分，不能代表全部。"
-        : "週報沒有這個痛點的偵測規則，人數永遠是 0。要知道有多少人抱怨，需請資料團隊補規則。";
+        : "週報這幾週都是 0，最可能是沒有這個痛點的偵測規則。要知道有多少人抱怨，需請資料團隊確認並補規則。";
       box.appendChild(el("div", { class: "trustbox " + (ts === "ok" ? "ok" : ts === "none" ? "none" : "") }, [
         el("b", { class: "trust " + TRUST[ts][1], text: TRUST[ts][0] + "　" }), document.createTextNode(words + " " + trustTitle(p))]));
     }
@@ -654,7 +660,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     }
 
     /* 原話來自 AI 判讀過的聲音，週報人數來自關鍵字統計；判讀量遠少於週報時要講清楚，避免誤以為原話就是全部 */
-    if (det.ok && p && p.latest >= 10 && det.judgedStreamers < p.latest / 2) {
+    if (det.ok && p && !trustOf(p) && p.latest >= 10 && det.judgedStreamers < p.latest / 2) {
       qBox.appendChild(el("p", { class: "warnline", text: "⚠️ 這個痛點的原話不完整：週報上週有 " + p.latest +
         " 位主播提到，但最近 4 週只有 " + det.judgedStreamers + " 位的聲音經過 AI 判讀，下面和「全部原話」只看得到這些。要補齊需請資料團隊把這個痛點也送判讀。" }));
     }
@@ -849,14 +855,14 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
 
   /* ---- 週柱狀圖：圖框三件套；用實際寬度畫（不靠縮放，手機上字不會變小）；主角＝最近 2 週 ---- */
   function chartFrame(p) {
-    var s = p.series, r = p.rule;
-    var claim = (r.prior4 >= 2 && p.latest >= 2 * r.prior4) ? "上週 " + p.latest + " 位，是前 4 週平均的 " + (p.latest / r.prior4).toFixed(1) + " 倍"
-      : (r.prior4 >= 2 && p.latest <= r.prior4 / 2) ? "上週 " + p.latest + " 位，只剩前 4 週平均的一半以下"
+    var s = p.series, b = prev4(p);
+    var claim = (b >= 2 && p.latest >= 2 * b) ? "上週 " + p.latest + " 位，是前 4 週平均的 " + (p.latest / b).toFixed(1) + " 倍"
+      : (b >= 2 && p.latest <= b / 2) ? "上週 " + p.latest + " 位，只剩前 4 週平均的一半以下"
       : "上週 " + p.latest + " 位主播提到" + trendWords(p).replace(/^，/, "，");
     var holder = el("div", {});
     var f = el("figure", { class: "cframe", style: "margin:8px 0 4px" }, [
       el("div", { class: "ctitle", text: claim }),
-      el("div", { class: "csub", text: "每週提到這個痛點的主播人數，位；朱紅＝最近 2 週，虛線＝判定門檻" }),
+      el("div", { class: "csub", text: "每週提到這個痛點的主播人數，位；朱紅＝最近 2 週；虛線＝判定門檻（新興 " + R.emergeMin + "、持續 " + R.persistMin + "）" }),
       holder,
       el("div", { class: "csrc", text: "來源：週報（stt_voc_weekly_metrics，關鍵字統計），" + weekLbl[0] + "–" + weekLbl[weekLbl.length - 1] + " 每週一列；同一週重算過取最新一次。" })
     ]);
@@ -864,26 +870,32 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     return f;
   }
   function chart(s, W) {
-    var H = 200, L = 30, Rr = W < 420 ? 8 : 64, T = 18, B = 24;
+    var H = 210, L = 30, Rr = W < 420 ? 8 : 84, T = 20, B = 26;
     var max = Math.max(R.persistMin + 5, Math.max.apply(null, s)) * 1.12;
     var y = function (v) { return T + (H - T - B) * (1 - v / max); };
     var bw = (W - L - Rr) / s.length;
     var g = svg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "每週主播人數：" + s.join("、") });
     var step = W < 420 ? 2 : 1;
     /* 參考線先畫，文字最後畫，避免線壓字 */
-    [[R.emergeMin, "新興門檻 " + R.emergeMin], [R.persistMin, "持續門檻 " + R.persistMin]].forEach(function (m) {
+    var lastLbl = -1e9;
+    [[R.persistMin, "持續 " + R.persistMin], [R.emergeMin, "新興 " + R.emergeMin]].forEach(function (m) {   // 由上往下畫，標籤不重疊
       if (m[0] > max) return;
       g.appendChild(svg("line", { x1: L, x2: W - Rr, y1: y(m[0]), y2: y(m[0]), stroke: "var(--ink-2)", "stroke-dasharray": "3 4" }));
-      if (Rr > 20) g.appendChild(svgText({ x: W - Rr + 6, y: y(m[0]) + 4, "text-anchor": "start", "font-size": 11, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, m[1]));
+      if (Rr > 20) {
+        var ly = Math.max(y(m[0]) + 4, lastLbl + 15); lastLbl = ly;
+        g.appendChild(svgText({ x: W - Rr + 6, y: ly, "text-anchor": "start", "font-size": 12, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, m[1]));
+      }
     });
+    var halo = { stroke: "var(--paper)", "stroke-width": 4, "paint-order": "stroke", "stroke-linejoin": "round" };   // 數字蓋在虛線上面時仍看得清楚
+    function vt(a, txt) { for (var k in halo) a[k] = halo[k]; return svgText(a, txt); }
     g.appendChild(svg("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), stroke: "var(--ink)" }));
     s.forEach(function (v, i) {
       var x = L + i * bw + bw * 0.16, w = bw * 0.68, hi = i >= s.length - 2;
       g.appendChild(svg("rect", { x: x, y: y(v), width: w, height: Math.max(0, y(0) - y(v)), fill: hi ? "var(--accent)" : "var(--context)" }));
-      if (hi || W >= 420 || i % step === 0) g.appendChild(svgText({ x: x + w / 2, y: y(v) - 5, "text-anchor": "middle", "font-size": 12, fill: hi ? "var(--accent)" : "var(--ink)", "font-weight": hi ? 700 : 400, "font-family": "var(--font-sans)" }, String(v)));
-      if (i % step === 0 || i === s.length - 1) g.appendChild(svgText({ x: x + w / 2, y: H - 6, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, weekLbl[i]));
+      if (hi || W >= 420 || i % step === 0) g.appendChild(vt({ x: x + w / 2, y: y(v) - 5, "text-anchor": "middle", "font-size": 13, fill: hi ? "var(--accent)" : "var(--ink)", "font-weight": hi ? 700 : 400, "font-family": "var(--font-sans)" }, String(v)));
+      if (i % step === 0 || i === s.length - 1) g.appendChild(svgText({ x: x + w / 2, y: H - 6, "text-anchor": "middle", "font-size": 12, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, weekLbl[i]));
     });
-    g.appendChild(svgText({ x: L - 6, y: y(0) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, "0"));
+    g.appendChild(svgText({ x: L - 6, y: y(0) + 4, "text-anchor": "end", "font-size": 12, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, "0"));
     return g;
   }
 
@@ -917,7 +929,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     var sb = el("div", { class: "stagebar", role: "img", "aria-label": order.map(function (s) { return stageZh(s) + " " + (D.stages[s] || 0); }).join("、") });
     order.forEach(function (s) {
       var n = D.stages[s] || 0; if (!n) return;
-      sb.appendChild(el("div", { style: "flex:" + n, title: stageZh(s) + " " + n, text: n >= 3 ? stageZh(s) + " " + n : String(n) }));
+      sb.appendChild(el("div", { style: "flex:" + n, title: stageZh(s) + " " + n, text: String(n) }));   // 名稱放在下面的圖說，條上只放數字（窄螢幕也不會被切掉）
     });
     sec.appendChild(el("h3", { class: "sub-h", text: "各階段張數" }));
     sec.appendChild(sb);
@@ -1023,9 +1035,10 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
       view.appendChild(el("section", { class: "sec" }, [el("div", { class: "empty", text: "這一區整理資料時出錯。" + HELP })]));
     }
   });
+  booting = false;
   if (todo.length) {
     document.getElementById("hlgo").appendChild(el("button", { class: "btn primary", type: "button", text: "看第一則：" + todo[0].code + " ▾",
-      onclick: function () { var a = view.querySelector('#s-top article.story .sh'); if (a) a.click(); } }));
+      onclick: function () { var a = view.querySelector('#s-top article.story .sh'); if (a && a.getAttribute("aria-expanded") !== "true") a.click(); else if (a) a.scrollIntoView({ block: "start" }); } }));
   }
 
   /* ---- 頁尾：資料來源一行，展開看 Slack＋表單與各來源狀態（出錯也不影響上面的主畫面） ---- */
