@@ -383,6 +383,35 @@ check('Slack 來源依頻道分開，討論串回覆算同一頻道', () => {
   r[5] = ''; assert.strictEqual(ctx.sourceLabel_(r), 'Slack');
   r[4] = 'VIP Feedback'; r[5] = 'x'; assert.strictEqual(ctx.sourceLabel_(r), 'VIP Feedback');
 });
+viewer = 'pm@17.media';
+check('名單內但不是 Cross：看不到需求說明與分類說明連結', () => {
+  vm.runInContext("ALLOWED_EMAILS.push('pm@17.media')", ctx);
+  try { const x = ctx.getDashboard(); assert.strictEqual(x.canEdit, false); assert.strictEqual(x.dataMemoUrl, ''); assert.strictEqual(x.unmappedGuideUrl, ''); }
+  finally { vm.runInContext("ALLOWED_EMAILS.pop()", ctx); }
+});
+viewer = 'crosswang@17.media';
+const J = o => JSON.parse(JSON.stringify(o));
+check('可信度：S2.1／U6.0 原話充足、U4.1／S2.0 原話不足、U6.1 量不到（固定快照，最近 4 週＝9/07 起）', () => {
+  const x = ctx.getDashboard(), t = c => x.pains.find(p => p.code === c).trust;
+  assert.strictEqual(x.trustSince, '2026-09-07');
+  assert.deepStrictEqual(J(t('S2.1')), { state: 'ok', metric4: 916, judged4: 538 });
+  assert.strictEqual(t('U6.0').state, 'ok');
+  assert.deepStrictEqual(J(t('U4.1')), { state: 'thin', metric4: 371, judged4: 0 });
+  assert.deepStrictEqual(J(t('S2.0')), { state: 'thin', metric4: 623, judged4: 8 });
+  assert.deepStrictEqual(J(t('U6.1')), { state: 'none' });
+});
+check('清單外：X1.0 帶主題 F01、沒有代碼的真痛點上週 464 位（有代碼 236 位）', () => {
+  const x = ctx.getDashboard();
+  assert.strictEqual(x.outside[0].code, 'X1.0'); assert.strictEqual(x.outside[0].theme.code, 'F01');
+  assert.deepStrictEqual(J(x.untagged), { latest: 464, avg4: 484, taggedLatest: 236, week: '2026-09-28' });
+  assert.ok(x.dataMemoUrl.startsWith('https://') && x.unmappedGuideUrl.startsWith('https://'));
+});
+check('覆蓋率檔不在時：可信度標 unknown，不擋畫面', () => {
+  const src = ctx.trust_.toString(); assert.ok(/repoJson_\('voc-graph\/out\/stt-latest\.json', true\)/.test(src));
+  const real = ctx.repoJson_; ctx.repoJson_ = () => null;
+  try { const r = ctx.trust_([]); assert.strictEqual(r.unknown.state, 'unknown'); assert.deepStrictEqual(J(r.byCode), {}); assert.strictEqual(r.untagged, null); }
+  finally { ctx.repoJson_ = real; }
+});
 // ---- 指定負責的卡（寫回 mapping.json） ----
 viewer = 'crosswang@17.media';
 check('Cross 看得到指定功能（有金鑰）', () => { const d = ctx.getDashboard(); assert.strictEqual(d.canAssign, true); });
