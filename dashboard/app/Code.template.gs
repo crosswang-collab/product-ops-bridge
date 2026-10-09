@@ -39,6 +39,9 @@ var TEAM_PM = {            // 團隊 → PM（2026-10-07 Cross 提供）
 };
 var PAIN_TEAM = {          // 痛點 → 團隊：Cross 自己對照（2026-10-07 決定），想固定某個痛點的團隊再填，例如 'U6.0': 'IST'
 };
+/** 給資料團隊的需求說明（只有 Cross 看得到連結）與「清單外的聲音」分類說明。 */
+var DATA_MEMO_URL = 'https://claude.ai/code/artifact/328a0a94-dfbe-4b4b-bcaa-7380e57a0a36';
+var UNMAPPED_GUIDE_URL = 'https://github.com/crosswang-collab/product-ops-bridge/blob/main/docs/unmapped-voices-classification.md';
 /** 開卡用的 Google 試算表網址（空白＝畫面不顯示「開卡」按鈕）。 */
 var CARD_SHEET_URL = 'https://docs.google.com/spreadsheets/d/16AuZeGSu2z1PwnTvhZI2HazyG16zltOs7eRxEC04rcE/edit?gid=1005872232#gid=1005872232';
 
@@ -56,12 +59,14 @@ var TRANSLATE_BATCH = 20;       // 一次翻幾則（Google 翻譯每則約 0.3 
 
 var CACHE_SECONDS = 6 * 60 * 60;
 var CACHE_SECONDS_DEGRADED = 5 * 60;   // 有部分資料讀不到時只存 5 分鐘，重新整理很快就會重試
-var CACHE_VER = 'v1';
+var CACHE_VER = 'v2';   // v2：加了可信度與清單外的聲音
 var RAW_TAIL_ROWS = 4000;       // Slack＋表單只讀最新幾列
 var TZ = 'Asia/Tokyo';
 
 var EMERGE_MIN = 10;            // 新興：最近 2 週每週平均 ≥ 10 位
 var PERSIST_MIN = 20;           // 持續：最近 6 週中 ≥ 4 週 ≥ 20 位
+var TRUST_MIN_SHARE = 0.2;       // 可信：最近 4 週判讀為真痛點的人數 ≥ 週報人數的 2 成
+var TRUST_MIN_JUDGED = 5;        //       且至少 5 人週
 var READ_FLOOR = 10;            // 上週 ≥ 10 位才算「有聲音」（同 voc-graph rules.read_floor）
 var STATUS_RANK = { 'On track': 0, 'Warning': 1, 'At Risk': 2, 'Off track': 3 };
 
@@ -103,7 +108,7 @@ function getDashboard() {
   }
   d.canEdit = (who === OWNER_EMAIL.toLowerCase());
   d.canAssign = d.canEdit && !!PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-  if (!d.canEdit) { d.editorUrl = ''; d.cardSheetUrl = ''; }
+  if (!d.canEdit) { d.editorUrl = ''; d.cardSheetUrl = ''; d.dataMemoUrl = ''; d.unmappedGuideUrl = ''; }
   return d;
 }
 
@@ -362,6 +367,8 @@ function buildDashboard_() {
     (themesOf[e.to] = themesOf[e.to] || []).push({ code: e.from, name: themeNames[e.from] || '', n: e.weight });
   });
 
+  var trust = trust_(g.nodes.themes, weeks.slice(-4));   // 和畫面的週次對齊：最近 4 個已過完的週
+
   var domainOf = {};
   rm.cards.forEach(function (c) { domainOf[c.key] = c.domain; });
   var pains = g.nodes.pains.map(function (p) {
@@ -373,6 +380,7 @@ function buildDashboard_() {
       cards: cards, noOwner: !cards.length && s[s.length - 1] >= READ_FLOOR,
       allZero: !s.some(function (v) { return v > 0; }),
       rule: classify_(s), themes: themesOf[p.code] || [],
+      trust: s.some(function (v) { return v > 0; }) ? (trust.byCode[p.code] || trust.unknown) : { state: 'none' },
       team: cardTeams.length ? cardTeams.join('、') : (PAIN_TEAM[p.code] || ''),
       teamFromCards: cardTeams.length > 0
     };
@@ -408,7 +416,11 @@ function buildDashboard_() {
     jiraAsOf: rm.as_of_date,
     jiraAgeDays: daysBetween_(rm.as_of_date, today_()),
     pains: pains,
-    outside: g.views.outside_catalog || [],
+    outside: (g.views.outside_catalog || []).map(function (o) {
+      return { code: o.code, latest: o.latest, theme: trust.topTheme[o.code] || null };
+    }),
+    untagged: trust.untagged,
+    trustSince: trust.since,
     unbacked: g.views.unbacked_voc_cards || [],
     cards: rm.cards.map(function (c) {
       return { key: c.key, summary: c.summary, stage: c.stage, project_status: c.project_status,
@@ -423,9 +435,60 @@ function buildDashboard_() {
     editorUrl: mapping._editor_url || '',
     teamPm: TEAM_PM,
     cardSheetUrl: CARD_SHEET_URL,
+    dataMemoUrl: DATA_MEMO_URL,
+    unmappedGuideUrl: UNMAPPED_GUIDE_URL,
     rules: { emergeMin: EMERGE_MIN, persistMin: PERSIST_MIN },
     slack: slackSummary_()
   };
+}
+
+/**
+ * 每個痛點的「可信度」：週報人數（關鍵字統計）有多少經過 AI 判讀、而且判成真痛點。
+ * 來源：STT Export 每天推進 repo 的 stt-latest.json（pains＝週報、coverage＝判讀覆蓋率），只有人數，沒有原話。
+ * ok＝可信（原話夠）／thin＝有人數但原話不足／unknown＝還沒有覆蓋率資料。週報全是 0 的痛點在呼叫端標 none。
+ */
+function trust_(themeNodes, last4) {
+  var out = { byCode: {}, unknown: { state: 'unknown' }, untagged: null, topTheme: {}, since: '' };
+  var doc = null;
+  try { doc = repoJson_('voc-graph/out/stt-latest.json', true); } catch (e) { console.log('[WARN] 覆蓋率讀不到：' + e.message); }
+  if (!doc || !doc.coverage || !doc.pains || !last4 || !last4.length) return out;
+  var last = last4[last4.length - 1];
+  // 覆蓋率必須涵蓋畫面的最近一週，否則不下判斷（避免整片誤標成「原話不足」）
+  if (!doc.coverage.some(function (r) { return r.window_start === last; })) return out;
+  out.since = last4[0];
+  var metric = {}, judged = {}, untag = {}, tagged = {};
+  doc.pains.forEach(function (r) {
+    if (last4.indexOf(r.window_start) >= 0) metric[r.code] = (metric[r.code] || 0) + (Number(r.streamers) || 0);
+  });
+  doc.coverage.forEach(function (r) {
+    if (r.exist !== 'TRUE_PAIN' || last4.indexOf(r.window_start) < 0) return;
+    var n = Number(r.streamers) || 0;
+    if (r.code === '(無代碼)') untag[r.window_start] = (untag[r.window_start] || 0) + n;
+    else {
+      judged[r.code] = (judged[r.code] || 0) + n;
+      tagged[r.window_start] = (tagged[r.window_start] || 0) + n;
+    }
+  });
+  Object.keys(metric).forEach(function (code) {
+    var m = metric[code], j = judged[code] || 0;
+    out.byCode[code] = { state: (j >= TRUST_MIN_JUDGED && j >= m * TRUST_MIN_SHARE) ? 'ok' : 'thin', metric4: m, judged4: j };
+  });
+  var u4 = last4.map(function (w) { return untag[w] || 0; });
+  out.untagged = { latest: untag[last] || 0, avg4: Math.round(u4.reduce(function (a, b) { return a + b; }, 0) / last4.length),
+                   taggedLatest: tagged[last] || 0, week: last };
+  var names = {};
+  (themeNodes || []).forEach(function (t) { names[t.code] = t.name; });
+  var tp = {};
+  (doc.theme_pain || []).forEach(function (r) {
+    if (last4.indexOf(r.window_start) < 0) return;
+    var k = r.pain + '|' + r.theme;
+    tp[k] = (tp[k] || 0) + (Number(r.streamers) || 0);
+  });
+  Object.keys(tp).forEach(function (k) {
+    var pr = k.split('|'), cur = out.topTheme[pr[0]];
+    if (!cur || tp[k] > cur.n) out.topTheme[pr[0]] = { code: pr[1], name: names[pr[1]] || '', n: tp[k] };
+  });
+  return out;
 }
 
 /** 三條時間段規則，每個痛點各自算。s＝由舊到新的週人數。 */
