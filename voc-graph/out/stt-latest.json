@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
- "fetched_at": "2026-10-06T23:33:12+00:00",
- "fetched_date": "2026-10-06",
+ "fetched_at": "2026-10-09T05:50:21+00:00",
+ "fetched_date": "2026-10-09",
  "fetched_by": "apps-script",
  "source_table": "media17-1119.DataLab_Ayana.stt_voc_judgments",
  "lookback_days": 63,
@@ -9,6 +9,7 @@
   "board": "priority='P1' ∧ exist='TRUE_PAIN' ∧ actionability ∈ PRODUCT/OPERATION_ACTIONABLE（F 主題母體）",
   "pain": "stt_voc_weekly_metrics 的 pain25（＝週報定点：正規表現檢知，不經 Gemini 判定，無 tier）",
   "streamers": "COUNT(DISTINCT userID)，主指標",
+  "coverage": "判定表全部列（不限 P1／lane）依 週×痛點代碼×exist 的人數；(無代碼)＝pain25_tags 沒有代碼",
   "precision_note": "Gemini 判定適合率 77–86%、再現率 96–100%（ayana n=90 盲檢）→ F 主題人數約多算 1–2 成"
  },
  "windows": [
@@ -4752,6 +4753,855 @@
    "theme": "F09",
    "pain": "S2.1",
    "streamers": 2
+  }
+ ],
+ "coverage": [
+  {
+   "window_start": "2026-08-10",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 633,
+   "rows": 1104
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 35,
+   "rows": 40
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 391,
+   "rows": 648
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "S2.0",
+   "exist": "NOISE",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 90,
+   "rows": 101
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 8,
+   "rows": 10
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 126,
+   "rows": 206
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "S2.2",
+   "exist": "TOPIC",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 3,
+   "rows": 3
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 5,
+   "rows": 6
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 57,
+   "rows": 65
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 3,
+   "rows": 3
+  },
+  {
+   "window_start": "2026-08-10",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 74,
+   "rows": 101
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 675,
+   "rows": 1148
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 40,
+   "rows": 43
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 537,
+   "rows": 1010
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 87,
+   "rows": 110
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 4,
+   "rows": 5
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 167,
+   "rows": 320
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "S2.2",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "U2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "U4.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 6,
+   "rows": 8
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "U6.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 54,
+   "rows": 65
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 8,
+   "rows": 9
+  },
+  {
+   "window_start": "2026-08-17",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 91,
+   "rows": 125
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 675,
+   "rows": 1232
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 44,
+   "rows": 52
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 454,
+   "rows": 753
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 106,
+   "rows": 130
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 11,
+   "rows": 13
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 120,
+   "rows": 218
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "U2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "U5.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 3,
+   "rows": 3
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "U6.0",
+   "exist": "TOPIC",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 6,
+   "rows": 14
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "U6.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 2,
+   "rows": 3
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 64,
+   "rows": 70
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 7,
+   "rows": 7
+  },
+  {
+   "window_start": "2026-08-24",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 81,
+   "rows": 99
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 710,
+   "rows": 1190
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 58,
+   "rows": 60
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 464,
+   "rows": 796
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "S2.0",
+   "exist": "NOISE",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 101,
+   "rows": 121
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 135,
+   "rows": 203
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "S2.2",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "U4.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "U5.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 3,
+   "rows": 3
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 10,
+   "rows": 15
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 71,
+   "rows": 98
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 8,
+   "rows": 9
+  },
+  {
+   "window_start": "2026-08-31",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 87,
+   "rows": 146
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 695,
+   "rows": 1210
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 49,
+   "rows": 59
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 459,
+   "rows": 730
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 75,
+   "rows": 104
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 7,
+   "rows": 8
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 124,
+   "rows": 214
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U4.0",
+   "exist": "TOPIC",
+   "streamers": 1,
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 4,
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 6,
+   "rows": 8
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U6.3",
+   "exist": "NOISE",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "U6.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 85,
+   "rows": 100
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 14,
+   "rows": 15
+  },
+  {
+   "window_start": "2026-09-07",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 108,
+   "rows": 165
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 793,
+   "rows": 1381
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 44,
+   "rows": 47
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 516,
+   "rows": 812
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 106,
+   "rows": 134
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 5,
+   "rows": 6
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 134,
+   "rows": 207
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "S2.2",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U4.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 12,
+   "rows": 12
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 8,
+   "rows": 14
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U6.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 74,
+   "rows": 92
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 5,
+   "rows": 7
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 94,
+   "rows": 148
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 778,
+   "rows": 1348
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 35,
+   "rows": 36
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 498,
+   "rows": 745
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 107,
+   "rows": 150
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 7,
+   "rows": 7
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 141,
+   "rows": 235
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 8,
+   "rows": 8
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 9,
+   "rows": 11
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "U6.3",
+   "exist": "TRUE_PAIN",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 54,
+   "rows": 68
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 11,
+   "rows": 12
+  },
+  {
+   "window_start": "2026-09-21",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 98,
+   "rows": 176
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "(無代碼)",
+   "exist": "NOISE",
+   "streamers": 741,
+   "rows": 1347
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "(無代碼)",
+   "exist": "TOPIC",
+   "streamers": 48,
+   "rows": 54
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "(無代碼)",
+   "exist": "TRUE_PAIN",
+   "streamers": 464,
+   "rows": 765
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.0",
+   "exist": "NOISE",
+   "streamers": 2,
+   "rows": 2
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 4,
+   "rows": 4
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.1",
+   "exist": "NOISE",
+   "streamers": 118,
+   "rows": 138
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.1",
+   "exist": "TOPIC",
+   "streamers": 8,
+   "rows": 11
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.1",
+   "exist": "TRUE_PAIN",
+   "streamers": 139,
+   "rows": 272
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.2",
+   "exist": "NOISE",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "S2.2",
+   "exist": "TRUE_PAIN",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U5.0",
+   "exist": "TOPIC",
+   "streamers": 1,
+   "rows": 1
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U6.0",
+   "exist": "NOISE",
+   "streamers": 10,
+   "rows": 15
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U6.0",
+   "exist": "TOPIC",
+   "streamers": 2,
+   "rows": 3
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "U6.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 8,
+   "rows": 10
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "X1.0",
+   "exist": "NOISE",
+   "streamers": 62,
+   "rows": 75
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "X1.0",
+   "exist": "TOPIC",
+   "streamers": 8,
+   "rows": 10
+  },
+  {
+   "window_start": "2026-09-28",
+   "code": "X1.0",
+   "exist": "TRUE_PAIN",
+   "streamers": 84,
+   "rows": 138
   }
  ]
 }
