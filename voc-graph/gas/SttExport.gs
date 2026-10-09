@@ -110,6 +110,17 @@ var SQL = {
       'ORDER BY window_start, streamers DESC'
     ].join('\n');
   },
+  // 判讀覆蓋率：每週 × 痛點代碼 × 判定結果的人數（不限 P1／lane，判定表裡全部的列）。
+  // 拿來對照 pains（週報定点人數），看哪些痛點「有人講、但幾乎沒被判讀」。沒有痛點代碼的列記成 (無代碼)。
+  coverage: function () {
+    return sqlBase_() + '\n' + [
+      "SELECT window_start, IFNULL(pain, '(無代碼)') AS code, exist,",
+      '  COUNT(DISTINCT userID) AS streamers, COUNT(*) AS rows_n',
+      'FROM base LEFT JOIN UNNEST(base.pains) AS pain',
+      'GROUP BY window_start, code, exist',
+      'ORDER BY window_start, code, exist'
+    ].join('\n');
+  },
   themePain: function () {
     return sqlBase_() + '\n' + [
       'SELECT window_start, theme, pain, COUNT(DISTINCT userID) AS streamers',
@@ -128,7 +139,8 @@ function testSttExport() {
   var w = doc.windows[doc.windows.length - 1];
   console.log('✅ BigQuery 讀取成功（沒有推 GitHub）');
   console.log('週數：' + doc.windows.length + '，最新窗：' + w.window_start + '〜' + w.window_end);
-  console.log('F 主題 ' + doc.themes.length + ' 列，25 痛點 ' + doc.pains.length + ' 列，共現 ' + doc.theme_pain.length + ' 列');
+  console.log('F 主題 ' + doc.themes.length + ' 列，25 痛點 ' + doc.pains.length + ' 列，共現 ' + doc.theme_pain.length +
+    ' 列，覆蓋率 ' + doc.coverage.length + ' 列');
   var latestPains = doc.pains.filter(function (r) { return r.window_start === w.window_start; }).slice(0, 5);
   console.log('最新窗痛點前 5：' + latestPains.map(function (r) { return r.code + '=' + r.streamers; }).join('、'));
   if (GITHUB_TOKEN.indexOf('PASTE_') === 0) {
@@ -178,11 +190,12 @@ function buildDoc_() {
   var themes = bqQuery_(SQL.themes(), 'F 主題');
   var pains = bqQuery_(SQL.pains(), '25 痛點');
   var themePain = bqQuery_(SQL.themePain(), '主題×痛點共現');
+  var coverage = bqQuery_(SQL.coverage(), '判讀覆蓋率');
 
   if (!windows.length) throw new Error(JUDGMENTS_TABLE + ' 最近 ' + LOOKBACK_DAYS + ' 天沒有任何窗');
   if (!pains.length) throw new Error(METRICS_TABLE + " 最近 " + LOOKBACK_DAYS + " 天沒有 pain25 —— 25 痛點會全部變 0，不寫檔");
 
-  [themes, pains].forEach(function (rows) {
+  [themes, pains, coverage].forEach(function (rows) {
     rows.forEach(function (r) { r.rows = r.rows_n; delete r.rows_n; });
   });
 
@@ -198,12 +211,14 @@ function buildDoc_() {
       board: "priority='P1' ∧ exist='TRUE_PAIN' ∧ actionability ∈ PRODUCT/OPERATION_ACTIONABLE（F 主題母體）",
       pain: 'stt_voc_weekly_metrics 的 pain25（＝週報定点：正規表現檢知，不經 Gemini 判定，無 tier）',
       streamers: 'COUNT(DISTINCT userID)，主指標',
+      coverage: '判定表全部列（不限 P1／lane）依 週×痛點代碼×exist 的人數；(無代碼)＝pain25_tags 沒有代碼',
       precision_note: 'Gemini 判定適合率 77–86%、再現率 96–100%（ayana n=90 盲檢）→ F 主題人數約多算 1–2 成'
     },
     windows: windows,
     themes: themes,
     pains: pains,
-    theme_pain: themePain
+    theme_pain: themePain,
+    coverage: coverage
   };
 }
 

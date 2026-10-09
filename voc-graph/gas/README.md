@@ -3,6 +3,8 @@
 這支 Apps Script 每天 08:30 JST，用**你本人的 BigQuery 權限**讀 STT 統計數字，推進 repo 的
 `voc-graph/out/stt-latest.json`。不產生任何 GCP 金鑰（公司禁止），只抓聚合後的數字，不抓原話。
 
+2026-10-09 起多推一份 `coverage`（判讀覆蓋率：每週 × 痛點代碼 × 判定結果的人數），用來看哪些痛點有人講卻幾乎沒被判讀。更新方式：打開 `STT Export` 專案 → 先把 `GITHUB_TOKEN` 那行抄下來 → 貼上新版全文 → 把那行貼回去 → 存檔 → 執行 `runDaily`。
+
 約 15 分鐘。
 
 ---
