@@ -252,7 +252,7 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     var pm = p.team.split("、").map(pmOf).filter(Boolean);
     return p.team + (pm.length ? "（" + pm.join("、") + "）" : "");
   }
-  /* 上週 vs 緊接在前的 4 週平均（和新興／持續規則用的週段不同，這裡只是給人看的比較） */
+  /* 上週 vs 緊接在前的 4 週平均。新興規則用的是另一段（再往前 4 週），規則那一行會寫出週次，避免同名不同數 */
   function prev4(p) { var a = p.series.slice(-5, -1); return a.length === 4 ? a.reduce(function (x, y) { return x + y; }, 0) / 4 : null; }
   function trendWords(p) {
     var b = prev4(p);
@@ -531,7 +531,8 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     box.appendChild(el("h3", { text: "為什麼要注意" }));
     box.appendChild(chartFrame(p));
     box.appendChild(el("div", { class: "rules" }, [
-      ruleLine(r.emerging, "新興高熱：最近 2 週平均 " + r.recent2 + " 位（門檻 ≥ " + R.emergeMin + "），前 4 週平均 " + r.prior4 + " 位" +
+      ruleLine(r.emerging, "新興高熱：最近 2 週平均 " + r.recent2 + " 位（門檻 ≥ " + R.emergeMin + "），再往前 4 週（" +
+        weekLbl[Math.max(0, weekLbl.length - 6)] + "–" + weekLbl[Math.max(0, weekLbl.length - 3)] + "）平均 " + r.prior4 + " 位" +
         (r.prior4 >= 2 ? "，是 " + (r.prior4 ? (r.recent2 / r.prior4).toFixed(1) : "—") + " 倍（門檻 ≥ 2 倍）" : "（< 2 位，不看倍數）")),
       ruleLine(r.persistent, "持續高熱：最近 6 週有 " + r.hotWeeks + " 週 ≥ " + R.persistMin + " 位（門檻 ≥ 4 週）"),
       ruleLine(r.fading, "消退：最近 3 週每週都比前一週低（" + p.series.slice(-4).join(" → ") + "）")
@@ -892,8 +893,9 @@ footer.src>details>summary{cursor:pointer;font-family:var(--font-sans);font-size
     s.forEach(function (v, i) {
       var x = L + i * bw + bw * 0.16, w = bw * 0.68, hi = i >= s.length - 2;
       g.appendChild(svg("rect", { x: x, y: y(v), width: w, height: Math.max(0, y(0) - y(v)), fill: hi ? "var(--accent)" : "var(--context)" }));
-      if (hi || W >= 420 || i % step === 0) g.appendChild(vt({ x: x + w / 2, y: y(v) - 5, "text-anchor": "middle", "font-size": 13, fill: hi ? "var(--accent)" : "var(--ink)", "font-weight": hi ? 700 : 400, "font-family": "var(--font-sans)" }, String(v)));
-      if (i % step === 0 || i === s.length - 1) g.appendChild(svgText({ x: x + w / 2, y: H - 6, "text-anchor": "middle", "font-size": 12, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, weekLbl[i]));
+      var showLbl = (s.length - 1 - i) % step === 0;   // 從最後一週往回數，最近兩週的標籤不會擠在一起
+      if (hi || W >= 420 || showLbl) g.appendChild(vt({ x: x + w / 2, y: y(v) - 5, "text-anchor": "middle", "font-size": 13, fill: hi ? "var(--accent)" : "var(--ink)", "font-weight": hi ? 700 : 400, "font-family": "var(--font-sans)" }, String(v)));
+      if (showLbl) g.appendChild(svgText({ x: x + w / 2, y: H - 6, "text-anchor": "middle", "font-size": 12, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, weekLbl[i]));
     });
     g.appendChild(svgText({ x: L - 6, y: y(0) + 4, "text-anchor": "end", "font-size": 12, fill: "var(--ink-2)", "font-family": "var(--font-sans)" }, "0"));
     return g;

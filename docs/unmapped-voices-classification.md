@@ -2,7 +2,7 @@
 
 **目的：** 儀表板「清單外的聲音」有兩群主播的抱怨，沒有對到 25 個痛點：
 
-- **沒有痛點代碼的真痛點：** AI 判成真痛點，但沒標上任何痛點代碼。每週約 400–540 位主播（9/28 那週 464 位），粗估約占全部真痛點的 2/3（有代碼的人數是逐痛點加總，一人可能被算多次）。
+- **沒有痛點代碼的真痛點：** AI 判成真痛點，但沒標上任何痛點代碼。每週約 400–540 位主播，粗估約占全部真痛點的 2/3（有代碼的人數是逐痛點加總，一人可能被算多次）。
 - **X1.0：** 週報有統計，但不在痛點清單。每週約 290 位主播，多數落在主題 F01「通知・フォロー保全」。
 
 這份說明讓另一個 Claude 對話把這些聲音分類，交出固定格式的結果。結果只含人數、代碼、關鍵字，**不含原話與主播 ID**。所以可以貼回 Claude Code，再更新儀表板與給資料團隊的需求說明。
@@ -44,7 +44,7 @@ SELECT
 FROM t
 WHERE ARRAY_LENGTH(codes) = 0
    OR (ARRAY_LENGTH(codes) = 1 AND codes[OFFSET(0)] = 'X1.0')
-QUALIFY ROW_NUMBER() OVER (PARTITION BY COALESCE(userID, hit_id) ORDER BY window_start DESC, hit_id) = 1
+QUALIFY ROW_NUMBER() OVER (PARTITION BY COALESCE(CAST(userID AS STRING), hit_id) ORDER BY window_start DESC, hit_id) = 1
 ORDER BY FARM_FINGERPRINT(hit_id)
 LIMIT 800
 ```
