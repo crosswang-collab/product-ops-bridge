@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
- "fetched_at": "2026-10-19T23:33:17+00:00",
- "fetched_date": "2026-10-19",
+ "fetched_at": "2026-10-20T23:33:24+00:00",
+ "fetched_date": "2026-10-20",
  "fetched_by": "apps-script",
  "source_table": "media17-1119.DataLab_Ayana.stt_voc_judgments",
  "lookback_days": 63,
@@ -2825,21 +2825,21 @@
   },
   {
    "window_start": "2026-09-14",
-   "code": "U5.0",
-   "streamers": 3,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-09-14",
    "code": "U6.3",
    "streamers": 3,
    "stop_streamers": null,
    "top_streamers": null,
    "sample_hit_ids": [],
    "rows": 3
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U5.0",
+   "streamers": 3,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 4
   },
   {
    "window_start": "2026-09-14",
@@ -3455,6 +3455,186 @@
   },
   {
    "window_start": "2026-10-05",
+   "code": "U6.3",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "X1.0",
+   "streamers": 271,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 451
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "S2.1",
+   "streamers": 180,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 317
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U4.1",
+   "streamers": 61,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 93
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "S2.0",
+   "streamers": 58,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 75
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U4.4",
+   "streamers": 52,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 61
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U6.0",
+   "streamers": 20,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 30
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U2.0",
+   "streamers": 10,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 10
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "S2.2",
+   "streamers": 8,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 8
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U2.2",
+   "streamers": 8,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 12
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U4.0",
+   "streamers": 7,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 7
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U4.2",
+   "streamers": 6,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 6
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U2.1",
+   "streamers": 5,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 5
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U2.4",
+   "streamers": 4,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 7
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U5.0",
+   "streamers": 3,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 3
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U5.3",
+   "streamers": 3,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 4
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "S2.3",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U2.3",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U4.3",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-10-12",
+   "code": "U5.2",
+   "streamers": 2,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 2
+  },
+  {
+   "window_start": "2026-10-12",
    "code": "U6.3",
    "streamers": 1,
    "stop_streamers": null,
