@@ -1,0 +1,6 @@
+# Raw JIRA dump (contains verbatim descriptions/comments) — keep out of the repo:
+# the repo may be deployed as a static site, and the dashboard promises
+# "plain summaries only, no raw JIRA comments".
+data/appideas_open.json
+__pycache__/
+.DS_Store

@@ -1,0 +1,502 @@
+[
+ {
+  "key": "APPIDEAS-1888",
+  "status": "Discovery",
+  "summary": "[iOS only] Liquid glass mode support"
+ },
+ {
+  "key": "APPIDEAS-2133",
+  "status": "Parking lot",
+  "summary": "[Merchandise] Gacha Management - Archive"
+ },
+ {
+  "key": "APPIDEAS-2112",
+  "status": "DESIGN - UX/UI",
+  "summary": "[Stream Highlight Clips] Highlight Auto Suggestion"
+ },
+ {
+  "key": "APPIDEAS-2161",
+  "status": "Parking lot",
+  "summary": "Streamers can select event templates to create mini-events"
+ },
+ {
+  "key": "APPIDEAS-2172",
+  "status": "Parking lot",
+  "summary": "[In-Stream] Golden 5 Mins: Final Highlight Boost"
+ },
+ {
+  "key": "APPIDEAS-2013",
+  "status": "Parking lot",
+  "summary": "[Tech]Matomo event integrate to Engagement reward script"
+ },
+ {
+  "key": "APPIDEAS-2115",
+  "status": "Parking lot",
+  "summary": "Marquee Optimization"
+ },
+ {
+  "key": "APPIDEAS-1928",
+  "status": "DESIGN - UX/UI",
+  "summary": "Call in - Army only stream"
+ },
+ {
+  "key": "APPIDEAS-2169",
+  "status": "DESIGN - UX/UI",
+  "summary": "[Commercial] Enable PK and Group Call for Streamers Using 17Shop and Gacha"
+ },
+ {
+  "key": "APPIDEAS-2150",
+  "status": "Design - Refinement",
+  "summary": "[Tech] Change Deepgram solution to Tencent"
+ },
+ {
+  "key": "APPIDEAS-2155",
+  "status": "Design - Story map",
+  "summary": "[Tech] Improve Translation Scenario"
+ },
+ {
+  "key": "APPIDEAS-2121",
+  "status": "Parking lot",
+  "summary": "[AI Cohost] Help Streamer Grow with Real-time Support"
+ },
+ {
+  "key": "APPIDEAS-2116",
+  "status": "Parking lot",
+  "summary": "Gift Animation Optimization"
+ },
+ {
+  "key": "APPIDEAS-2144",
+  "status": "Parking lot",
+  "summary": "[Tech] Cube System - Add easy-to-use processes and permissions"
+ },
+ {
+  "key": "APPIDEAS-2170",
+  "status": "Parking lot",
+  "summary": "Streamer Incentive: Exposure Rewards"
+ },
+ {
+  "key": "APPIDEAS-1940",
+  "status": "Parking lot",
+  "summary": "Implement Gemini Grounding to benefit internal/external search"
+ },
+ {
+  "key": "APPIDEAS-2135",
+  "status": "Design - UX READY",
+  "summary": "[Merchandise] Stream Room Gacha Reveal - Comment"
+ },
+ {
+  "key": "APPIDEAS-2104",
+  "status": "Parking lot",
+  "summary": "Content Evaluation Automation Integration"
+ },
+ {
+  "key": "APPIDEAS-2132",
+  "status": "Design - Refinement",
+  "summary": "[Tech] Agent platform - Agent service (langgraph) & 17 MCP Server"
+ },
+ {
+  "key": "APPIDEAS-2073",
+  "status": "Parking lot",
+  "summary": "test yoyo"
+ },
+ {
+  "key": "APPIDEAS-1927",
+  "status": "Design - Refinement",
+  "summary": "Enable Direct Message in JP"
+ },
+ {
+  "key": "APPIDEAS-1822",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Prize system ph-1 (Cash)"
+ },
+ {
+  "key": "APPIDEAS-1938",
+  "status": "Delivery - Develop In Progress",
+  "summary": "2026/10/1 Japan Consumption Tax Reform ph-3"
+ },
+ {
+  "key": "APPIDEAS-1986",
+  "status": "Discovery",
+  "summary": "New application flow in JP region ph-4, create contract for streamers"
+ },
+ {
+  "key": "APPIDEAS-2128",
+  "status": "Design - Refinement",
+  "summary": "[Merchandise] Mystery Gacha"
+ },
+ {
+  "key": "APPIDEAS-1933",
+  "status": "Delivery - Develop In Progress",
+  "summary": "[Tech] Scriptable Event entrance/Mission progress/Leaderboard UI module"
+ },
+ {
+  "key": "APPIDEAS-1797",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Profile Revamp Phase 1"
+ },
+ {
+  "key": "APPIDEAS-2084",
+  "status": "Delivery - Develop In Progress",
+  "summary": "[For You Page] Personalisation Section Sorting Algorithm Improvements"
+ },
+ {
+  "key": "APPIDEAS-2020",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Drive Web Traffic to App via Login Gating"
+ },
+ {
+  "key": "APPIDEAS-2131",
+  "status": "Delivery - Develop In Progress",
+  "summary": "[AI Cohost] Response Improvement"
+ },
+ {
+  "key": "APPIDEAS-2118",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Deco Tool- Text- improvement"
+ },
+ {
+  "key": "APPIDEAS-1866",
+  "status": "Delivery - Develop In Progress",
+  "summary": "OBS Plugin Phase 3 - Better Interactive Experience"
+ },
+ {
+  "key": "APPIDEAS-2021",
+  "status": "Dev/QA Done",
+  "summary": "Deliver Thanks guideline by integrate action engine from strategy engine (GenPost)"
+ },
+ {
+  "key": "APPIDEAS-2018",
+  "status": "Dev/QA Done",
+  "summary": "Generate customized interaction suggestion for streamer from strategy engine"
+ },
+ {
+  "key": "APPIDEAS-2014",
+  "status": "Parking lot",
+  "summary": "[AI Stream Highlight Clips - Phase 1] Stream Retrieval Slack bot"
+ },
+ {
+  "key": "APPIDEAS-2171",
+  "status": "Parking lot",
+  "summary": "Ice Breaking Phase 2"
+ },
+ {
+  "key": "APPIDEAS-2124",
+  "status": "Delivery - Develop In Progress",
+  "summary": "[Cube System] Template Editor for Generic Lottery Mechanism & Event Frontend Builder"
+ },
+ {
+  "key": "APPIDEAS-2113",
+  "status": "Parking lot",
+  "summary": "[Skyeye] Short version Lokalise key"
+ },
+ {
+  "key": "APPIDEAS-2138",
+  "status": "Parking lot",
+  "summary": "[Merchandise] Viewer Gacha Insights"
+ },
+ {
+  "key": "APPIDEAS-2137",
+  "status": "Parking lot",
+  "summary": "[Merchandise] Gacha Leaderboard"
+ },
+ {
+  "key": "APPIDEAS-2136",
+  "status": "Parking lot",
+  "summary": "[Merchandise] Stream Room Gacha Reveal - Animations"
+ },
+ {
+  "key": "APPIDEAS-2134",
+  "status": "Parking lot",
+  "summary": "[Merchandise] Gacha Creation Studio (Phase 1: Image & Animation)"
+ },
+ {
+  "key": "APPIDEAS-2152",
+  "status": "Parking lot",
+  "summary": "Personalized Stream Room"
+ },
+ {
+  "key": "APPIDEAS-2151",
+  "status": "Parking lot",
+  "summary": "Deco Tool- Pre-stream setting"
+ },
+ {
+  "key": "APPIDEAS-2149",
+  "status": "Parking lot",
+  "summary": "[Tech] QUIC on viewer side"
+ },
+ {
+  "key": "APPIDEAS-2147",
+  "status": "Parking lot",
+  "summary": "AIGC- Effect generation"
+ },
+ {
+  "key": "APPIDEAS-2127",
+  "status": "Parking lot",
+  "summary": "Animaker improvement"
+ },
+ {
+  "key": "APPIDEAS-2160",
+  "status": "Parking lot",
+  "summary": "Launch One New Interactive Mini Game Gift"
+ },
+ {
+  "key": "APPIDEAS-2159",
+  "status": "Parking lot",
+  "summary": "Build an Interactive Game Gift Framework with Godot"
+ },
+ {
+  "key": "APPIDEAS-2157",
+  "status": "Parking lot",
+  "summary": "[AI Stream Highlight Clips] Streamer Self-tag Highlights"
+ },
+ {
+  "key": "APPIDEAS-2156",
+  "status": "Parking lot",
+  "summary": "[AI Stream Highlight Clips] AI Highlight detection"
+ },
+ {
+  "key": "APPIDEAS-2154",
+  "status": "Parking lot",
+  "summary": "Improve user experience for externally sharing clips - Simplify the sharing flow"
+ },
+ {
+  "key": "APPIDEAS-2153",
+  "status": "Parking lot",
+  "summary": "Improve user experience for externally sharing clips - Jasrac"
+ },
+ {
+  "key": "APPIDEAS-2148",
+  "status": "Parking lot",
+  "summary": "[Tech] Pre-stream Speed Test + System Recommended Resolution"
+ },
+ {
+  "key": "APPIDEAS-2080",
+  "status": "Parking lot",
+  "summary": "Animaker- auto trigger"
+ },
+ {
+  "key": "APPIDEAS-2168",
+  "status": "Parking lot",
+  "summary": "[Tech]Package Release note promotion as skill"
+ },
+ {
+  "key": "APPIDEAS-2035",
+  "status": "Delivery - Develop In Progress",
+  "summary": "[Data] Data analysis - 2026 Q2"
+ },
+ {
+  "key": "APPIDEAS-2053",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Build AI Agent Lisa/Phison Infrastructure to Automate DE Routine Tasks and Alert Handling"
+ },
+ {
+  "key": "APPIDEAS-2049",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Build DE On-call Debug Skills and AI Automation to Reduce Incidents and Operational Time"
+ },
+ {
+  "key": "APPIDEAS-2028",
+  "status": "Parking lot",
+  "summary": "⬇️ 2026 H2 Roadmap Candidates ⬇️ "
+ },
+ {
+  "key": "APPIDEAS-2059",
+  "status": "Discovery",
+  "summary": "[Algo Optimization] Implement Viewer Profiling for Attribute-Based Personalized Recommendations"
+ },
+ {
+  "key": "APPIDEAS-2125",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Wave Integrate Eventory Snapshot Segmentation Conditions"
+ },
+ {
+  "key": "APPIDEAS-2045",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Build Slackbot SLO Monitoring and Unified Dashboard for Better Observability"
+ },
+ {
+  "key": "APPIDEAS-1836",
+  "status": "Parking lot",
+  "summary": "Archive and clip support PK streams"
+ },
+ {
+  "key": "APPIDEAS-2007",
+  "status": "Parking lot",
+  "summary": "AIGC platform - Enable streamers to use BBC buy AI quota point"
+ },
+ {
+  "key": "APPIDEAS-2167",
+  "status": "Parking lot",
+  "summary": "Build streamer growth agent"
+ },
+ {
+  "key": "APPIDEAS-2165",
+  "status": "Parking lot",
+  "summary": "Build AI / Agent Feedback loop and implement on customized interaction suggestion / Tks guideline improvement"
+ },
+ {
+  "key": "APPIDEAS-2163",
+  "status": "Parking lot",
+  "summary": "Mini Event Performance Feedback & Analytics"
+ },
+ {
+  "key": "APPIDEAS-2032",
+  "status": "Parking lot",
+  "summary": "[Tech]Vote Enter Stream - new action criteria"
+ },
+ {
+  "key": "APPIDEAS-2031",
+  "status": "Parking lot",
+  "summary": "[Tech]Top N reward - new action criteria"
+ },
+ {
+  "key": "APPIDEAS-2030",
+  "status": "Parking lot",
+  "summary": "[Tech]Send Snack - new action criteria"
+ },
+ {
+  "key": "APPIDEAS-2166",
+  "status": "Parking lot",
+  "summary": "[Tech]Package Thanks guideline as Skill"
+ },
+ {
+  "key": "APPIDEAS-2162",
+  "status": "Parking lot",
+  "summary": "Viewer task participation with Lucky Draw experience (Cube)"
+ },
+ {
+  "key": "APPIDEAS-2158",
+  "status": "Discovery",
+  "summary": "Test Ticket - auto update Epic Ticket Due Date"
+ },
+ {
+  "key": "APPIDEAS-2122",
+  "status": "Discovery",
+  "summary": "Ponta Point 服務系統遷移相關測試"
+ },
+ {
+  "key": "APPIDEAS-2126",
+  "status": "Delivery - Develop In Progress",
+  "summary": "[SkyEye] Army rank name info move to slack thread after taking action - Add Data to Dashboard"
+ },
+ {
+  "key": "APPIDEAS-2068",
+  "status": "Discovery",
+  "summary": "[Tech] GenPost "
+ },
+ {
+  "key": "APPIDEAS-2047",
+  "status": "Delivery - Develop In Progress",
+  "summary": "Optimize Mongo and Realtime Data Update Strategy to Reduce GCP Costs"
+ },
+ {
+  "key": "APPIDEAS-1756",
+  "status": "Discovery",
+  "summary": "Reduce App network traffic usage - Dynamic downloading enhancement"
+ },
+ {
+  "key": "APPIDEAS-2130",
+  "status": "Discovery",
+  "summary": "jenn test "
+ },
+ {
+  "key": "APPIDEAS-2016",
+  "status": "Parking lot",
+  "summary": "[PoC] 漫劇"
+ },
+ {
+  "key": "APPIDEAS-2129",
+  "status": "Parking lot",
+  "summary": "[POC] Feasibility Study for Managing 17.live Website SEO Meta Data via CMS"
+ },
+ {
+  "key": "APPIDEAS-1475",
+  "status": "Design - Story map",
+  "summary": "Test idea"
+ },
+ {
+  "key": "APPIDEAS-4",
+  "status": "Parking lot",
+  "summary": "Improve conversions"
+ },
+ {
+  "key": "APPIDEAS-7",
+  "status": "Parking lot",
+  "summary": "Something we are not going to do"
+ },
+ {
+  "key": "APPIDEAS-11",
+  "status": "Parking lot",
+  "summary": "Add tracking for specific banners on the Genre Page"
+ },
+ {
+  "key": "APPIDEAS-13",
+  "status": "Parking lot",
+  "summary": "CSAT Survey enhancement"
+ },
+ {
+  "key": "APPIDEAS-17",
+  "status": "Parking lot",
+  "summary": "Enable user to reject army gift subscription upon receiving"
+ },
+ {
+  "key": "APPIDEAS-19",
+  "status": "Parking lot",
+  "summary": "Show the Red Envelope gift tab by available RE in region"
+ },
+ {
+  "key": "APPIDEAS-20",
+  "status": "Parking lot",
+  "summary": "Event leaderboard category in Genre page"
+ },
+ {
+  "key": "APPIDEAS-24",
+  "status": "Parking lot",
+  "summary": "[Gamifying 17LIVE - part 1] Horse Racing Game"
+ },
+ {
+  "key": "APPIDEAS-30",
+  "status": "Parking lot",
+  "summary": "PAG Gift"
+ },
+ {
+  "key": "APPIDEAS-31",
+  "status": "Design - Refinement",
+  "summary": "[Competitive Interaction Game - ph2] - Support competition game logic in PK"
+ },
+ {
+  "key": "APPIDEAS-32",
+  "status": "Parking lot",
+  "summary": "Good V-Liver OBS - P1 - Chat Box Overlay"
+ },
+ {
+  "key": "APPIDEAS-34",
+  "status": "Parking lot",
+  "summary": "Mark the highlight moment on archive with message"
+ },
+ {
+  "key": "APPIDEAS-37",
+  "status": "Parking lot",
+  "summary": "SkyEye - Monitor and observe user's feedback and pain point within our App community via content moderation tool"
+ },
+ {
+  "key": "APPIDEAS-40",
+  "status": "Parking lot",
+  "summary": "Show Users Trending Content"
+ },
+ {
+  "key": "APPIDEAS-47",
+  "status": "Parking lot",
+  "summary": "Enable Streamers to Control and Limit Access To Their Streams"
+ },
+ {
+  "key": "APPIDEAS-50",
+  "status": "Parking lot",
+  "summary": "A new kind of exclusive gifts that appear on certain conditions"
+ },
+ {
+  "key": "APPIDEAS-60",
+  "status": "Parking lot",
+  "summary": "Stickiness Negotiation"
+ }
+]
