@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
- "fetched_at": "2026-10-20T23:33:24+00:00",
- "fetched_date": "2026-10-20",
+ "fetched_at": "2026-10-26T23:33:15+00:00",
+ "fetched_date": "2026-10-26",
  "fetched_by": "apps-script",
  "source_table": "media17-1119.DataLab_Ayana.stt_voc_judgments",
  "lookback_days": 63,
@@ -13,20 +13,6 @@
   "precision_note": "Gemini 判定適合率 77–86%、再現率 96–100%（ayana n=90 盲檢）→ F 主題人數約多算 1–2 成"
  },
  "windows": [
-  {
-   "window_start": "2026-08-24",
-   "window_end": "2026-08-30",
-   "judged_rows": 2595,
-   "true_pain_rows": 1087,
-   "board_rows": 524,
-   "board_streamers": 318,
-   "prompt_versions": [
-    "v6"
-   ],
-   "dict_versions": [
-    "v6.5"
-   ]
-  },
   {
    "window_start": "2026-08-31",
    "window_end": "2026-09-06",
@@ -113,289 +99,6 @@
   }
  ],
  "themes": [
-  {
-   "window_start": "2026-08-24",
-   "code": "F01",
-   "streamers": 117,
-   "stop_streamers": 19,
-   "top_streamers": 21,
-   "sample_hit_ids": [
-    "H20260824_00019",
-    "H20260824_00038",
-    "H20260824_00052"
-   ],
-   "rows": 165
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F05",
-   "streamers": 81,
-   "stop_streamers": 9,
-   "top_streamers": 20,
-   "sample_hit_ids": [
-    "H20260824_00176",
-    "H20260824_00426",
-    "H20260824_00669"
-   ],
-   "rows": 125
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F20",
-   "streamers": 51,
-   "stop_streamers": 8,
-   "top_streamers": 7,
-   "sample_hit_ids": [
-    "H20260824_00181",
-    "H20260824_00301",
-    "H20260824_00906"
-   ],
-   "rows": 61
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F06",
-   "streamers": 48,
-   "stop_streamers": 9,
-   "top_streamers": 6,
-   "sample_hit_ids": [
-    "H20260824_00122",
-    "H20260824_00282",
-    "H20260824_00399"
-   ],
-   "rows": 67
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F04",
-   "streamers": 42,
-   "stop_streamers": 6,
-   "top_streamers": 7,
-   "sample_hit_ids": [
-    "H20260824_00104",
-    "H20260824_00105",
-    "H20260824_00168"
-   ],
-   "rows": 54
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F09",
-   "streamers": 38,
-   "stop_streamers": 6,
-   "top_streamers": 3,
-   "sample_hit_ids": [
-    "H20260824_00179",
-    "H20260824_00449",
-    "H20260824_00851"
-   ],
-   "rows": 44
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F03",
-   "streamers": 33,
-   "stop_streamers": 6,
-   "top_streamers": 5,
-   "sample_hit_ids": [
-    "H20260824_00301",
-    "H20260824_01099",
-    "H20260824_01108"
-   ],
-   "rows": 35
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F16",
-   "streamers": 23,
-   "stop_streamers": 8,
-   "top_streamers": 4,
-   "sample_hit_ids": [
-    "H20260824_01620",
-    "H20260824_01681",
-    "H20260824_02496"
-   ],
-   "rows": 32
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F07",
-   "streamers": 20,
-   "stop_streamers": 1,
-   "top_streamers": 2,
-   "sample_hit_ids": [
-    "H20260824_00511",
-    "H20260824_00720",
-    "H20260824_00990"
-   ],
-   "rows": 21
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F17",
-   "streamers": 14,
-   "stop_streamers": 6,
-   "top_streamers": 1,
-   "sample_hit_ids": [
-    "H20260824_00657",
-    "H20260824_01347",
-    "H20260824_02758"
-   ],
-   "rows": 21
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F18",
-   "streamers": 10,
-   "stop_streamers": 3,
-   "top_streamers": 1,
-   "sample_hit_ids": [
-    "H20260824_00990",
-    "H20260824_01197",
-    "H20260824_01560"
-   ],
-   "rows": 10
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F15",
-   "streamers": 7,
-   "stop_streamers": 2,
-   "top_streamers": 1,
-   "sample_hit_ids": [
-    "H20260824_00780",
-    "H20260824_02496",
-    "H20260824_03774"
-   ],
-   "rows": 7
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "E01",
-   "streamers": 6,
-   "stop_streamers": 2,
-   "top_streamers": 0,
-   "sample_hit_ids": [
-    "H20260824_01560",
-    "H20260824_01620",
-    "H20260824_03138"
-   ],
-   "rows": 6
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F11",
-   "streamers": 5,
-   "stop_streamers": 1,
-   "top_streamers": 0,
-   "sample_hit_ids": [
-    "H20260824_00449",
-    "H20260824_01974",
-    "H20260824_03265"
-   ],
-   "rows": 5
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F08",
-   "streamers": 4,
-   "stop_streamers": 0,
-   "top_streamers": 1,
-   "sample_hit_ids": [
-    "H20260824_00168",
-    "H20260824_00169",
-    "H20260824_01042"
-   ],
-   "rows": 6
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F21",
-   "streamers": 4,
-   "stop_streamers": 0,
-   "top_streamers": 0,
-   "sample_hit_ids": [
-    "H20260824_00851",
-    "H20260824_00999",
-    "H20260824_01052"
-   ],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F14",
-   "streamers": 4,
-   "stop_streamers": 1,
-   "top_streamers": 2,
-   "sample_hit_ids": [
-    "H20260824_00989",
-    "H20260824_01125",
-    "H20260824_04888"
-   ],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F19",
-   "streamers": 4,
-   "stop_streamers": 0,
-   "top_streamers": 0,
-   "sample_hit_ids": [
-    "H20260824_03055",
-    "H20260824_03306",
-    "H20260824_05314"
-   ],
-   "rows": 5
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "NEW",
-   "streamers": 3,
-   "stop_streamers": 0,
-   "top_streamers": 0,
-   "sample_hit_ids": [
-    "H20260824_02652",
-    "H20260824_05203",
-    "H20260824_05930"
-   ],
-   "rows": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F13",
-   "streamers": 3,
-   "stop_streamers": 1,
-   "top_streamers": 1,
-   "sample_hit_ids": [
-    "H20260824_01636",
-    "H20260824_03350",
-    "H20260824_03981"
-   ],
-   "rows": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F02",
-   "streamers": 2,
-   "stop_streamers": 1,
-   "top_streamers": 0,
-   "sample_hit_ids": [
-    "H20260824_00870",
-    "H20260824_05311"
-   ],
-   "rows": 2
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "F12",
-   "streamers": 1,
-   "stop_streamers": 0,
-   "top_streamers": 1,
-   "sample_hit_ids": [
-    "H20260824_01777"
-   ],
-   "rows": 1
-  },
   {
    "window_start": "2026-08-31",
    "code": "F01",
@@ -2095,213 +1798,6 @@
  ],
  "pains": [
   {
-   "window_start": "2026-08-24",
-   "code": "X1.0",
-   "streamers": 258,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 382
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.1",
-   "streamers": 213,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 370
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.0",
-   "streamers": 117,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 202
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U4.1",
-   "streamers": 91,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 113
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U4.4",
-   "streamers": 86,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 99
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U4.0",
-   "streamers": 19,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 25
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U2.1",
-   "streamers": 12,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 14
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U6.0",
-   "streamers": 11,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 20
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U2.0",
-   "streamers": 9,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 10
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U2.2",
-   "streamers": 9,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 11
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U4.2",
-   "streamers": 9,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 13
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U5.0",
-   "streamers": 6,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 6
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U2.3",
-   "streamers": 5,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 5
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U2.4",
-   "streamers": 4,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 5
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U5.2",
-   "streamers": 4,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.2",
-   "streamers": 3,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U4.3",
-   "streamers": 3,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U5.3",
-   "streamers": 3,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U6.3",
-   "streamers": 3,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.4",
-   "streamers": 2,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.3",
-   "streamers": 1,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 1
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U5.1",
-   "streamers": 1,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 2
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U5.4",
-   "streamers": 1,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 1
-  },
-  {
    "window_start": "2026-08-31",
    "code": "X1.0",
    "streamers": 256,
@@ -2366,7 +1862,7 @@
   },
   {
    "window_start": "2026-08-31",
-   "code": "U4.2",
+   "code": "U2.0",
    "streamers": 15,
    "stop_streamers": null,
    "top_streamers": null,
@@ -2375,7 +1871,7 @@
   },
   {
    "window_start": "2026-08-31",
-   "code": "U2.0",
+   "code": "U4.2",
    "streamers": 15,
    "stop_streamers": null,
    "top_streamers": null,
@@ -2825,21 +2321,21 @@
   },
   {
    "window_start": "2026-09-14",
-   "code": "U6.3",
-   "streamers": 3,
-   "stop_streamers": null,
-   "top_streamers": null,
-   "sample_hit_ids": [],
-   "rows": 3
-  },
-  {
-   "window_start": "2026-09-14",
    "code": "U5.0",
    "streamers": 3,
    "stop_streamers": null,
    "top_streamers": null,
    "sample_hit_ids": [],
    "rows": 4
+  },
+  {
+   "window_start": "2026-09-14",
+   "code": "U6.3",
+   "streamers": 3,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 3
   },
   {
    "window_start": "2026-09-14",
@@ -3645,96 +3141,6 @@
  ],
  "theme_pain": [
   {
-   "window_start": "2026-08-24",
-   "theme": "F05",
-   "pain": "S2.1",
-   "streamers": 117
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F01",
-   "pain": "X1.0",
-   "streamers": 80
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F06",
-   "pain": "S2.1",
-   "streamers": 6
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F16",
-   "pain": "U6.0",
-   "streamers": 6
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F07",
-   "pain": "S2.1",
-   "streamers": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F16",
-   "pain": "S2.1",
-   "streamers": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F03",
-   "pain": "X1.0",
-   "streamers": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F05",
-   "pain": "U6.0",
-   "streamers": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F17",
-   "pain": "U6.0",
-   "streamers": 4
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F09",
-   "pain": "S2.1",
-   "streamers": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F19",
-   "pain": "S2.1",
-   "streamers": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F17",
-   "pain": "S2.1",
-   "streamers": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F06",
-   "pain": "S2.0",
-   "streamers": 2
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F20",
-   "pain": "X1.0",
-   "streamers": 2
-  },
-  {
-   "window_start": "2026-08-24",
-   "theme": "F16",
-   "pain": "U6.3",
-   "streamers": 2
-  },
-  {
    "window_start": "2026-08-31",
    "theme": "F05",
    "pain": "S2.1",
@@ -4312,118 +3718,6 @@
   }
  ],
  "coverage": [
-  {
-   "window_start": "2026-08-24",
-   "code": "(無代碼)",
-   "exist": "NOISE",
-   "streamers": 675,
-   "rows": 1232
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "(無代碼)",
-   "exist": "TOPIC",
-   "streamers": 44,
-   "rows": 52
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "(無代碼)",
-   "exist": "TRUE_PAIN",
-   "streamers": 454,
-   "rows": 753
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.0",
-   "exist": "TRUE_PAIN",
-   "streamers": 2,
-   "rows": 2
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.1",
-   "exist": "NOISE",
-   "streamers": 106,
-   "rows": 130
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.1",
-   "exist": "TOPIC",
-   "streamers": 11,
-   "rows": 13
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "S2.1",
-   "exist": "TRUE_PAIN",
-   "streamers": 120,
-   "rows": 218
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U2.0",
-   "exist": "TRUE_PAIN",
-   "streamers": 1,
-   "rows": 1
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U5.0",
-   "exist": "TRUE_PAIN",
-   "streamers": 1,
-   "rows": 1
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U6.0",
-   "exist": "NOISE",
-   "streamers": 3,
-   "rows": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U6.0",
-   "exist": "TOPIC",
-   "streamers": 1,
-   "rows": 1
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U6.0",
-   "exist": "TRUE_PAIN",
-   "streamers": 6,
-   "rows": 14
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "U6.3",
-   "exist": "TRUE_PAIN",
-   "streamers": 2,
-   "rows": 3
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "X1.0",
-   "exist": "NOISE",
-   "streamers": 64,
-   "rows": 70
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "X1.0",
-   "exist": "TOPIC",
-   "streamers": 7,
-   "rows": 7
-  },
-  {
-   "window_start": "2026-08-24",
-   "code": "X1.0",
-   "exist": "TRUE_PAIN",
-   "streamers": 81,
-   "rows": 99
-  },
   {
    "window_start": "2026-08-31",
    "code": "(無代碼)",
