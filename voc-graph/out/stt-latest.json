@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
- "fetched_at": "2026-10-26T23:33:15+00:00",
- "fetched_date": "2026-10-26",
+ "fetched_at": "2026-10-27T23:33:17+00:00",
+ "fetched_date": "2026-10-27",
  "fetched_by": "apps-script",
  "source_table": "media17-1119.DataLab_Ayana.stt_voc_judgments",
  "lookback_days": 63,
@@ -3131,6 +3131,177 @@
   },
   {
    "window_start": "2026-10-12",
+   "code": "U6.3",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "X1.0",
+   "streamers": 189,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 288
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "S2.1",
+   "streamers": 152,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 254
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U4.1",
+   "streamers": 47,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 60
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "S2.0",
+   "streamers": 44,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 67
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U4.4",
+   "streamers": 40,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 48
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U6.0",
+   "streamers": 13,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 14
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U4.0",
+   "streamers": 9,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 11
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U2.1",
+   "streamers": 6,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 7
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U2.4",
+   "streamers": 5,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 6
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U4.2",
+   "streamers": 5,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 5
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "S2.2",
+   "streamers": 4,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 5
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U2.3",
+   "streamers": 4,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 5
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U2.0",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U2.2",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U5.0",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U5.2",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U5.3",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
+   "code": "U5.4",
+   "streamers": 1,
+   "stop_streamers": null,
+   "top_streamers": null,
+   "sample_hit_ids": [],
+   "rows": 1
+  },
+  {
+   "window_start": "2026-10-19",
    "code": "U6.3",
    "streamers": 1,
    "stop_streamers": null,
